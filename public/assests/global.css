@@ -1,0 +1,53 @@
+/* Reset some default margins & paddings */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Global full-width image */
+.full-width-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Global section style (can be reused anywhere) */
+.section {
+  padding: 60px 20px;
+}
+
+/* Center overlay container (text on top of image) */
+.overlay-container {
+  position: relative;
+  text-align: center;
+  color: #fff;
+}
+
+.overlay-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.overlay-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Global button style */
+.btn-global {
+  padding: 10px 20px;
+  border-radius: 6px;
+  background-color: #007bff;
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s ease;
+}
+
+.btn-global:hover {
+  background-color: #0056b3;
+}

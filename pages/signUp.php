@@ -94,7 +94,10 @@
             By registering your details, you agree with our 
             <a href="/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a>.
         </label>
-        
-        <?php include "../components/button.php"; ?>
+        <div class="card-button">
+        <?php 
+        $Text = "Sign Up";
+         include "../components/button.php"; ?>
+         </div>
     </div>
 </div>

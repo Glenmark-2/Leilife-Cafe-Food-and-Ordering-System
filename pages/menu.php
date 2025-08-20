@@ -5,42 +5,47 @@
     font-size: 50px; 
     margin: 0;
     padding: 0;
-    text-align: center;   /* tagline centered */
+    
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.background-color h6 {
-    margin: 0;
-    padding: 0;
+.background-color .tagline {
+    max-width: 1000px;    /* same as .menu */
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 20px;      /* same horizontal padding */
     font-size: 18px;
+    text-align: left;     /* aligned with menu */
 }
 
+
 .menu {
-    max-width: 1300px;    /* keeps content from stretching too wide */
-    margin: 30px 80px;    /* centers the whole menu section */
+    max-width: 1000px;   /* enough space for 5 cards (250px each + gaps) */
+    margin: 50px auto;   /* center the whole section */
     padding: 0 20px;
     text-align: center;
 }
 
-.category-buttons {
-    margin-bottom: 20px;
-}
-
 .menu-cards {
-
-    display: flex;
-    flex-wrap: wrap;      /* allows cards to wrap to next line */
-    justify-content: left; /* center cards horizontally */
-    gap: 20px;            /* spacing between cards */
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* exactly 5 cards per row */
+    gap: 20px; /* space between cards */
+    justify-items: center; /* center cards inside grid cells */
+}
+.category-title{
+    text-align: left;
+    margin: 50px 0 10px ;
+    font-size: 30px;
 }
 
 
 
 </style>
 <div class="background-color">
-    <h6>When Coffee Meets Good Food, Great Conversations Begin.</h6>
+    <h6 class="tagline">When Coffee Meets Good Food, Great Conversations Begin.</h6>
 </div>
 
 
@@ -50,7 +55,17 @@
     <?php $Text = "Drinks";include '../components/button.php' ?>
     <?php $Text = "Featured";include '../components/button.php' ?>
     </div>
-
+    <div class="category-title">Rice Meal</div>
+    </h2>
+    <div class="menu-cards">
+    <?php $name = "Tiramisu" ;$price =  "100" ; $image = "../public/assests/image-43.png" ;include '../partials/menu-card.php'?>
+    <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
+    <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
+    <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
+    <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
+    </div>
+     <div class="category-title">Rice Meal</div>
+    </h2>
     <div class="menu-cards">
     <?php $name = "Tiramisu" ;$price =  "100" ; $image = "../public/assests/image-43.png" ;include '../partials/menu-card.php'?>
     <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
@@ -58,8 +73,5 @@
     <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
     <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
     
-    
-
-    </div>
 
 </div>

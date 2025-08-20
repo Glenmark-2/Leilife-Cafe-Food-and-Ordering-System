@@ -11,11 +11,12 @@
   <style>
     body {
       margin: 0;
-      /* font-family: 'Segoe UI', sans-serif; */
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #ebe8e2;
     }
 
     .navbar {
-      background-color: #ece7e1;
+      background-color: #d0b28c;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -114,7 +115,7 @@
   <!-- Right side buttons -->
   <div class="navbar-actions">
     <a href="index.php?page=login" class="btn-link">Login</a>
-    <a href="index.php?page=signup" class="btn-dark">Sign Up</a>
+    <a href="index.php?page=signUp" class="btn-dark">Sign Up</a>
   </div>
 </nav>
 

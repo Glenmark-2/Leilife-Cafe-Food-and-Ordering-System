@@ -4,10 +4,12 @@
   align-items: center;
   background: #fdf9f5;
   border-radius: 16px;
-  padding: 12px 18px;
+  padding: clamp(10px, 2vw, 18px);
   box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+  width: 100%;
   max-width: 650px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin: 0 auto; /* centers card */
 }
 
 .product-card:hover {
@@ -16,31 +18,31 @@
 }
 
 .product-image {
-  width: 120px;
-  height: auto;
+  width: clamp(80px, 25%, 140px);
+  max-height: 160px;
   border-radius: 14px;
   object-fit: contain;
   background: #fff;
+  flex-shrink: 0;
 }
 
 .product-info {
   flex: 1;
-  margin-left: 18px;
+  margin-left: clamp(10px, 2vw, 18px);
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-/* Wrapper to balance title center + actions bottom */
 .info-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* centers title vertically */
+  justify-content: center;
 }
 
 .product-title {
-  font-size: 15px;
+  font-size: clamp(14px, 2vw, 18px);
   font-weight: 600;
   margin: 0;
   color: #222;
@@ -51,22 +53,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px; /* spacing from title */
+  margin-top: clamp(6px, 1.5vw, 12px);
 }
 
 .product-price {
-  font-size: 14px;
+  font-size: clamp(13px, 2vw, 16px);
   font-weight: 600;
   color: #111;
 }
 
 .buy-btn {
-  padding: 6px 16px;
+  padding: clamp(5px, 1vw, 8px) clamp(14px, 2vw, 20px);
   border: none;
   border-radius: 20px;
   background: #293b42;
   color: #fff;
-  font-size: 14px;
+  font-size: clamp(12px, 2vw, 15px);
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -74,6 +76,24 @@
 
 .buy-btn:hover {
   background: #1d2a2f;
+}
+
+/* 📱 Mobile layout: stack image on top */
+@media (max-width: 600px) {
+  .product-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .product-info {
+    margin-left: 0;
+    margin-top: 12px;
+  }
+
+  .product-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
 }
 </style>
 

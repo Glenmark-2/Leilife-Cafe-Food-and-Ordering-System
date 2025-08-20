@@ -72,5 +72,7 @@
     <div class="card"><?php include '../partials/card.php'; ?></div>
     <div class="card"><?php include '../partials/card.php'; ?></div>
     <div class="card"><?php include '../partials/card.php'; ?></div>
+    <div class="card"><?php include '../partials/card.php'; ?></div>
+
   </div>
 </div>

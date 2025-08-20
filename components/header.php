@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leilife Cafe</title>
-  <link rel="stylesheet" href="../public/assets/css/global.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+   <link rel="stylesheet" href="public/css/style.css">
 
   <!-- Internal CSS -->
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
+      /* font-family: 'Segoe UI', sans-serif; */
     }
 
     .navbar {
@@ -18,12 +19,12 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.5rem 2rem;
+      padding: 0.5rem 3rem;
     }
 
     /* Logo */
     .navbar-brand img {
-      height: 50px;
+      height: 80px;
     }
 
     /* Center menu */

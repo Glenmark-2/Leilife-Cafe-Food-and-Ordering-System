@@ -4,6 +4,7 @@
         align-items: center;
         justify-content: center;
         flex-direction: column;
+        
     }
 
     #title {
@@ -21,6 +22,7 @@
         background-color: white;
         padding: 40px;
         border-radius: 25px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 
     }
 
@@ -30,40 +32,81 @@
         gap: 30px;
     }
 
+input {
+    width: 15vw;
+    height: 6vh;
+    background-color: #f4f4f4;
+    border: none;
+    border-radius: 5px;
+    padding-left: 10px;
+}
+
+/* Mobile view (example: screens below 768px) */
+@media (max-width: 768px) {
+    .input-box {
+        flex-direction: column;
+        gap: 20px; /* smaller gap for mobile */
+    }
+
+    .input-box input {
+        width: 100%;
+        height: 55px; /* increase input height */
+        font-size: 16px;
+        padding: 12px 15px;
+        box-sizing: border-box;
+    }
+
+    #title{
+        font-size: 12px;
+    }
+
+    #subtitle{
+        font-size: 15px;
+        padding-left: 30px;
+        padding-right: 30px;
+        margin-top: 15px;
+    }
+}
+
+
     .input-box input {
         flex: 1 1 calc(50% - 30px);
         box-sizing: border-box;
     }
 
-    input {
-        width: 15vw;
-        height: 6vh;
-        background-color: #f4f4f4;
-        border: none;
-        border-radius: 5px;
-        padding-left: 10px;
-
-    }
+    
 
     .label-input {
         font-weight: bolder;
     }
 
-.terms-check {
+.checkbox-container {
   display: flex;
-  align-items: center; 
-  gap: 8px;           
+  margin: 20px 0;
   font-size: 14px;
-  line-height: 1.4;
-  margin-top: 15px;
+  line-height: 1.5;
+  
+
 }
 
-.terms-check input {
-  width: 16px;   
-  height: 16px;
-  transform: none;  
-  margin: 0;         
+.checkbox-container input[type="checkbox"] {
+background-color: red;
+  margin-top: 4px;
+  height: .5cm;
+  width: fit-content;
 }
+
+.checkbox-container a {
+  color: #243238;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.checkbox-container a:hover {
+  text-decoration: underline;
+}
+
+
 
 
     
@@ -87,14 +130,22 @@
             <input type="email" name="email" required placeholder="Email address">
             <input type="tel" name="phone_number" required placeholder="Phone number">
             <input type="password" name="password" required placeholder="Password">
-            <input type="password" name="confirm_password" required placeholder="Password">
+            <input type="password" name="confirm_password" required placeholder="Confirm password">
         </div>
-        <label class="terms-check">
-        <input  type="checkbox" id="agree" name="agree" required>
-            By registering your details, you agree with our 
-            <a href="/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a>.
-        </label>
+
+       <div class="checkbox-container">
+  <input type="checkbox" id="terms">
+  <label for="terms">
+    By registering your details, you agree with our 
+    <a href="#">Terms & Conditions</a>.
+  </label>
+</div>
+
+
         
-        <?php include "../components/button.php"; ?>
+        <?php
+        $Text = "Create your Account";
+         include "../components/button.php";
+          ?>
     </div>
 </div>

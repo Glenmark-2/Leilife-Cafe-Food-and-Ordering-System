@@ -85,7 +85,29 @@
   gap: 20px; /* space between cards */
   flex-wrap: wrap; /* responsive: wrap cards if screen is small */
 }
+.section2{
+  text-align: center;
+  margin: 10px 0px;
+}
+.reco-card{
+  display: flex;
+  justify-content: center;
+}
+  .reco-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns */
+    gap: 20px; /* space between cards */
+    justify-content: center;
+    align-items: center;
+    max-width: 800px; /* keeps grid centered */
+    margin: 0 auto; /* center horizontally */
+    padding: 20px 0;
+  }
 
+  .reco-card {
+    display: flex;
+    justify-content: center;
+  }
 
 </style>
 
@@ -110,4 +132,11 @@
     <?php include '../partials/card.php'; ?>
     <?php include '../partials/card.php'; ?>
   </div>
+</div>
+
+<div class="section2">
+<div class="recommendations">
+  <?php include '../components/reco-carousel.php'; ?>
+</div>
+
 </div>

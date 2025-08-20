@@ -1,8 +1,9 @@
 <style>
- .overlay-container {
+/* === HERO (Overlay Section) === */
+.overlay-container {
   position: relative;
   width: 100%;
-  height: 50vh;
+  height: 60vh; /* taller for better hero feel */
   overflow: hidden;
 }
 
@@ -12,7 +13,6 @@
   object-fit: cover;
 }
 
-/* Dark overlay */
 .overlay-container::after {
   content: "";
   position: absolute;
@@ -20,7 +20,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* adjust darkness (0.3–0.7) */
+  background: rgba(0, 0, 0, 0.5);
   z-index: 1;
 }
 
@@ -31,11 +31,12 @@
   transform: translate(-50%, -50%);
   text-align: center;
   color: white;
-  z-index: 2; /* Make sure text stays above the dark overlay */
+  z-index: 2;
+  padding: 0 1rem;
 }
 
 .overlay-content h1 {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: bold;
 }
 
@@ -47,23 +48,26 @@
   margin-top: 20px;
   padding: 12px 24px;
   border-radius: 8px;
-  background-color: #22333b; /* Coffee brown */
+  background-color: #22333b;
   color: white;
   text-decoration: none;
+  display: inline-block;
+}
+.btn:hover {
+  background-color: #415863;
 }
 
-.btn:hover {
-  background-color: #415863ff;
-}
+/* === SECTION (Good Afternoon) === */
 .section {
   display: flex;
-  flex-direction: column; /* stack text and row vertically */
-  margin: 40px 300px;
+  flex-direction: column;
+  margin: 40px auto;
   border-radius: 20px;
-  background-color: #f2f2f2; /* lighter background */
+  background-color: #f2f2f2;
   border: 1px solid #e0e0e0;
   padding: 20px 30px;
-  box-shadow: 0px 4px 12px rgba(0,0,0,0.1); /* soft shadow */
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+  max-width: 1200px;
 }
 
 .section p:first-child {
@@ -82,32 +86,81 @@
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  gap: 20px; /* space between cards */
-  flex-wrap: wrap; /* responsive: wrap cards if screen is small */
+  gap: 20px;
+  flex-wrap: wrap;
 }
-.section2{
+
+/* === RECOMMENDATIONS SECTION === */
+.section2 {
   text-align: center;
-  margin: 10px 0px;
+  margin: 20px 0px;
 }
-.reco-card{
+
+.reco-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.reco-card {
   display: flex;
   justify-content: center;
 }
-  .reco-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columns */
-    gap: 20px; /* space between cards */
-    justify-content: center;
-    align-items: center;
-    max-width: 800px; /* keeps grid centered */
-    margin: 0 auto; /* center horizontally */
-    padding: 20px 0;
+
+/* === RESPONSIVENESS === */
+
+/* Tablets */
+@media (max-width: 992px) {
+  .overlay-content h1 {
+    font-size: 2rem;
+  }
+  .overlay-content p {
+    font-size: 1rem;
+  }
+  .section {
+    margin: 30px 40px;
+    padding: 20px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .overlay-container {
+    height: 40vh;
+  }
+  .overlay-content h1 {
+    font-size: 1.6rem;
+  }
+  .overlay-content p {
+    font-size: 0.9rem;
+  }
+  .btn {
+    padding: 10px 18px;
+    font-size: 0.9rem;
   }
 
-  .reco-card {
-    display: flex;
-    justify-content: center;
+  .section {
+    margin: 20px 15px;
+    padding: 15px;
   }
+  .section p:first-child {
+    font-size: 1.2rem;
+  }
+  .section p:nth-child(2) {
+    font-size: 0.9rem;
+  }
+
+  .row {
+    flex-direction: column;
+    gap: 15px;
+  }
+}
+
 
 </style>
 

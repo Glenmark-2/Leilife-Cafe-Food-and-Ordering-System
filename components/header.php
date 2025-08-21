@@ -114,9 +114,26 @@
 
   <!-- Right side buttons -->
   <div class="navbar-actions">
-    <a href="index.php?page=login" class="btn-link">Login</a>
+    <a href="#" id="loginBtn" class="btn-link">Login</a>
     <a href="index.php?page=signUp" class="btn-dark">Sign Up</a>
   </div>
 </nav>
 
 <div class="container">
+
+<div id="loginModal"
+style="display: flex;";
+>
+  <?php 
+  include "../pages/login.php";
+  ?>
+</div>
+
+<script>
+  const loginBtn = document.getElementById("loginBtn");
+  const loginModal = document.getElementById("loginModal");
+
+  loginBtn.addEventListener('click', () => {
+    loginModal.style.display = 'flex';
+  });
+</script>

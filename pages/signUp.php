@@ -32,7 +32,7 @@
         gap: 30px;
     }
 
-input {
+#box input:not([type="checkbox"]) {
     width: 15vw;
     height: 6vh;
     background-color: #f4f4f4;
@@ -142,10 +142,12 @@ background-color: red;
 </div>
 
 
-        
-        <?php
-        $Text = "Create your Account";
-         include "../components/button.php";
-          ?>
+        <center>
+        <?php 
+        include "../components/buttonTemplate.php";
+        echo createButton(45, 360, "Create your Account","create-btn");
+        ?>
+        </center>
     </div>
 </div>
+

@@ -12,4 +12,20 @@ function createButton($height, $width, $text, $id = "") {
                 onmouseover=\"this.style.backgroundColor='{$hoverColor}'\" 
                 onmouseout=\"this.style.backgroundColor='{$defaultColor}'\">{$text}</button>";
 }
+
+// createButton(height, width, text, id)
+// - height: button height in pixels
+// - width: button width in pixels
+// - text: label that appears inside the button
+// - id (optional): HTML id attribute for targeting with JS/CSS
+//
+// Example:
+// echo createButton(50, 200, "Click Me", "myBtn");
+
+// how to apply it
+//<?php include "../components/buttonTemplate.php";
+// echo createButton(45, 360, "Create your Account","create-btn");
 ?>
+
+
+

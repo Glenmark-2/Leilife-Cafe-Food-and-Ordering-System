@@ -70,25 +70,24 @@
   max-width: 1200px;
 }
 
-.section p:first-child {
+.greating {
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 5px;
 }
 
-.section p:nth-child(2) {
+.statementGreating {
   font-size: 1rem;
   margin-bottom: 20px;
-  color: #555;
 }
 
 .row {
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
-  flex-wrap: wrap;
+  justify-content: center;
 }
+
 
 /* === RECOMMENDATIONS SECTION === */
 .section2 {
@@ -111,6 +110,129 @@
   display: flex;
   justify-content: center;
 }
+.product-item {
+  display: flex;
+  flex-direction: column;
+  background: #e0e0e0;
+  width: fit-content;
+  height: auto; 
+  margin: 10px auto; 
+  padding: 20px;
+  border: none;
+  border-radius: 20px;
+}
+
+.product-item-title {
+  display: flex;
+  align-self: flex-start;
+}
+/* === FEATURED BOX === */
+.featured-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 30px 20px;
+}
+
+.featured-box {
+  display: flex;
+  background: #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  max-width: 1000px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.featured-image {
+  flex: 1;
+  min-width: 40%;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  background: #1e2d33;
+}
+.featured-image img {
+  width: 100%;
+  height: auto;              /* let the image keep aspect ratio */
+  max-height: 400px;         /* optional: prevent it from being too tall */
+  object-fit: cover;
+}
+
+.featured-content {
+  flex: 1.2;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.featured-content h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 30px;
+  color: #000;
+  text-align: left;
+}
+
+.featured-content p {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  color: #333;
+  text-align: justify;
+}
+
+.featured-btn {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* === RESPONSIVENESS === */
+@media (max-width: 992px) {
+  .featured-box {
+    flex-direction: column;
+  }
+  .featured-image {
+    min-width: 100%;
+  }
+  .featured-image img {
+    width: 100%;
+    height: auto;       /* prevent stretching */
+    max-height: 250px;  /* cap the image height on tablets */
+  }
+  .featured-content {
+    padding: 20px;
+  }
+  .featured-content h2 {
+    font-size: 20px;
+    text-align: center;
+  }
+  .featured-content p {
+    font-size: 14px;
+    text-align: center;
+  }
+  .featured-btn {
+    justify-content: center;
+    margin-top: 20px;
+  }
+    .row {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .featured-image img {
+    max-height: 180px; /* smaller cap for mobile */
+  }
+  .featured-content h2 {
+    font-size: 18px;
+  }
+  .featured-content p {
+    font-size: 13px;
+  }
+}
+
 
 /* === RESPONSIVENESS === */
 
@@ -127,7 +249,11 @@
     padding: 20px;
   }
 }
-
+@media (max-width: 821px) {
+  .row   {
+    justify-content: center;
+  }
+}
 /* Mobile */
 @media (max-width: 600px) {
   .overlay-container {
@@ -154,20 +280,25 @@
   .section p:nth-child(2) {
     font-size: 0.9rem;
   }
-
+}
+@media (max-width: 520px) {
   .row {
-    flex-direction: column;
-    gap: 15px;
+    grid-template-columns: repeat(2, 1fr); /* force 2 per row */
+    gap: 8px;
   }
 }
-
-
 </style>
 
+<?php 
+// load the component file ONCE at the top
+require_once "../components/product-card.php"; 
 
+
+?>
+
+<!-- HERO -->
 <div class="overlay-container">
- <img src="\Leilife\public\assests\image 37.png" alt="Background" class="full-width-img">
-
+  <img src="\Leilife\public\assests\image 37.png" alt="Background" class="full-width-img">
 
   <div class="overlay-content">
     <h1>Welcome to Leilife Cafe</h1>
@@ -176,9 +307,12 @@
   </div>
 </div>
 
+
+<!-- GREETING SECTION -->
 <div class="section">
-    <p>Good Afternoon!</p>
-    <p>Take a break and enjoy the flavors of Leilife Cafe and Resto!</p>
+  <p class="greating">Good Afternoon!</p>
+  <p class="statementGreating">Take a break and enjoy the flavors of Leilife Cafe and Resto!</p>
+
   <div class="row">
     <?php include '../partials/card.php'; ?>
     <?php include '../partials/card.php'; ?>
@@ -187,9 +321,45 @@
   </div>
 </div>
 
+<!-- RECOMMENDATIONS SECTION -->
 <div class="section2">
-<div class="recommendations">
-  <?php include '../components/reco-carousel.php'; ?>
+  <div class="recommendations">
+    <?php include '../components/reco-carousel.php'; ?>
+  </div>
+
+<!-- FEATURED CONTENT BOX -->
+<div class="featured-wrapper">
+  <div class="featured-box">
+    <!-- Left Image -->
+    <div class="featured-image">
+      <img src="\Leilife\public\assests\image 41.png" alt="Food">
+    </div>
+
+    <!-- Right Content -->
+    <div class="featured-content">
+      <div>
+        <h2>
+          When Coffee Meets Good Food, Great Conversations Begin.
+        </h2>
+        <p>
+          At Leilife Cafe and Resto, we believe every meal should be a moment to savor. 
+          From freshly brewed coffee to hearty meals, we combine quality ingredients, 
+          skilled preparation, and a warm ambiance to create the perfect dining experience 
+          for every guest.
+        </p>
+      </div>
+
+      <div class="featured-btn">
+        <?php 
+          include "../components/buttonTemplate.php"; 
+          echo createButton(40, 120, "Explore", "exploreBtn"); 
+        ?>
+      </div>
+    </div>
+  </div>
 </div>
+
+
+  <!-- PRODUCT ITEM SECTION -->
 
 </div>

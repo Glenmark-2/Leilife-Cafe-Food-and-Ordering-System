@@ -32,7 +32,7 @@
         gap: 30px;
     }
 
-input {
+#box input:not([type="checkbox"]) {
     width: 15vw;
     height: 6vh;
     background-color: #f4f4f4;
@@ -132,15 +132,22 @@ background-color: red;
             <input type="password" name="password" required placeholder="Password">
             <input type="password" name="confirm_password" required placeholder="Confirm password">
         </div>
-        <label class="terms-check">
-        <input  type="checkbox" id="agree" name="agree" required>
-            By registering your details, you agree with our 
-            <a href="/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a>.
-        </label>
-        <div class="card-button">
+
+       <div class="checkbox-container">
+  <input type="checkbox" id="terms">
+  <label for="terms">
+    By registering your details, you agree with our 
+    <a href="#">Terms & Conditions</a>.
+  </label>
+</div>
+
+
+        <center>
         <?php 
-        $Text = "Sign Up";
-         include "../components/button.php"; ?>
-         </div>
+        include "../components/buttonTemplate.php";
+        echo createButton(45, 360, "Create your Account","create-btn");
+        ?>
+        </center>
     </div>
 </div>
+

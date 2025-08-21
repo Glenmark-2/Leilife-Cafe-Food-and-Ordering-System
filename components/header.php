@@ -189,33 +189,28 @@
     <li><a class="nav-link" href="index.php?page=contact">Contact</a></li>
   </ul>
 
-  <!-- Desktop Actions -->
-  <div class="navbar-actions desktop-menu">
-    <a href="index.php?page=login" class="btn-link">Login</a>
+  <!-- Right side buttons -->
+  <div class="navbar-actions">
+    <a href="#" id="loginBtn" class="btn-link">Login</a>
     <a href="index.php?page=signUp" class="btn-dark">Sign Up</a>
   </div>
 </nav>
 
-<!-- Mobile Dropdown -->
-<div class="mobile-menu" id="mobileMenu">
-  <a href="index.php?page=menu">Menu</a>
-  <a href="index.php?page=about">About</a>
-  <a href="index.php?page=contact">Contact</a>
-  <div class="auth-links">
-    <a href="index.php?page=login">Login</a>
-    <a href="index.php?page=signUp">Sign Up</a>
-  </div>
+<div class="container">
+
+<div id="loginModal"
+style="display: flex;";
+>
+  <?php 
+  include "../pages/login.php";
+  ?>
 </div>
 
-
 <script>
-  const burger = document.getElementById("burger");
-  const mobileMenu = document.getElementById("mobileMenu");
+  const loginBtn = document.getElementById("loginBtn");
+  const loginModal = document.getElementById("loginModal");
 
-  burger.addEventListener("click", () => {
-    burger.classList.toggle("active");
-    mobileMenu.classList.toggle("show");
+  loginBtn.addEventListener('click', () => {
+    loginModal.style.display = 'flex';
   });
 </script>
-
-

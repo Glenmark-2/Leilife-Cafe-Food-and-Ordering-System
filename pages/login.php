@@ -1,7 +1,10 @@
 <style>
 /* Modal container */
 #box-container {
-    position: relative;
+    position: fixed; /* make it float above the page */
+    top: 50%;         /* vertical center */
+    left: 50%;        /* horizontal center */
+    transform: translate(-50%, -50%); /* truly center */
     display: flex;
     justify-content: center;
     background-color: white;
@@ -10,6 +13,8 @@
     width: fit-content;
     border-radius: 20px;
     font-family: Arial, sans-serif;
+    z-index: 1000; /* ensure it stays on top */
+    margin-top: 40px; /* remove old margin */
 }
 
 /* Close button */
@@ -99,7 +104,7 @@ input {
 button.login-btn {
     width: 100%;
     padding: 10px 0;
-    background-color: #4CAF50;
+    background-color: #22333c;
     color: white;
     border: none;
     border-radius: 8px;
@@ -109,7 +114,7 @@ button.login-btn {
 }
 
 button.login-btn:hover {
-    background-color: #45a049;
+    background-color: #445566;
 }
 
 /* Sign up section */
@@ -122,7 +127,7 @@ button.login-btn:hover {
 .signup button {
     background: transparent;
     border: none;
-    color: #4CAF50;
+    color: red;
     cursor: pointer;
     font-weight: bold;
 }
@@ -131,7 +136,7 @@ button.login-btn:hover {
     text-decoration: underline;
 }
 </style>
-
+<center>
 <div id="box-container">
     <!-- Close button -->
     <button id="close-btn">&times;</button>
@@ -161,9 +166,9 @@ button.login-btn:hover {
         </div>
     </div>
 </div>
-
+</center>
 <script>
 document.getElementById('close-btn').addEventListener('click', () => {
-    document.getElementById('box-container').style.display = 'none';
+    document.getElementById('loginModal').style.display = 'none';
 });
 </script>

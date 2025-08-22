@@ -125,6 +125,8 @@
 .product-item-title {
   display: flex;
   align-self: flex-start;
+  font-weight: 700;
+  font-size: 20px;
 }
 /* === FEATURED BOX === */
 .featured-wrapper {
@@ -253,6 +255,19 @@
   .row   {
     justify-content: center;
   }
+      .about-section {
+      flex-direction: column;
+      gap: 24px;
+    }
+    .about-section h5 {
+      font-size: 24px;
+      text-align: center;
+    }
+    .about-section p {
+      font-size: 15px;
+      text-align: center;
+      max-width: 100%;
+    }
 }
 /* Mobile */
 @media (max-width: 600px) {
@@ -361,5 +376,33 @@ require_once "../components/product-card.php";
 
 
   <!-- PRODUCT ITEM SECTION -->
+<div class="product-item">
+  <div class="product-item-title">
+    <p>You may choose from</p>
+  </div>
+  <div style="display: flex; flex-direction: row;">
+    <?php 
+      echo productCard("Meal","image.png",120,"#837575","White");
+      echo productCard("Meal","image.png",120,"#837575","White");
+      echo productCard("Meal","image.png",120,"#837575","White");
+      echo productCard("Meal","image.png",120,"#837575","White");
+      echo productCard("Meal","image.png",120,"#837575","White");
+      echo productCard("Meal","image.png",120,"#837575","White");
+
+    ?>
+  </div>
+</div>
+<!-- <div style="display:flex; justify-content:center; width:100%; padding:40px 20px;">
+  <div style="display:flex; align-items:flex-start; width:90%; max-width:1200px; gap:72px;">
+    <h5 style="flex:1; margin:0; font-size:32px; line-height:1.35; text-align:left;">
+      Savor Every Bite & Sip at<br>Leilife Cafe and Resto!
+    </h5>
+    <p style="flex:1; margin:0; font-size:16px; line-height:1.7; text-align:left; max-width:65ch;">
+      At Leilife Cafe and Resto, we take pride in serving delicious meals
+      and perfectly brewed coffee. From freshly prepared dishes to expertly crafted beverages, 
+      every bite and sip is made to give you a warm and memorable dining experience.
+    </p>
+  </div>
+</div> -->
 
 </div>

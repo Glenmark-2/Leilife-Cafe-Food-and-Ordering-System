@@ -380,7 +380,13 @@ require_once "../components/product-card.php";
   <div class="product-item-title">
     <p>You may choose from</p>
   </div>
-  <div style="display: flex; flex-direction: row;">
+  <div style="display: flex;
+  flex-wrap: wrap;          /* allow wrapping on small screens */
+  justify-content: center;  /* center items */
+  gap: 16px;                /* spacing between cards */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;">
     <?php 
       echo productCard("Meal","image.png",120,"#837575","White");
       echo productCard("Meal","image.png",120,"#837575","White");

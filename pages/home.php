@@ -307,6 +307,7 @@
 <?php 
 // load the component file ONCE at the top
 require_once "../components/product-card.php"; 
+require_once '../partials/intro-card.php';
 
 
 ?>
@@ -376,23 +377,14 @@ require_once "../components/product-card.php";
 
 
   <!-- PRODUCT ITEM SECTION -->
-<div class="product-item">
+<!-- <div class="product-item">
   <div class="product-item-title">
     <p>You may choose from</p>
   </div>
   <div style="display: flex; flex-direction: row;">
-    <?php 
-      echo productCard("Meal","image.png",120,"#837575","White");
-      echo productCard("Meal","image.png",120,"#837575","White");
-      echo productCard("Meal","image.png",120,"#837575","White");
-      echo productCard("Meal","image.png",120,"#837575","White");
-      echo productCard("Meal","image.png",120,"#837575","White");
-      echo productCard("Meal","image.png",120,"#837575","White");
-
-    ?>
   </div>
-</div>
-<!-- <div style="display:flex; justify-content:center; width:100%; padding:40px 20px;">
+</div> -->
+<div style="display:flex; justify-content:center; padding:40px 20px;">
   <div style="display:flex; align-items:flex-start; width:90%; max-width:1200px; gap:72px;">
     <h5 style="flex:1; margin:0; font-size:32px; line-height:1.35; text-align:left;">
       Savor Every Bite & Sip at<br>Leilife Cafe and Resto!
@@ -403,6 +395,14 @@ require_once "../components/product-card.php";
       every bite and sip is made to give you a warm and memorable dining experience.
     </p>
   </div>
-</div> -->
+</div>
+<div style="display: flex; flex-direction: row; justify-content center; align-content: center;">
+  <?php 
+    echo infoCard("🍽️", "Fresh & Flavorful Dishes", "We use only the freshest ingredients...");
+    echo infoCard("🍽️", "Fresh & Flavorful Dishes", "We use only the freshest ingredients...");
+    echo infoCard("🍽️", "Fresh & Flavorful Dishes", "We use only the freshest ingredients...");
+  ?>
+</div>
+ 
 
 </div>

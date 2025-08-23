@@ -212,9 +212,13 @@
   <a href="index.php?page=about">About</a>
   <a href="index.php?page=contact">Contact</a>
   <div class="auth-links">
-    <a href="index.php?page=login">Login</a>
+    <a id="loginBtn" href="index.php?page=login">Login</a>
     <a href="index.php?page=signUp">Sign Up</a>
   </div>
+</div>
+
+<div id="loginModal" style="display: none;">
+  <?php include "../pages/login.php" ?>
 </div>
 
 <!-- Page container -->

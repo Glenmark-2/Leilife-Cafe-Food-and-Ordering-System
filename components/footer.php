@@ -1,4 +1,4 @@
-<footer class="site-footer">
+<footer class="site-footer" style="margin-top: 100px;">
   <div class="footer-logo">
     <img src="\Leilife\public\assests\image-removebg-preview (31) 1.png" alt="Logo">
   </div>

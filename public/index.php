@@ -3,7 +3,7 @@ $page = $_GET['page'] ?? 'home';
 
 include '../components/header.php';
 
-$allowed_pages = ['home', 'menu', 'orders','signUp','login'];
+$allowed_pages = ['home', 'menu', 'orders','signUp','login','solo-product'];
 if(in_array($page, $allowed_pages)){
     include "../pages/$page.php";
 } else {

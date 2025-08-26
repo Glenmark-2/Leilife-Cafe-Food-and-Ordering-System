@@ -489,6 +489,8 @@ require_once '../partials/intro-card.php';
 
 ?>
 
+
+
 <!-- HERO -->
 <div class="overlay-container">
   <img src="\Leilife\public\assests\image 37.png" alt="Background" class="full-width-img">

@@ -223,6 +223,8 @@
 
 <!-- Page container -->
 
+<!-- cart here  -->
+
 <script>
   (function () {
     const navbar = document.querySelector('.navbar');

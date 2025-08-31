@@ -648,6 +648,8 @@
 require_once "../components/product-card.php";
 require_once '../partials/intro-card.php';
 // require_once '../pages/cart.php';
+
+// include "../pages/cart.php"
 ?>
 
 

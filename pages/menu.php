@@ -16,7 +16,7 @@
     width: 100%;
     margin: 0 auto;
     padding: 0 20px;      /* same horizontal padding */
-    font-size: 18px;
+    font-size: 16px;
     text-align: left;     /* aligned with menu */
 }
 
@@ -40,11 +40,30 @@
     margin: 50px 0 10px ;
     font-size: 30px;
 }
+@media (max-width: 1024px) {
+    .menu-cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Mobile (max-width: 768px) → show 2 per row */
+@media (max-width: 768px) {
+    .menu-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Extra small (max-width: 480px) → show 1 per row */
+@media (max-width: 410px) {
+    .menu-cards {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
 </style>
 
 <!-- Menu Header -->
 <div class="menu-header">
-    <h6 class="menu-tagline">When Coffee Meets Good Food, Great Conversations Begin.</h6>
+    <h6  class="menu-tagline">When Coffee Meets Good Food, Great Conversations Begin.</h6>
 </div>
 
 <div class="menu">

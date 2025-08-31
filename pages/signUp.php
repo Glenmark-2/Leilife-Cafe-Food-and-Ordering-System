@@ -1,99 +1,75 @@
 <style>
-    #body-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        
-    }
+#body-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 20px;
+}
 
-    #title {
-        text-align: center;
-        font-size: 20px;
-    }
+#title {
+  text-align: center;
+}
 
-    #subtitle {
-        margin-top: -20px;
-        font-size: 15px;
-    }
+#title h1 {
+  font-size: 28px; /* desktop heading */
+  margin-bottom: 10px;
+}
 
-    #box {
+#subtitle {
+  font-size: 16px;
+  margin: 0 auto 20px auto;
+  max-width: 480px;
+  text-align: center;
+}
 
-        background-color: white;
-        padding: 40px;
-        border-radius: 25px;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+#box {
+  background-color: white;
+  padding: 40px;
+  border-radius: 25px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  width: 100%;
+}
 
-    }
-
-    .input-box {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 30px;
-    }
+.input-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
 
 #box input:not([type="checkbox"]) {
-    width: 15vw;
-    height: 6vh;
-    background-color: #f4f4f4;
-    border: none;
-    border-radius: 5px;
-    padding-left: 10px;
+  flex: 1 1 calc(50% - 20px);
+  min-width: 300px;
+  width: 100%;
+  height: 52px;
+  background-color: #f4f4f4;
+  border: none;
+  border-radius: 5px;
+  padding: 0 15px;
+  font-size: 16px;
+  box-sizing: border-box;
 }
 
-/* Mobile view (example: screens below 768px) */
-@media (max-width: 768px) {
-    .input-box {
-        flex-direction: column;
-        gap: 20px; /* smaller gap for mobile */
-    }
-
-    .input-box input {
-        width: 100%;
-        height: 55px; /* increase input height */
-        font-size: 16px;
-        padding: 12px 15px;
-        box-sizing: border-box;
-    }
-
-    #title{
-        font-size: 12px;
-    }
-
-    #subtitle{
-        font-size: 15px;
-        padding-left: 30px;
-        padding-right: 30px;
-        margin-top: 15px;
-    }
+.label-input {
+  font-weight: bold;
+  margin: 20px 0 10px 0;
 }
-
-
-    .input-box input {
-        flex: 1 1 calc(50% - 30px);
-        box-sizing: border-box;
-    }
-
-    
-
-    .label-input {
-        font-weight: bolder;
-    }
 
 .checkbox-container {
   display: flex;
+  align-items: flex-start;
   margin: 20px 0;
   font-size: 14px;
   line-height: 1.5;
-  
-
 }
 
 .checkbox-container input[type="checkbox"] {
-background-color: red;
-  margin-top: 4px;
-  height: .5cm;
-  width: fit-content;
+  margin-right: 10px;
+  margin-top: 3px;
+  height: 18px;
+  width: 18px;
 }
 
 .checkbox-container a {
@@ -105,11 +81,6 @@ background-color: red;
 .checkbox-container a:hover {
   text-decoration: underline;
 }
-
-
-
-
-    
 </style>
 
 <div id="body-container">
@@ -133,17 +104,16 @@ background-color: red;
             <input type="password" name="confirm_password" required placeholder="Confirm password">
         </div>
 
-       <div class="checkbox-container">
-  <input type="checkbox" id="terms">
-  <label for="terms">
-    By registering your details, you agree with our 
-    <a href="#">Terms & Conditions</a>.
-  </label>
-</div>
-
+        <div class="checkbox-container">
+            <input type="checkbox" id="terms">
+            <label for="terms">
+                By registering your details, you agree with our
+                <a href="#">Terms & Conditions</a>.
+            </label>
+        </div>
 
         <center>
-        <?php 
+        <?php
         include "../components/buttonTemplate.php";
         echo createButton(45, 360, "Create your Account","create-btn");
         ?>
@@ -151,3 +121,17 @@ background-color: red;
     </div>
 </div>
 
+<script>
+  // Apply inline styles to inputs on mobile
+  if (window.innerWidth <= 768) {
+    const inputs = document.querySelectorAll('#box input:not([type="checkbox"])');
+    inputs.forEach(input => {
+      input.style.flex = 'none';
+      input.style.width = '100%';
+      input.style.height = '52px'; // mobile-friendly height
+      input.style.boxSizing = 'border-box';
+      input.style.padding = '0 15px';
+      input.style.fontSize = '16px';
+    });
+  }
+</script>

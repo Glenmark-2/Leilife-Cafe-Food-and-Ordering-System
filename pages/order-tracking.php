@@ -3,97 +3,120 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        align-items: center; /* ✅ centers horizontally */
+        align-items: center;
     }
 
     .your_order_title {
-        text-align: center; /* ✅ fixes "align-text" */
+        text-align: center;
         margin-bottom: 20px;
     }
 
     .progress-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;  
-      gap: 40px; /* ✅ adds spacing between steps */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 40px;
     }
 
     .step {
-      text-align: center;
-      width: fit-content;
+        text-align: center;
+        width: fit-content;
     }
 
     .circle {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #fff;
-      border: 3px solid #ddd;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      color: #555;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #fff;
+        border: 3px solid #ddd;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #555;
     }
 
     .step.active .circle {
-      background: #24343c;
-      color: #fff;
-      border-color: #24343c;
+        background: #24343c;
+        color: #fff;
+        border-color: #24343c;
     }
 
     .label {
-      margin-top: 8px;
-      font-size: 14px;
-      color: #333;
+        margin-top: 8px;
+        font-size: 14px;
+        color: #333;
     }
-    .order_details{
-        display: grid;
-        grid-template-columns: auto auto;
-        gap: 20px;
-        width: 100%;
-    }
-    .left-details{
+
+   .order_details {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: center; /* Center the columns */
+    align-items: start;
+    gap: 200px; /* ✅ More breathing room between left and right */
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+
+
+
+
+    .left-details {
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
     }
-    .right-details{
+
+    .left-details > div {
+        margin-top: 15px;
+    }
+
+    .left-details img {
+        width: 300px; /* 🔥 Fixed width for reference */
+        height: auto;
+        display: block;
+    }
+
+    /* 🔥 Feedback box same size as image */
+    .feedback-box {
+        width: 300px; /* Same as image width */
+        padding: 15px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        text-align: left;
+        box-sizing: border-box;
+    }
+
+    .feedback-box h4 {
+        margin: 0 0 10px 0;
+    }
+
+    .feedback-box textarea {
+        resize: none;
+        width: 100%;
+        height: 120px;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+    }
+
+    .submit {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+    }
+
+    .right-details {
         display: flex;
         flex-direction: column;
         align-items: center;
-    }
-    .feedback-box {
-      display: none;               /* Will change on depending on the state*/
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: stretch;
-        
-      width: 400px;       /* fixed width */
-      min-height: 250px;  /* enough space for form/text */
-      max-width: 90%;     /* responsive on smaller screens */
-        
-      padding: 20px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin-top: 0px 100px;
-    }
-    .feedback-box textarea {
-      resize: none;
-      height: 120px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-bottom: 15px;
-      font-size: 14px;
-    }
-    .submit{
-      display: none;               /* Will change on depending on the state*/
-      justify-content: left;
     }
 </style>
 
@@ -131,7 +154,7 @@
               <p>Estimated time of delivery</p>  
             </div>
             <div>
-               <p> 15 - 20 mins </p>
+               <p><strong>15 - 20 mins</strong></p>
             </div>
             <div>
                 <img src="\Leilife\public\assests\emojione_motorcycle.png" alt="Logo">
@@ -144,6 +167,7 @@
                 <?php echo createButton(45, 150, "Submit"); ?>
             </div>        
         </div>
+
         <div class="right-details">
             <div class="right-title">
                 <p>Delivery details</p>
@@ -163,7 +187,7 @@
             </div>
              <div class="details-inside">
                 <div class="right-address">
-                    <p>10880 Malibu Point, Malibu, California, 90265</p>
+                    <p>1pc. Original Chicken and Rice</p>
                 </div>
                 <div class="right-payment">
                     <p>1pc. Frappe na Masarap</p>

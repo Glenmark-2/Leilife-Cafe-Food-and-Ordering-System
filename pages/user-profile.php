@@ -1,168 +1,222 @@
+<?php
+// Example data (later this can come from DB)
+$user = [
+    "first_name"  => "Nico",
+    "last_name"   => "Dublin",
+    "email"       => "Nico@gmail.com",
+    "phone"       => "+63 9123456789",
+    "street"      => "Esguerra",
+    "city"        => "Caloocan",
+    "province"    => "Manila",
+    "region"      => "NCR",
+    "postal_code" => "1400"
+];
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Profile</title>
+
 <style>
-    .white-box {
-        display: flex;
-        flex-direction: column;
-        width: 80vw;
-        padding: 20px;
-        margin: auto;
-        margin-top: 20px;
-        background-color: white;
-        border-radius: 25px;
+    body {
+        background-color: #f0f0f0;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 10px;
     }
 
+    .white-box {
+        background: #fff;
+        border-radius: 15px;
+        padding: 16px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    /* Header */
     #first-box {
         display: flex;
-        flex-direction: row;
-        align-items: center; 
+        align-items: center;
+        gap: 15px;
+    }
+
+    #first-box img {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+    }
+
+    #first-box h2 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    #first-box p {
+        margin: 2px 0 0;
+        font-size: 0.9rem;
+        color: gray;
+    }
+
+    /* Section Titles */
+    .title-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .title-info h3 {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    hr {
+        margin: 6px 0 12px;
+        border: none;
+        border-top: 1px solid #ccc;
+    }
+
+    /* Info Grid */
+    .row-info {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* default mobile = 2 cols */
+        gap: 15px 20px;
     }
 
     .info {
         display: flex;
         flex-direction: column;
-        align-items: flex-start; 
-        line-height: 1;         
-        margin-top: 0; 
-        width: 15%;
-        margin-right: 200px;
     }
 
-    .first-info,
-    .second-info {
-        margin: 0;  
-    }
-
-    .title-info {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-    }
-
-    .title-info h3 {
-        margin: 0; /* removes the default top margin */
-    }
-
-    .info p{
+    .info p {
+        margin: 0;
+        font-size: 0.75rem;
         color: gray;
-        font-size: small;
-        margin-bottom: 0;
     }
 
-    .info h4{
-        margin-top: 0;
+    .info h4 {
+        margin: 2px 0 0;
+        font-size: 0.9rem;
+        font-weight: normal;
     }
 
-    .row-info{
-        display: flex;
-        flex-direction: row;
+    input[disabled] {
+        border: none;
+        background: transparent;
+        font-size: 0.9rem;
+        padding: 0;
+        color: black;
     }
 
-    input{
-        margin-top: 2px;
-        /* background-color: white; */
-        border-radius: 5px;
-        /* border: 1px solid gray; */
-    }
+    /* Responsive Desktop */
+    @media (min-width: 768px) {
+        .white-box {
+            padding: 20px;
+        }
 
+        #first-box img {
+            width: 100px;
+            height: 100px;
+        }
+
+        #first-box h2 {
+            font-size: 1.3rem;
+        }
+
+        .row-info {
+            grid-template-columns: repeat(3, 1fr); /* desktop = 3 cols */
+        }
+    }
 </style>
+</head>
+<body>
 
+<!-- Header -->
 <div class="white-box">
     <div id="first-box">
-        <div style="display: flex; justify-content: center; align-items: center; margin-right:20px;">
-            <img src="../public/assests/about us.png" alt="profile-photo"
-                style="width:100px;
-                       height:100px;
-                       border-radius:50px;">
-        </div>
+        <img src="../public/assests/about us.png" alt="profile-photo">
+        <div>
+            <h2>Basta Name To</h2>
 
-        <div class="info">
-            <h2 class="first-info">Customer Name</h2>
-            <p class="second-info">User role</p>
         </div>
     </div>
 </div>
 
+<!-- Personal Information -->
 <div class="white-box">
-    <div style="width: 100%;">
-        <div class="title-info">
-            <h3>Personal Information</h3>
-            
-        </div>
-        <hr>
+    <div class="title-info">
+        <h3>Personal Information</h3>
+        <?php 
+        // Uncomment if you have your button component
+         include "../components/buttonTemplate.php"; 
+     echo createButton(20,70,"Edit", "edit-personal"); 
+        ?>
     </div>
-
+    <hr>
     <div class="row-info">
         <div class="info">
             <p>First name</p>
-            <h4>Ennovie </h4>
+            <h4><?= $user['first_name']; ?></h4>
         </div>
-
         <div class="info">
             <p>Last name</p>
-            <h4>Cutie</h4>
+            <h4><?= $user['last_name']; ?></h4>
         </div>
-
         <div class="info">
             <p>Email address</p>
-            <h4>Cutie@gmail.com</h4>
+            <h4><?= $user['email']; ?></h4>
         </div>
-    </div>
-
-    <div class="row-info" >
-        <div class="info" >
-            <p>Contact number</p>
-            <h4 style="margin-bottom: 0;">1234567890 </h4>
+        <div class="info">
+            <p>Phone number</p>
+            <h4><?= $user['phone']; ?></h4>
         </div>
-
-        <div class="info" >
-            <p>User role</p>
-            <h4 style="margin-bottom: 0;">Customer</h4>
-        </div>
-
     </div>
 </div>
 
+<!-- Address -->
 <div class="white-box">
-    <div style="width: 100%;">
-        <div class="title-info">
-            <h3>Address</h3>
-            <?php include "../components/buttonTemplate.php"; 
-            echo createButton(30,70,"edit", "edit-address"); ?>
-        </div>
-        <hr>
+    <div class="title-info">
+        <h3>Address</h3>
+        <?php 
+        echo createButton(20,70,"Edit", "edit-address"); 
+        ?>
     </div>
-
-     <div class="row-info">
-        <div class="info">
-            <p>Street</p>
-            <input value="Esguerra" disabled>
-        </div>
-
-        <div class="info">
-            <p>City</p>
-            <input value="Esguerra" disabled>
-        </div>
-
-        <div class="info">
-            <p>Province</p>
-            <input value="Esguerra" disabled>
-        </div>
-    </div>
-
+    <hr>
     <div class="row-info">
         <div class="info">
-            <p>Region</p>
-            <input value="Esguerra" disabled>
+            <p>Street</p>
+            <input value="<?= $user['street']; ?>" disabled>
         </div>
-
+        <div class="info">
+            <p>City</p>
+            <input value="<?= $user['city']; ?>" disabled>
+        </div>
+        <div class="info">
+            <p>Province</p>
+            <input value="<?= $user['province']; ?>" disabled>
+        </div>
+        <div class="info">
+            <p>Region</p>
+            <input value="<?= $user['region']; ?>" disabled>
+        </div>
         <div class="info">
             <p>Postal Code</p>
-            <input value="Esguerra" disabled>
+            <input value="<?= $user['postal_code']; ?>" disabled>
         </div>
-
     </div>
 </div>
 
+<!-- Order History -->
+<div class="white-box">
+    <div class="title-info">
+        <h3>Order History</h3>
+    </div>
+    <hr>
+    <p>No orders yet.</p>
+</div>
 
-
+</body>
+</html>

@@ -88,6 +88,8 @@
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 20px;
     justify-content: center;
+    margin: 5%;
+    padding-right: 0; 
   }
 
 
@@ -207,10 +209,14 @@
 }
 
 #about-us-content {
-  margin: 70px 100px;
+  /* margin: 70px 100px;
   display: flex;
   flex-direction: row;
+  gap: 40px; */
+  display: flex;
   gap: 40px;
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 #left-about-us,
@@ -252,9 +258,22 @@
   padding: 30px;
   border-radius: 12px;
   min-width: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-row{
+  flex-direction: row;
+}
+
+.contact-input{
+  width: 18vw;
+  margin-bottom: 10px;
 }
 
 @media (max-width: 480px) {
+  
+  
   #about-us-content {
     flex-direction: column;
     margin: 40px 20px;
@@ -289,11 +308,24 @@
   .form-row {
     flex-direction: column;
   }
+
+  .info-section h5 {
+    font-size: 20px;
+  }
+
+  .info-section p {
+    font-size: 13px;
+  }
+
+  .info-card {
+    padding: 16px;
+    font-size: 14px;
+  }
 }
 
 /* Small devices (phones landscape & small tablets) */
 @media (max-width: 768px) {
-  #about-us-content {
+  /* #about-us-content {
     flex-direction: column;
     margin: 50px 40px;
   }
@@ -301,10 +333,83 @@
   #right-about-us div {
     width: 70%;
     left: 15%;
+  } */
+
+     #about-us-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* Set stacking order */
+  #left-about-us > div:nth-child(1) { order: 1; } /* h2 */
+  #right-about-us { order: 2; } /* image + blue div */
+  #left-about-us > div:nth-child(2) { order: 3; } /* paragraph */
+  #left-about-us > div:nth-child(4) { order: 4; } /* opening hours block */
+
+  /* Make elements full-width on mobile */
+  #left-about-us > div,
+  #right-about-us {
+    width: 100% !important;
+    margin: 0 auto;
+  }
+
+  /* Image adjustments */
+  #right-about-us img {
+    width: 100% !important;
+    margin-left: 0 !important;
+    position: relative !important;
+    left: 0 !important;
+    top: 0 !important;
+  }
+
+  /* Blue div overlay adjustments */
+  #right-about-us > div {
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
   }
 
   .form-row {
     flex-direction: column;
+  }
+
+  .info-section > div {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 20px !important;
+    text-align: center !important;
+  }
+
+  .info-section h5 {
+    order: 1;
+    font-size: 24px !important;
+    line-height: 1.4 !important;
+    text-align: center !important;
+  }
+
+  .info-section p {
+    order: 2;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    max-width: 90% !important;
+    margin: 0 auto !important;
+    text-align: center !important;
+    align-items: center;
+  }
+
+ .info-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px; /* spacing between cards */
+  margin: 0 auto;
+}
+
+
+  .info-card {
+    width: 100% !important;
+    max-width: 250px !important;
   }
 }
 
@@ -377,6 +482,30 @@
     .row {
       justify-content: flex-start;
     }
+
+    .info-section {
+    flex-direction: column;
+    gap: 32px;
+    text-align: center;
+    align-content: center;
+  }
+
+  .info-section h5 {
+    font-size: 28px;
+    text-align: center;
+  }
+
+  .info-section p {
+    font-size: 15px;
+    max-width: 90%;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .info-cards {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
   }
 
   @media (max-width: 600px) {
@@ -392,6 +521,43 @@
     .featured-content p {
       font-size: 13px;
     }
+
+    .info-cards {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .contact-form {
+    width: 90%;
+    padding: 20px;
+    margin: auto;
+    align-items: center;
+    text-align: center;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 10px; /* spacing between name and email */
+    width: 100%;
+    
+  }
+
+  .contact-input {
+    width: 90%;
+    margin: 0 auto 10px auto; /* center inputs */
+    display: block;
+  }
+
+  .contact-form textarea {
+    width: 90%;
+    margin: 0 auto 10px auto; /* center textarea */
+    display: block;
+  }
+
+  .contact-form div[style*="display: flex; justify-content:flex-end;"] {
+    justify-content: center; /* center submit button */
+  }
   }
 
 
@@ -558,25 +724,28 @@ require_once '../partials/intro-card.php';
   <div style="display: flex; flex-direction: row;">
   </div>
 </div> -->
-  <div style="display:flex; justify-content:center; padding:40px 20px;">
-    <div style="display:flex; align-items:flex-start; width:90%; max-width:1200px; gap:72px;">
-      <h5 style="flex:1; margin:0; font-size:32px; line-height:1.35; text-align:left;">
-        Savor Every Bite & Sip at<br>Leilife Cafe and Resto!
-      </h5>
-      <p style="flex:1; margin:0; font-size:16px; line-height:1.7; text-align:left; max-width:65ch;">
-        At Leilife Cafe and Resto, we take pride in serving delicious meals
-        and perfectly brewed coffee. From freshly prepared dishes to expertly crafted beverages,
-        every bite and sip is made to give you a warm and memorable dining experience.
-      </p>
-    </div>
+  <div class="info-section" style="display:flex; justify-content:center; padding:40px 20px;">
+  <div style="display:flex; align-items:center; width:90%; max-width:1200px; gap:72px;">
+    <h5 style="flex:1; margin:0; font-size:32px; line-height:1.35; text-align:left;">
+      Savor Every Bite & Sip at<br>Leilife Cafe and Resto!
+    </h5>
+    <p style="flex:1; margin:0; font-size:16px; line-height:1.7; text-align:left; max-width:65ch;">
+      At Leilife Cafe and Resto, we take pride in serving delicious meals
+      and perfectly brewed coffee. From freshly prepared dishes to expertly
+      crafted beverages, every bite and sip is made to give you a warm and
+      memorable dining experience.
+    </p>
   </div>
-  <div style="display: flex; flex-direction: row; justify-content: center; align-content: center;">
-    <?php
-    echo infoCard("🍽️", "Fresh & Flavorful Dishes", "We use only the freshest ingredients...");
-    echo infoCard("🍽️", "Fresh & Flavorful Dishes", "We use only the freshest ingredients...");
-    echo infoCard("🍽️", "Fresh & Flavorful Dishes", "We use only the freshest ingredients...");
-    ?>
-  </div>
+</div>
+
+<div class="info-cards" style="display: flex; flex-direction: row; justify-content: center; align-content: center;">
+  <?php
+  echo infoCard("🍽️", "Fresh & Flavorful Dishes", "We use only the freshest ingredients...");
+  echo infoCard("☕", "Perfectly Brewed Coffee", "Our skilled baristas ensure each cup...");
+  echo infoCard("❤️", "A Taste to Remember", "Enjoy hearty meals and comforting drinks...");
+  ?>
+</div>
+
 
 
 </div>
@@ -621,11 +790,11 @@ require_once '../partials/intro-card.php';
   </div>
 
   <div id="right-about-us" style="position:relative;">
-    <div style="width: 50%; height:90%; position:absolute; top:10%; left: 50%; background:#355362; z-index: 1;"></div>
+    <div style="width: 50%; height:80%; position:absolute; top:20%; left: 50%; background:#355362; z-index: 1;"></div>
 
     <img src="../public/assests/about us.png"
       alt="photo"
-      style="width: 50%; margin-left:150px; position:relative; z-index: 2; left:20%">
+      style="width: 55%; margin-left:150px; position:relative; z-index: 2; left:10%; top:10%;"> 
   </div>
 
 </div>
@@ -673,16 +842,21 @@ require_once '../partials/intro-card.php';
   <div class="contact-form">
     <h2>Your Details</h2>
     <p>Let us know how we get back to you</p>
-
+    
     <div class="form-row">
-      <input type="text" placeholder="Name">
-      <input type="email" placeholder="Email Address">
+      <input class="contact-input" type="text" placeholder="Name">
+      <input class="contact-input" type="email" placeholder="Email Address">
     </div>
 
-    <input type="text" placeholder="Subject" class="form-control">
+    <input class="contact-input  type="text" placeholder="Subject" class="form-control">
 
-    <textarea placeholder="Comments/Questions:"></textarea>
+    <textarea style="width: max-width; height:100px" placeholder="Comments/Questions:"></textarea>
 
-    <button type="submit">Submit</button>
+    <div style="display: flex; justify-content:flex-end; margin-top:10px">
+      <?php
+          echo createButton(40, 100, "Submit", "submitBtn");
+          ?>
+    </div>
+    
   </div>
 </div>

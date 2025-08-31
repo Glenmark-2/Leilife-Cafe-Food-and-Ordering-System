@@ -29,12 +29,14 @@ $user = [
     }
 
     .white-box {
-        background: #fff;
-        border-radius: 15px;
-        padding: 16px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
+    width: 70%;
+    background: #fff;
+    border-radius: 15px;
+    padding: 16px;
+    margin: 15px auto;   /* ✅ centers it horizontally */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
 
     /* Header */
     #first-box {
@@ -112,24 +114,32 @@ $user = [
     }
 
     /* Responsive Desktop */
-    @media (min-width: 768px) {
-        .white-box {
-            padding: 20px;
-        }
-
-        #first-box img {
-            width: 100px;
-            height: 100px;
-        }
-
-        #first-box h2 {
-            font-size: 1.3rem;
-        }
-
-        .row-info {
-            grid-template-columns: repeat(3, 1fr); /* desktop = 3 cols */
-        }
+    @media (max-width: 768px) {
+    .white-box {
+        width: 90%;   /* ✅ makes it full width but keeps margin */
+        padding: 16px;
     }
+
+    .row-info {
+        grid-template-columns: repeat(2, 1fr); /* ✅ 2 columns for mobile */
+    }
+
+    #first-box img {
+        width: 70px;
+        height: 70px;
+    }
+
+    #first-box h2 {
+        font-size: 1.1rem;
+    }
+}
+
+/* Responsive: Desktop (optional for larger screens) */
+@media (min-width: 1024px) {
+    .row-info {
+        grid-template-columns: repeat(3, 1fr); /* ✅ 3 columns only on desktop */
+    }
+}
 </style>
 </head>
 <body>

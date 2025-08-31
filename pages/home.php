@@ -197,28 +197,43 @@
     justify-content: flex-end;
   }
 
-  /* new css added here */
   #about-us {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    text-align: center;
-  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 0 20px;
+}
 
-  #about-us-content {
-    margin: 70px 100px;
-    display: flex;
-    flex-direction: row;
-  }
+#about-us-content {
+  margin: 70px 100px;
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
+}
 
-  /* === CONTACT US SECTION === */
+#left-about-us,
+#right-about-us {
+  flex: 1;
+  min-width: 280px;
+}
+
+/* Fix image responsiveness */
+#right-about-us img {
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+}
+
+/* === CONTACT US SECTION === */
 .contact-wrapper {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   background: #d9d9d9;
-  padding: 60px 80px;
+  padding: 60px 40px;
   gap: 50px;
   flex-wrap: wrap;
   border-radius: 12px;
@@ -231,47 +246,6 @@
   min-width: 280px;
 }
 
-.contact-info .info-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.contact-info .info-header hr {
-  flex: 0 0 40px;
-  height: 1px;
-  border: none;
-  background: #000;
-}
-
-.contact-info h5 {
-  font-size: 20px;
-  margin: 0;
-  font-weight: bold;
-}
-
-.contact-info p {
-  margin-bottom: 25px;
-  line-height: 1.6;
-  font-size: 15px;
-}
-
-.info-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 15px;
-  font-size: 15px;
-}
-
-.info-item i {
-  font-size: 18px;
-  margin-top: 3px;
-  color: #22333b;
-}
-
-/* Right Form */
 .contact-form {
   flex: 1;
   background: #e8ebef;
@@ -280,57 +254,79 @@
   min-width: 300px;
 }
 
-.contact-form h2 {
-  margin-bottom: 5px;
-  font-size: 24px;
+@media (max-width: 480px) {
+  #about-us-content {
+    flex-direction: column;
+    margin: 40px 20px;
+  }
+
+  #left-about-us div {
+    width: 100% !important;
+  }
+
+  #right-about-us {
+    position: relative;
+    margin-top: 30px;
+  }
+
+  #right-about-us div {
+    display: none; /* hide background box for small screens */
+  }
+
+  #right-about-us img {
+    width: 100%;
+    position: relative;
+    margin: 0 auto;
+    left: 0;
+  }
+
+  .contact-wrapper {
+    flex-direction: column;
+    padding: 30px 20px;
+    gap: 30px;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
 }
 
-.contact-form p {
-  margin-bottom: 20px;
-  font-size: 14px;
-  color: #333;
+/* Small devices (phones landscape & small tablets) */
+@media (max-width: 768px) {
+  #about-us-content {
+    flex-direction: column;
+    margin: 50px 40px;
+  }
+
+  #right-about-us div {
+    width: 70%;
+    left: 15%;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
 }
 
-.form-row {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
+/* Medium devices (tablets portrait & small laptops) */
+@media (max-width: 1024px) {
+  #about-us-content {
+    margin: 50px 60px;
+    gap: 30px;
+  }
+
+  #right-about-us img {
+    left: 0;
+    margin: 0 auto;
+  }
 }
 
-.form-control,
-.contact-form input,
-.contact-form textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border: none;
-  border-radius: 6px;
-  background: #f9f7f2;
-  font-size: 14px;
-  margin-bottom: 15px; /* ✅ Add consistent spacing */
-}
-
-.form-row input {
-  margin-bottom: 0; /* ✅ Prevent double spacing on name/email row */
-}
-.contact-form textarea {
-  height: 100px;
-  resize: none;
-  margin-bottom: 15px;
-}
-
-.contact-form button {
-  background: #132931;
-  color: white;
-  padding: 10px 24px;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 15px;
-  transition: background 0.3s ease;
-}
-
-.contact-form button:hover {
-  background: #22333b;
+/* Large devices (desktops) */
+@media (min-width: 1200px) {
+  #about-us-content {
+    margin: 70px 120px;
+    gap: 60px;
+  }
 }
 
 /* Responsive */
@@ -485,8 +481,7 @@
 // load the component file ONCE at the top
 require_once "../components/product-card.php";
 require_once '../partials/intro-card.php';
-
-
+// require_once '../pages/cart.php';
 ?>
 
 

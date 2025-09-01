@@ -804,7 +804,7 @@ require_once '../partials/intro-card.php';
 <!-- contact us -->
 
 <!-- CONTACT US -->
-<h1 style="display: flex; justify-content: center; margin-top:60px;">Contact Us</h1>
+<h1 id="contact-section" style="display: flex; justify-content: center; margin-top:60px;">Contact Us</h1>
 
 <div class="contact-wrapper">
   <!-- LEFT SIDE -->

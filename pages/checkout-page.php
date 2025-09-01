@@ -1,267 +1,316 @@
-<style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout Page</title>
+  <style>
     body {
-        font-family: Arial, sans-serif;
-        background: #E7E0D6;
-        margin: 0;
-        padding: 20px;
-        color: #333;
+      font-family: Arial, sans-serif;
+      background: #E7E0D6;
+      margin: 0;
+      padding: 20px;
+      color: #333;
     }
 
+    /* Main Container */
     .checkout-container {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 20px;
-        max-width: 1000px;
-        margin: auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      max-width: 1000px;
+      margin: auto;
     }
 
+    /* Card Styles */
     .card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        padding: 15px;
-        margin-bottom: 15px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      height: fit-content;
+      margin-bottom: 10px;
     }
 
     .card h3 {
-        margin-top: 0;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 8px;
-        font-size: 1.2rem;
+      margin: 0 0 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+      font-size: 1.2rem;
     }
 
-    .form-group {
-        margin-bottom: 10px;
+    /* Inputs */
+    input[type="text"], input[type="tel"], textarea {
+      width: 80%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background: #f5f5f5;
     }
 
-    input[type="text"], input[type="tel"] {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        background: #f5f5f5;
-        transition: background 0.3s ease;
+    textarea {
+      resize: none;
     }
 
-    .options label {
-        display: block;
-        padding: 5px 0;
+    /* Name row */
+    .name-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
     }
 
-    .order-summary img {
-        width: 50px;
-        height: 50px;
-        border-radius: 5px;
-        object-fit: cover;
+    .name-row div {
+      flex: 1;
+    }
+
+    /* Contact row */
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .contact-row input {
+      flex: 1;
+    }
+
+    /* Buttons */
+    .edit-btn, .place-btn {
+      padding: 10px 16px;
+      background: #2d3e40;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .place-btn {
+      width: 100%;
+      margin-top: 15px;
+    }
+
+    /* Delivery Options */
+    .options {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .options input[type="radio"] {
+      margin: 0;
+    }
+
+    /* Order Summary */
+    .order-summary {
+      max-width: 320px; /* ✅ Keeps summary narrow on desktop */
+      margin-left: auto;
     }
 
     .order-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .order-item img {
+      width: 50px;
+      height: 50px;
+      border-radius: 6px;
+      object-fit: cover;
     }
 
     .order-summary table {
-        width: 100%;
-        margin-top: 10px;
+      width: 100%;
+      margin-top: 10px;
     }
 
     .order-summary table td {
-        padding: 4px 0;
+      padding: 5px 0;
     }
 
     .total {
-        font-weight: bold;
+      font-weight: bold;
     }
 
-    .place-order-btn {
-        width: 100%;
-        padding: 10px;
-        background: #2d3e40;
-        color: #fff;
-        font-size: 1rem;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 10px;
+    /* Home delivery address grid */
+    .address-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
-</style>
 
-<?php
-// SAMPLE DATA (Replace with DB later)
-$firstName = "Nico";
-$lastName = "Nico";
-$phone = "+63 9123456789";
-$pickupAddress = "Lunduyan, Langaray Village, Brgy. 14 Caloocan City";
-$itemName = "Salt Buoag Golden Chicken Curry Fillet with Extra Rice Meal";
-$itemPrice = 103.00;
-$deliveryFee = 10.00;
-$total = $itemPrice + $deliveryFee;
+    #home-options input, #home-options textarea {
+      background: #f5f5f5;
+    }
 
-include "../components/buttonTemplate.php"; 
-?>
+    #home-options label {
+      font-size: 0.9rem;
+      margin-bottom: 3px;
+      display: block;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .checkout-container {
+        grid-template-columns: 1fr;
+      }
+
+      .order-summary {
+        max-width: 100%;
+        margin: 0;
+        order: 1;
+      }
+    }
+  </style>
+</head>
+<body>
 
 <div class="checkout-container">
-    <!-- LEFT COLUMN -->
-    <div>
-        <!-- Contact Details -->
-        <div class="card">
-            <h3>Contact Details</h3>
-            <form id="contact-form">
-                <div class="form-group">
-                    <label>First Name</label>
-                    <input type="text" id="first-name" value="<?php echo $firstName; ?>" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Last Name</label>
-                    <input type="text" id="last-name" value="<?php echo $lastName; ?>" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Phone Number</label>
-                    <input type="tel" id="phone" value="<?php echo $phone; ?>" readonly>
-                </div>
-                <?php echo createButton(30,80,"Edit","edit-btn",14); ?>
-            </form>
+  <!-- LEFT COLUMN -->
+  <div>
+    <!-- Contact Details -->
+    <div class="card">
+      <h3>Contact Details</h3>
+      <div class="name-row">
+        <div>
+          <label for="">First Name</label>
+          <input type="text" value="Nico" readonly>
         </div>
-
-        <!-- Delivery Options -->
-        <div class="card">
-            <h3>Delivery Options</h3>
-            <div class="options">
-                <!-- Pick-Up Option -->
-                <label>
-                    <input type="radio" name="delivery" value="pickup" checked> Pick-Up
-                </label>
-                <div id="pickup-address-container" style="margin-left: 25px; margin-top: 5px;">
-                    <label>
-                        <input type="radio" name="pickup-location" value="store" checked disabled>
-                        • <?php echo $pickupAddress; ?>
-                    </label>
-                </div>
-
-                <!-- Home Delivery Option -->
-                <label style="margin-top: 10px;">
-                    <input type="radio" name="delivery" value="home"> Home Delivery
-                </label>    
-            </div>
-
-            <!-- Home Delivery Form -->
-            <div id="home-delivery-form" style="display:none; margin-top:10px;">
-                <div class="form-group">
-                    <label>Street Address</label>
-                    <input type="text" placeholder="123 Esguerra Street">
-                </div>
-                <div class="form-group">
-                    <label>City</label>
-                    <input type="text" placeholder="Caloocan">
-                </div>
-                <div class="form-group">
-                    <label>Region</label>
-                    <input type="text" placeholder="NCR">
-                </div>
-                <div class="form-group">
-                    <label>Postal Code</label>
-                    <input type="text" placeholder="1400">
-                </div>
-                <div class="form-group">
-                    <label>Province</label>
-                    <input type="text" placeholder="Metro Manila">
-                </div>
-                <div class="form-group">
-                    <textarea placeholder="Notes to store/rider (optional)" 
-                              style="width:100%; padding:8px; border:1px solid #ccc; border-radius:5px;"></textarea>
-                </div>
-                <div style="text-align: right; margin-top: 10px;">
-                    <?php echo createButton(30,150,"Save Address","edit-btn",14); ?>
-                </div>
-            </div>
+        <div>
+          <label for="">Last Name</label>
+          <input type="text" value="Flores" readonly>
         </div>
-
-        <!-- Payment Method -->
-        <div class="card">
-            <h3>Payment Method</h3>
-            <div class="options">
-                <label><input type="radio" name="payment" checked> Cash</label>
-                <label><input type="radio" name="payment"> GCash</label>
-            </div>
-        </div>
+      </div>
+      <label for="">Contact Number</label>
+      <div class="contact-row">
+        <input type="tel" value="+63 9123456789" readonly>
+        <button class="edit-btn">Edit</button>
+      </div>
     </div>
 
-    <!-- RIGHT COLUMN -->
-    <div>
-        <div class="card order-summary">
-            <h3>Order Summary</h3>
-            <div class="order-item">
-                <img src="../public/assests/sample-product.png" alt="item">
-                <div>
-                    <p><?php echo $itemName; ?></p>
-                    <small>₱<?php echo number_format($itemPrice, 2); ?></small>
-                </div>
-            </div>
-            <table>
-                <tr>
-                    <td>Subtotal</td>
-                    <td style="text-align:right;">₱<span id="subtotal"><?php echo number_format($itemPrice, 2); ?></span></td>
-                </tr>
-                <tr>
-                    <td>Delivery Fee</td>
-                    <td style="text-align:right;">₱<span id="delivery-fee"><?php echo number_format($deliveryFee, 2); ?></span></td>
-                </tr>
-                <tr class="total">
-                    <td>Total</td>
-                    <td style="text-align:right;">₱<span id="total"><?php echo number_format($total, 2); ?></span></td>
-                </tr>
-            </table>
-            <?php echo createButton(40,280,"Place Order", "place-order-btn",18); ?>
+    <!-- Delivery Options -->
+    <div class="card">
+      <h3>Delivery Options</h3>
+      <label class="options">
+        <input type="radio" name="delivery" value="pickup" checked onchange="toggleDelivery()">
+        <span>Pick-Up</span>
+      </label>
+      <div id="pickup-options" style="margin-left: 20px;">
+        <label class="options">
+          <input type="radio" name="pickup_location" value="store1" checked>
+          <span>Lunduyan Langaray Village, Barangay 14 Caloocan City</span>
+        </label>
+      </div>
+
+      <label class="options">
+        <input type="radio" name="delivery" value="home" onchange="toggleDelivery()">
+        <span>Home Delivery</span>
+      </label>
+
+      <div id="home-options" style="display: none; margin-left: 20px; margin-top: 10px;">
+        <div class="address-grid">
+          <div>
+            <label for="street">Street Address</label>
+            <input type="text" id="street" value="Sample Street" readonly>
+          </div>
+          <div>
+            <label for="city">City</label>
+            <input type="text" id="city" value="Sample City" readonly>
+          </div>
+          <div>
+            <label for="region">Region</label>
+            <input type="text" id="region" value="Sample Region" readonly>
+          </div>
+          <div>
+            <label for="postal">Postal Code</label>
+            <input type="text" id="postal" value="1234" readonly>
+          </div>
+          <div style="grid-column: span 2;">
+            <label for="province">Province</label>
+            <input type="text" id="province" value="Sample Province" readonly>
+          </div>
         </div>
+
+        <div style="margin-top: 10px;">
+          <label for="note">Notes to Rider</label>
+          <textarea id="note" rows="2" readonly>Leave at the door</textarea>
+        </div>
+
+        <button type="button" class="edit-btn" style="margin-top: 10px;" onclick="toggleEdit()">Edit</button>
+      </div>
     </div>
+
+    <!-- Payment Method -->
+    <div class="card">
+      <h3>Payment Method</h3>
+      <label class="options">
+        <input type="radio" name="payment" checked>
+        <span>Cash</span>
+      </label>
+      <label class="options">
+        <input type="radio" name="payment">
+        <span>GCash</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="card order-summary">
+    <h3>Order Summary</h3>
+    <div class="order-item">
+      <img src="https://via.placeholder.com/50" alt="Item">
+      <div>
+        <p>Salt Buoag Golden Chicken Curry Fillet with Extra Rice Meal</p>
+        <small>₱103.00</small>
+      </div>
+    </div>
+    <table>
+      <tr>
+        <td>Subtotal</td>
+        <td style="text-align:right;">₱103.00</td>
+      </tr>
+      <tr>
+        <td>Delivery Fee</td>
+        <td style="text-align:right;">₱10.00</td>
+      </tr>
+      <tr class="total">
+        <td>Total</td>
+        <td style="text-align:right;">₱113.00</td>
+      </tr>
+    </table>
+    <button class="place-btn">Place Order</button>
+  </div>
 </div>
 
 <script>
-    // Toggle Pickup Address & Home Delivery Form
-    const deliveryOptions = document.querySelectorAll("input[name='delivery']");
-    const homeDeliveryForm = document.getElementById("home-delivery-form");
-    const pickupAddressContainer = document.getElementById("pickup-address-container");
+  function toggleDelivery() {
+    const isPickup = document.querySelector('input[name="delivery"][value="pickup"]').checked;
+    document.getElementById('pickup-options').style.display = isPickup ? 'block' : 'none';
+    document.getElementById('home-options').style.display = isPickup ? 'none' : 'block';
+  }
 
-    deliveryOptions.forEach(option => {
-        option.addEventListener("change", () => {
-            if (option.value === "home") {
-                homeDeliveryForm.style.display = "block";
-                pickupAddressContainer.style.display = "none";
-            } else {
-                homeDeliveryForm.style.display = "none";
-                pickupAddressContainer.style.display = "block";
-            }
-        });
+  function toggleEdit() {
+    const fields = document.querySelectorAll('#home-options input, #home-options textarea');
+    const editBtn = document.querySelector('#home-options .edit-btn');
+    const isReadonly = fields[0].hasAttribute('readonly');
+
+    fields.forEach(field => {
+      if (isReadonly) {
+        field.removeAttribute('readonly');
+        field.style.background = '#fff';
+      } else {
+        field.setAttribute('readonly', true);
+        field.style.background = '#f5f5f5';
+      }
     });
 
-    // Toggle Edit Mode
-    const editBtn = document.getElementById("edit-btn");
-    const contactInputs = document.querySelectorAll("#contact-form input");
-
-    editBtn.addEventListener("click", () => {
-        let isEditing = contactInputs[0].readOnly;
-        contactInputs.forEach(input => {
-            input.readOnly = !isEditing;
-            input.style.background = isEditing ? "#fff" : "#f5f5f5";
-            input.style.border = isEditing ? "1px solid #333" : "1px solid #ccc";
-        });
-        editBtn.textContent = isEditing ? "Save" : "Edit";
-    });
-
-    // Update Delivery Fee & Total
-    const deliveryRadios = document.querySelectorAll("input[name='delivery']");
-    const deliveryFeeElement = document.getElementById("delivery-fee");
-    const totalElement = document.getElementById("total");
-    const subtotalElement = document.getElementById("subtotal");
-
-    deliveryRadios.forEach(radio => {
-        radio.addEventListener("change", () => {
-            let fee = radio.value === "home" ? 50 : 10; // Example fee
-            let subtotal = parseFloat(subtotalElement.textContent.replace(/,/g, ''));
-            deliveryFeeElement.textContent = fee.toFixed(2);
-            totalElement.textContent = (subtotal + fee).toFixed(2);
-        });
-    });
+    editBtn.textContent = isReadonly ? 'Save' : 'Edit';
+  }
 </script>
+
+</body>
+</html>

@@ -8,6 +8,10 @@
   <link rel="stylesheet" href="public/assests/global.css">
 
   <style>
+    html {
+  scroll-behavior:smooth;
+}
+
     /* base */
     :root { --nav-h: 64px; }
     body {
@@ -184,7 +188,7 @@
 <nav class="navbar" id="siteNav">
   <!-- Logo -->
   <a class="navbar-brand" href="index.php?page=home">
-    <img src="\Leilife\public\assests\Mask group.png" alt="Logo">
+    <img src="/Leilife/public/assests/Mask group.png" alt="Logo">
   </a>
 
   <!-- Burger -->
@@ -195,8 +199,8 @@
   <!-- Desktop Menu -->
   <ul class="navbar-nav desktop-menu">
     <li><a class="nav-link" href="index.php?page=menu">Menu</a></li>
-    <li><a class="nav-link" href="index.php?page=about">About</a></li>
-    <li><a class="nav-link" href="index.php?page=contact">Contact</a></li>
+    <li><a class="nav-link" href="index.php?page=home#about-us">About</a></li>
+    <li><a class="nav-link" href="index.php?page=home#contact-section">Contact</a></li>
   </ul>
 
   <!-- Right side buttons -->
@@ -209,8 +213,8 @@
 <!-- Mobile Dropdown (kept outside the nav so it can be positioned under the fixed header) -->
 <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
   <a href="index.php?page=menu">Menu</a>
-  <a href="index.php?page=about">About</a>
-  <a href="index.php?page=contact">Contact</a>
+  <a href="index.php?page=home#about-us-content">About</a>
+  <a href="index.php?page=home#contact-section">Contact</a>
   <div class="auth-links">
     <a id="loginBtn" href="index.php?page=login">Login</a>
     <a href="index.php?page=signUp">Sign Up</a>

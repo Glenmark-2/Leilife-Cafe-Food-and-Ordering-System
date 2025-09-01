@@ -769,7 +769,7 @@ require_once '../partials/intro-card.php';
 <div id="about-us-content">
   <div id="left-about-us">
     <div style="width: 23vw;">
-      <h2>Where Good Food Meets Great Company</h3>
+      <h2>Where Good Food Meets Great Company</h2>
     </div>
 
     <div style="width: 40vw;">
@@ -804,7 +804,7 @@ require_once '../partials/intro-card.php';
 <!-- contact us -->
 
 <!-- CONTACT US -->
-<h1 style="display: flex; justify-content: center; margin-top:60px;">Contact Us</h1>
+<h1 id="contact-section" style="display: flex; justify-content: center; margin-top:60px;">Contact Us</h1>
 
 <div class="contact-wrapper">
   <!-- LEFT SIDE -->
@@ -850,7 +850,7 @@ require_once '../partials/intro-card.php';
       <input class="contact-input" type="email" placeholder="Email Address">
     </div>
 
-    <input class="contact-input  type="text" placeholder="Subject" class="form-control">
+    <input class="contact-input"  type="text" placeholder="Subject" class="form-control">
 
     <textarea style="width: max-width; height:100px" placeholder="Comments/Questions:"></textarea>
 

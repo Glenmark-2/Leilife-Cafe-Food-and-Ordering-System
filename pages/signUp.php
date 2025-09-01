@@ -30,7 +30,22 @@
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   max-width: 800px;
   width: 100%;
+  box-sizing: border-box; /* add this */
 }
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  #box {
+    padding: 20px;       /* internal spacing */
+    border-radius: 0;    /* remove rounded corners */
+    width: 100vw;        /* full viewport width */
+    max-width: 100vw;    /* ensure it doesn't exceed screen */
+    box-sizing: border-box; /* include padding inside width */
+    margin: 0;           /* remove any default margins */
+  }
+}
+
+
 
 .input-box {
   display: flex;
@@ -126,11 +141,11 @@
   if (window.innerWidth <= 768) {
     const inputs = document.querySelectorAll('#box input:not([type="checkbox"])');
     inputs.forEach(input => {
-      input.style.flex = 'none';
-      input.style.width = '100%';
+      // input.style.flex = 'none';
+      // input.style.width = '80%';
       input.style.height = '52px'; // mobile-friendly height
       input.style.boxSizing = 'border-box';
-      input.style.padding = '0 15px';
+      input.style.padding = '0';
       input.style.fontSize = '16px';
     });
   }

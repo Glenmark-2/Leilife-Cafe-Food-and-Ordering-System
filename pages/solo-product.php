@@ -1,54 +1,4 @@
-<style>
-/* Base desktop layout */
-.product-container {
-    margin: 50px 200px;
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-}
 
-.product-image {
-    width: 30%;
-    border-radius: 15px;
-}
-
-.product-details {
-    background-color: aliceblue;
-    width: 100%;
-    padding: 30px;
-    border-radius: 20px;
-}
-
-/* Mobile view */
-@media (max-width: 768px) {
-    .product-container {
-        flex-direction: column; /* stack vertically */
-        margin: 20px; /* reduce side margin */
-        gap: 15px;
-    }
-
-    .product-image {
-        width: 60%; /* full width */
-        margin: 0 auto;
-    }
-
-    .product-details {
-        width: 80%;
-        padding: 20px;
-        border-radius: 15px;
-        margin: auto;
-    }
-
-    /* Optional: adjust spacing inside details */
-    .product-details > div {
-        margin-bottom: 20px;
-    }
-
-    .product-details h2{
-        font-size: medium;
-    }
-}
-</style>
 
 <div class="product-container">
     <img src="../public/assests/about us.png" class="product-image">
@@ -83,12 +33,4 @@
     </div>
 </div>
 
-<script>
-function changeQty(change) {
-    const qtyInput = document.getElementById("quantity");
-    let current = parseInt(qtyInput.value) || 1;
-    let newValue = current + change;
-    if (newValue < 1) newValue = 1; // prevent going below 1
-    qtyInput.value = newValue;
-}
-</script>
+<script src="../Scripts/pages/solo-product.js"></script>

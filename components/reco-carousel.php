@@ -1,51 +1,4 @@
-<style>
-    .carousel {
-  position: relative;
-  width: 100%;
-  max-width: 900px;
-  margin: auto;
-  overflow: hidden;
-}
 
-.carousel-track {
-  display: flex;
-  transition: transform 0.5s ease;
-}
-
-.carousel-slide {
-  min-width: 100%;
-  display: none;
-}
-
-.carousel-slide.active {
-  display: block;
-}
-
-.reco-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.2rem;
-  justify-content: center;
-  align-items: center;
-  padding: 1rem;
-}
-
-.carousel-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #f8f8f8ff;
-  border: none;
-  padding: 10px;
-  cursor: pointer;
-  font-size: 1.5rem;
-  border-radius: 50%;
-}
-
-.carousel-arrow.left { left: 10px; }
-.carousel-arrow.right { right: 10px; }
-
-</style>
 
 
 <?php
@@ -89,30 +42,4 @@ $slides = array_chunk($products, 4);
   <button class="carousel-arrow right">&#10095;</button>
 </div>
 
-<script>
-    document.querySelectorAll('.carousel').forEach(carousel => {
-  const slides = carousel.querySelectorAll('.carousel-slide');
-  const prevBtn = carousel.querySelector('.carousel-arrow.left');
-  const nextBtn = carousel.querySelector('.carousel-arrow.right');
-  let currentIndex = 0;
-
-  function showSlide(index) {
-    slides.forEach((slide, i) => {
-      slide.classList.toggle('active', i === index);
-    });
-  }
-
-  prevBtn.addEventListener('click', () => {
-    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-    showSlide(currentIndex);
-  });
-
-  nextBtn.addEventListener('click', () => {
-    currentIndex = (currentIndex + 1) % slides.length;
-    showSlide(currentIndex);
-  });
-
-  showSlide(currentIndex);
-});
-
-</script>
+<script src="../Scripts/components/reco-carousel.js"></script>

@@ -1,0 +1,45 @@
+.carousel {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  margin: auto;
+  overflow: hidden;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s ease;
+}
+
+.carousel-slide {
+  min-width: 100%;
+  display: none;
+}
+
+.carousel-slide.active {
+  display: block;
+}
+
+.reco-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #f8f8f8ff;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  font-size: 1.5rem;
+  border-radius: 50%;
+}
+
+.carousel-arrow.left { left: 10px; }
+.carousel-arrow.right { right: 10px; }

@@ -1,0 +1,173 @@
+ html {
+  scroll-behavior:smooth;
+}
+
+    /* base */
+    :root { --nav-h: 64px; }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #ebe8e2;
+    }
+
+    /* keep content below the fixed header */
+    body.has-fixed-nav {
+      padding-top: var(--nav-h);
+    }
+
+    /* NAVBAR - fixed + animation */
+    .navbar{
+      background-color: #d0b28c;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 2rem;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      transform: translateY(0);
+      transition: transform .28s cubic-bezier(.2,.9,.3,1), box-shadow .25s ease;
+      will-change: transform;
+      z-index: 1000;
+    }
+
+    /* hidden state (slides up) */
+    .navbar.navbar--hidden {
+      transform: translateY(-100%);
+    }
+
+    /* subtle shadow when scrolled */
+    .navbar.navbar--scrolled {
+      box-shadow: 0 6px 20px rgba(0,0,0,.12);
+    }
+
+    /* Logo */
+    .navbar-brand img {
+      height: 60px;
+      display: block;
+    }
+
+    /* Desktop menu */
+    .navbar-nav {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar-nav .nav-link {
+      text-decoration: none;
+      color: #2c2c2c;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+    .navbar-nav .nav-link:hover { color: #6c5f46; }
+
+    .navbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-link {
+      text-decoration: none;
+      color: #2c2c2c;
+      font-weight: 600;
+    }
+    .btn-link:hover { color: #6c5f46; }
+
+    .btn-dark {
+      background-color: #2c2c2c;
+      color: #fff;
+      text-decoration: none;
+      padding: 0.4rem 1rem;
+      border-radius: 50px;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+    .btn-dark:hover { background-color: #6c5f46; }
+
+    /* Burger */
+    .burger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      gap: 6px;
+      z-index: 1100;
+      background: transparent;
+      border: 0;
+      padding: 6px;
+    }
+    .burger div {
+      width: 28px;
+      height: 3px;
+      background-color: #2c2c2c;
+      transition: all 0.4s ease;
+    }
+    .burger.active div:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .burger.active div:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .burger.active div:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+    /* Dropdown Menu (Mobile) - positioned under the fixed nav */
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      background: #fff;
+      width: 100%;
+      text-align: center;
+      border-radius: 0 0 40px 40px;
+      overflow: hidden;
+      animation: slideDown 0.22s ease forwards;
+      position: fixed;
+      top: var(--nav-h);
+      left: 0;
+      right: 0;
+      z-index: 950;
+    }
+    .mobile-menu.show { display: flex; }
+
+    .mobile-menu a {
+      padding: 1rem;
+      text-decoration: none;
+      color: #2c2c2c;
+      font-weight: 600;
+      border-bottom: 1px solid #eee;
+    }
+    .mobile-menu a:hover { background: #f5f3ef; }
+
+    .mobile-menu .auth-links {
+      display:flex;
+      flex-direction: row;
+      justify-content:center;
+      align-items:center;
+      border-top: 1px solid #ccc;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive rules */
+    @media (max-width: 768px) {
+      .navbar-nav,
+      .navbar-actions {
+        display: none; /* hide desktop menus */
+      }
+      .burger {
+        display: flex;
+      }
+    }
+
+    /* a simple container for testing */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* small demo content style so you can test scrolling */
+    .demo-block { height: 900px; background: linear-gradient(180deg,#fff0,#eee); margin-bottom:1rem; border-radius:8px; padding:1rem; }
+  

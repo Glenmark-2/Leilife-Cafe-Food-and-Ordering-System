@@ -1,0 +1,227 @@
+body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #E7E0D6;
+      color: #333;
+      display: flex;
+    }
+
+
+    /* Main Content */
+    .main-content {
+      margin-left: 0px;
+      padding: 20px;
+      width: calc(100% - 220px);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .card h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .card p {
+      font-size: 24px;
+      margin: 10px 0 0;
+    }
+
+    /* Charts & Transactions */
+    .charts {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .chart-card {
+      height: 350px;
+    }
+    .chart-card canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+  .transactions {
+  background: linear-gradient(to bottom, #fff, #dce0e3);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.transactions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.transactions-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-buttons button {
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+.filter-buttons .active {
+  background: #fff;
+  border: 1px solid #ccc;
+}
+
+.transaction-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.transaction-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.transaction-list li:last-child {
+  border-bottom: none;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  background: #ddd;
+  border-radius: 50%;
+}
+
+.details .name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.details .date {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.amount {
+  font-weight: bold;
+  color: #333;
+}
+
+/* Tag Components */
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* ✅ This already adds some spacing */
+}
+
+.tag {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-right: 20px; /* ✅ Add margin between tag and amount */
+}
+
+.tag.pending {
+  color: #ff9800;
+  border: 1px solid #ff9800;
+  background: #fff3e0;
+}
+
+.tag.completed {
+  color: #4CAF50;
+  border: 1px solid #4CAF50;
+  background: #e8f5e9;
+}
+    /* Heatmap */
+    .heatmap-card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .heatmap {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-top: 10px;
+    }
+
+    .heatmap .day {
+      width: 100%;
+      padding-top: 70%;
+      position: relative;
+      border-radius: 4px;
+    }
+
+    .heatmap .day div {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: 4px;
+    }
+
+    .level-1 { background: #e0f2f1; }
+    .level-2 { background: #a7dcb4; }
+    .level-3 { background: #66bb6a; }
+    .level-4 { background: #388e3c; }
+
+    @media (max-width: 768px) {
+      .charts {
+        grid-template-columns: 1fr;
+      }
+      .main-content {
+        margin-left: 0;
+        width: 100%;
+      }
+      .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+      }
+    }

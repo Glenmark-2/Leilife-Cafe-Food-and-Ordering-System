@@ -1,0 +1,43 @@
+html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #ebe8e2;
+        }
+    /* Main flex container */
+#container {
+    display: flex;
+    flex-direction: row;
+    min-height: 100vh;
+    
+}
+
+/* Sidebar wrapper */
+#sidebar-wrapper {
+    flex-shrink: 0;        /* do not shrink */
+    transition: width 0.4s ease;
+}
+
+
+/* Sidebar container inside wrapper */
+#db-container {
+    width: 100%; /* always fill wrapper */
+    height: 100vh;
+    box-shadow: 3px 0 8px rgba(0, 0, 0, 0.15);
+    transition: width 0.4s ease;
+}
+
+/* Collapsed state */
+#db-container.collapsed {
+    width: 70px; /* only icons */
+}
+
+/* Content wrapper */
+#content-wrapper {
+     flex: 1;              /* take remaining space */
+    padding: 20px 50px;
+    margin-left: 20px;
+}
+
+/* #content-wrapper, #content-wrapper * {
+    margin: 0;
+} */

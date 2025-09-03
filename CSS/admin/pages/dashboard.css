@@ -1,0 +1,229 @@
+#first-row {
+    margin-bottom: 20px;   
+}
+
+#second-row {
+    display: flex;
+    flex-wrap: wrap;          
+    gap: 10px;                
+    justify-content: flex-start; 
+    margin-bottom: 20px;
+}
+
+.box-row {
+    width: 150px;            
+    height: 100px;           
+    background-color: #a8927c;
+    border-radius: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;  /* align content to left */
+    text-align: left;         /* left align text */
+    padding: 5px 20px;
+}
+
+.box-row h3 {
+    margin: 0;
+    font-size: 2rem;          
+}
+
+.box-row p {
+    margin: 0;
+    font-size: 1rem;          
+}
+
+#third-row{
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(to bottom, #ffffff, #2b3c45);
+    border-radius: 20px;
+    overflow-x: auto;
+}
+#table{
+    min-width: 600px; /* minimum width for table to avoid squishing */
+}
+
+#top {
+    display: flex;
+    justify-content: space-between; /* push items to edges */
+    align-items: center;            /* vertical center */
+    width: 100%;                    /* take full row */
+    gap: 10px;                      /* optional spacing */
+}
+
+#top p {
+    margin: 0; /* remove default margin */
+}
+
+.sort-dropdown {
+    margin: 0; /* ensure no extra margin */
+}
+
+.sort-dropdown select {
+    padding: 5px 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sort-dropdown select:hover {
+    border-color: #888;
+}
+
+.sort-dropdown select:focus {
+    border-color: #415863;
+    box-shadow: 0 0 3px rgba(65, 88, 99, 0.5);
+}
+
+
+
+#table-title{
+    display: flex;
+    flex-direction: row;
+    padding-left: 20px;
+    padding-right: 20px;
+    /* justify-content: space-between; */
+    margin-top: 10px;
+    border-radius: 20px 20px 0 0;
+    background-color: #ddd8ba;
+    margin-bottom: 0;
+}
+
+#table-row-content{
+    display: flex;
+    flex-direction: row;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: #fefefe;
+    gap: 10px; /* optional spacing between columns */
+}
+
+
+#name-content{
+    display: flex;
+    flex-direction: row;      /* keep image and text in a row */
+    align-items: center;      /* vertically center image with text */
+    gap: 10px;                /* space between image and text */
+    width: 19%;  
+}
+
+#name-content div {
+    display: flex;
+    flex-direction: column;   /* stack name and order vertically */
+}
+
+#name-content img{
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    object-fit: cover; 
+}
+
+#name{
+    margin-bottom: 0;
+}
+
+#orderMode{
+    margin-top: 0;
+    font-size: smaller;
+    color: #2b3c45;
+}
+
+#order-content{
+    width: 29%;
+}
+
+#amount-content{
+    width: 19%;
+}
+
+#status-content {
+    width: 19%;
+    display: flex;
+    justify-content: flex-start; /* horizontal centering */
+    align-items: center;     /* vertical centering */
+    height: auto;            /* let child define height */
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    .box-row {
+        width: 120px;
+        height: 80px;
+        padding: 5px 15px;
+    }
+    .box-row h3 {
+        font-size: 1.5rem;
+    }
+    .box-row p {
+        font-size: 0.9rem;
+    }
+
+    #third-row {
+        padding: 15px;
+    }
+    #table {
+        min-width: 500px; /* slightly smaller table */
+    }
+    #table-row-content {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    #name-content img {
+        width: 40px;
+        height: 40px;
+    }
+    #name, #orderMode, #order-content p, #amount-content p, #status-content p {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .box-row {
+        width: 100px;
+        height: 70px;
+        padding: 5px 10px;
+    }
+    .box-row h3 {
+        font-size: 1.2rem;
+    }
+    .box-row p {
+        font-size: 0.8rem;
+    }
+     #third-row {
+        padding: 10px;
+    }
+    #table {
+        min-width: 450px; /* allow horizontal scroll on smaller screens */
+    }
+    #name-content img {
+        width: 35px;
+        height: 35px;
+    }
+    #name, #orderMode, #order-content p, #amount-content p, #status-content p {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .box-row {
+        width: 80px;
+        height: 60px;
+        padding: 3px 8px;
+    }
+    .box-row h3 {
+        font-size: 1rem;
+    }
+    .box-row p {
+        font-size: 0.7rem;
+    }
+    
+}
+
+

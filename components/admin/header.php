@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="CSS/admin/components/header.css">
  <!-- pages css -->
 <link rel="stylesheet" href="CSS/admin/pages/dashboard.css">
+<link rel="stylesheet" href="CSS/admin/pages/sales.css">
 
  
 

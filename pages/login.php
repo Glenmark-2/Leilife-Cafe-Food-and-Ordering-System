@@ -9,7 +9,7 @@
         <img src="\Leilife\public\assests\Mask group.png" alt="Logo">
         <h1>Welcome back!</h1>
 
-        <form action="login.php" method="POST">
+        <form action="../backend/login.php" method="POST">
             <label for="email">Email <span style="color: red;">*</span></label>
             <input type="email" id="email" name="email" placeholder="Enter your email" required>
 

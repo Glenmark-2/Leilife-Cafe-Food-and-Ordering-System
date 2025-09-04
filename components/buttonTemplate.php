@@ -1,5 +1,5 @@
 <?php
-function createButton($height, $width, $text, $id = "", $fontSize = 16) {
+function createButton($height, $width, $text, $id = "", $fontSize = 16, $type = "button") {
     $hoverColor = "#445566"; 
     $defaultColor = "#22333c";
 
@@ -10,10 +10,12 @@ function createButton($height, $width, $text, $id = "", $fontSize = 16) {
 
     $idAttribute = $id ? "id='{$id}'" : "";
 
-    return "<button {$idAttribute} style='{$style}' 
+    return "<button type='{$type}' {$idAttribute} style='{$style}' 
                 onmouseover=\"this.style.backgroundColor='{$hoverColor}'\" 
                 onmouseout=\"this.style.backgroundColor='{$defaultColor}'\">{$text}</button>";
-}?>
+}
+?>
+
 
 <!-- // Usage examples:
 //include it first, then 

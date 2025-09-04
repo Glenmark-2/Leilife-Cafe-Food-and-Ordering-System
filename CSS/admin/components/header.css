@@ -36,6 +36,7 @@ html, body {
      flex: 1;              /* take remaining space */
     padding: 20px 50px;
     margin-left: 20px;
+    
 }
 
 /* #content-wrapper, #content-wrapper * {

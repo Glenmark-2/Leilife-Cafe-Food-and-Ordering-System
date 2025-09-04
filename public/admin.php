@@ -1,5 +1,6 @@
 <?php
 $currentPage = $_GET['page'] ?? 'dashboard';
+$page = $currentPage;
 ?>
 
 <div id="container"> <!-- main flex container -->

@@ -92,7 +92,10 @@
     border-radius: 20px 20px 0 0;
     background-color: #ddd8ba;
     margin-bottom: 0;
+    gap: 10px;
 }
+
+
 
 #table-row-content{
     display: flex;

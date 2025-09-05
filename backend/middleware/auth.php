@@ -1,5 +1,14 @@
 <?php
-// backend/middleware/auth.php
+// secure session config - run before session_start()
+$cookieParams = session_get_cookie_params();
+session_set_cookie_params([
+  'lifetime' => $cookieParams['lifetime'],
+  'path' => $cookieParams['path'],
+  'domain' => $cookieParams['domain'],
+  'secure' => isset($_SERVER['HTTPS']), // true in production with HTTPS
+  'httponly' => true,
+  'samesite' => 'Lax'
+]);
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

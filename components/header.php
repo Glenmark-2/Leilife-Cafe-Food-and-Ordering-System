@@ -52,27 +52,40 @@ if (isset($page_styles[$page])) {
     <li><a class="nav-link" href="index.php?page=home#contact-section">Contact</a></li>
   </ul>
 
-  <!-- Right side buttons -->
+  <!-- Right side buttons (dynamic desktop) -->
   <div class="navbar-actions">
-    <a href="#" id="loginBtn" class="btn-link">Login</a>
-    <a href="index.php?page=signUp" class="btn-dark">Sign Up</a>
+    <?php if (isset($_SESSION['user_id'])): ?>
+        <a href="index.php?page=user-profile" class="btn-link">Profile</a>
+        <a href="index.php?page=cart" class="btn-dark">Cart</a>
+    <?php else: ?>
+        <a href="#" id="loginBtn" class="btn-link">Login</a>
+        <a href="index.php?page=signUp" class="btn-dark">Sign Up</a>
+    <?php endif; ?>
   </div>
 </nav>
 
-<!-- Mobile Dropdown (kept outside the nav so it can be positioned under the fixed header) -->
+<!-- Mobile Dropdown Menu -->
 <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
   <a href="index.php?page=menu">Menu</a>
-  <a href="index.php?page=home#about-us-content">About</a>
+  <a href="index.php?page=home#about-us">About</a>
   <a href="index.php?page=home#contact-section">Contact</a>
+
+  <!-- Dynamic auth links (mobile) -->
   <div class="auth-links">
-    <a id="loginBtn" href="index.php?page=login">Login</a>
-    <a href="index.php?page=signUp">Sign Up</a>
+    <?php if (isset($_SESSION['user_id'])): ?>
+        <a href="index.php?page=user-profile">Profile</a>
+        <a href="index.php?page=cart">Cart</a>
+    <?php else: ?>
+        <a id="loginBtn" href="index.php?page=login">Login</a>
+        <a href="index.php?page=signUp">Sign Up</a>
+    <?php endif; ?>
   </div>
 </div>
 
 <div id="loginModal" style="display: none;">
   <?php include "../pages/login.php" ?>
 </div>
+
 
 <!-- Page container -->
 <!-- cart here  -->

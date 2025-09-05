@@ -20,7 +20,7 @@
     });
 
     /* --- Login modal toggle (simple) --- */
-    if (loginBtn && loginModal) {
+    if (loginBtn && loginModal || isset($_SESSION['user_id'])) {
       loginBtn.addEventListener('click', (e) => {
         e.preventDefault();
         // toggle display

@@ -2,33 +2,7 @@
     margin-bottom: 20px;  
 }
 
-#second-row {
-    display: flex;
-    flex-wrap: wrap;          
-    gap: 10px;                
-    justify-content: flex-start; 
-    margin-bottom: 20px;
-}
 
-.box-row {
-    width: max-content;    
-    height: 30px;           
-    background-color: #aea799;
-    border-radius: 25px;
-    border: solid #8b7863;
-    display: flex;
-    align-items: center; 
-    text-align: center;
-    padding: 5px 20px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.box-row.clicked {
-    background-color: #8b7863; /* darker when clicked */
-    color: #fff;              /* text turns white */
-}
 
 .search-bar {
     display: inline-flex;   /* shrink to fit input */
@@ -81,7 +55,7 @@
     justify-content: space-between; 
 }
 
-#add-product{
+#add-member{
     background-color: transparent;
     border: none;
     cursor: pointer;
@@ -121,10 +95,10 @@
     width: 25.3%;
 }
 
-#product-photo{
+#profile-photo{
     width: 50px;
     height: 50px;
-    border-radius: 10px;
+    border-radius: 25px;
     object-fit: cover;
 }
 

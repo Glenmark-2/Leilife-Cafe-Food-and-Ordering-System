@@ -87,10 +87,10 @@ usort($orders, function($a, $b) use ($sortBy) {
 
     <div id="table">
         <div id="table-title">
-            <p style="width: 20%;">Name</p>
-            <p style="width: 30%;">Order</p>
-            <p style="width: 20%;">Amount</p>
-            <p style="width: 20%;">Status</p>
+            <p style="width: 19%;">Name</p>
+            <p style="width: 29%;">Order</p>
+            <p style="width: 19%;">Amount</p>
+            <p style="width: 19%;">Status</p>
         </div>
 
         <!-- loop through orders -->

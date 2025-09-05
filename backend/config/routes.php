@@ -12,6 +12,13 @@ return [
     'forgot-password' => __DIR__ . '/../../pages/forgot-password.php',
     'checkout-page'   => __DIR__ . '/../../pages/checkout-page.php',
     'cart'            => __DIR__ . '/../../pages/cart.php',
+    'verify'          => __DIR__ . '/../verify.php',                // <--- new (maps to backend/verify.php)
+    'verify_success'  => __DIR__ . '/../../pages/verify_success.php',
+    'verify_notice'   => __DIR__ . '/../../components/verify_notice.php',
     // Optional 404 page; router will fall back to it
     '404'             => __DIR__ . '/../../pages/404.php',
+
+    // test page for viewing component
+    'test_page' => __DIR__ . '/../../pages/test_page.php',
+
 ];

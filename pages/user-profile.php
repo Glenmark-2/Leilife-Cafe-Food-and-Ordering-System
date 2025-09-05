@@ -87,6 +87,11 @@ $user = [
             <p>Postal Code</p>
             <input value="<?= $user['postal_code']; ?>" disabled>
         </div>
+        <div class="title-info" style="justify-content: flex-end; align-items: flex-end;">
+            <a href="/Leilife/backend/logout.php">
+                <?php echo createButton(20,90,"Logout", "logout-btn"); ?>
+            </a>
+        </div>    
     </div>
 </div>
 

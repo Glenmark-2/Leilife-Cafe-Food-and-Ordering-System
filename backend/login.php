@@ -23,12 +23,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password_hash'])) {
-            // ✅ Login successful
+            // 🚨 Block login if not verified
+            if ((int)$user['is_verified'] === 0) {
+                echo "<script>alert('Please verify your email before logging in.'); window.location.href='/Leilife/public/index.php?page=verify_notice';</script>";
+                exit;
+            }
+
+            // ✅ Verified user → allow login
             $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['email'] = $user['email'];
 
-            // Redirect to homepage
             header("Location: /Leilife/public/index.php?page=home");
             exit;
 

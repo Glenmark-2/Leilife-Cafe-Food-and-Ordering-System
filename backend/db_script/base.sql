@@ -7,9 +7,7 @@ CREATE TABLE users (
     phone_number VARCHAR(20),
     password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_verified TINYINT(1) NOT NULL DEFAULT 0,
-    verification_token VARCHAR(255) NULL,
-    verification_sent_at DATETIME NULL
+
 );
 
 CREATE TABLE admins (
@@ -21,6 +19,20 @@ CREATE TABLE admins (
     shift VARCHAR(100),
     status ENUM('active','inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE user_registrations (
+  reg_id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(100),
+  first_name VARCHAR(100) NOT NULL,
+  last_name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) UNIQUE NOT NULL,
+  phone_number VARCHAR(20),
+  password_hash VARCHAR(255) NOT NULL,
+  verification_token VARCHAR(255) NOT NULL,
+  verification_sent_at DATETIME NOT NULL,
+  expires_at DATETIME NOT NULL,
+  INDEX (verification_token)
 );
 
 CREATE TABLE contacts (

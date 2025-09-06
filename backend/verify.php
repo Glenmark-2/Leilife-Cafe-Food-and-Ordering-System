@@ -1,24 +1,22 @@
 <?php
 // backend/verify.php
-// Verify token and redirect to success / failed pages.
+// Verify token, check expiry, move user to `users` if valid
 
-// If $pdo is not set (coming direct), try to load DB init. When routed through public/index.php,
-// init.php was already loaded so this block will be skipped.
 if (!isset($pdo)) {
-    // prefer the db init located in backend/db_script
+    // prefer db init in backend/db_script
     if (file_exists(__DIR__ . '/db_script/init.php')) {
         require_once __DIR__ . '/db_script/init.php';
     } elseif (file_exists(__DIR__ . '/db.php')) {
         require_once __DIR__ . '/db.php';
     } else {
-        // last resort: try parent dir (if paths differ)
         @include_once __DIR__ . '/../backend/db_script/init.php';
     }
 }
 
-// destinations
+// Redirect destinations
 $redirectSuccess = "/Leilife/public/index.php?page=verify_success";
-$redirectFail    = "/Leilife/public/index.php?page=verify_failed"; // create this page or use 404
+$redirectFail    = "/Leilife/public/index.php?page=verify_failed";
+$redirectExpired = "/Leilife/public/index.php?page=verify_expired";
 
 // Ensure token exists
 if (!isset($_GET['token']) || empty($_GET['token'])) {
@@ -28,37 +26,54 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
 
 $token = $_GET['token'];
 
-// Find user with this token
-$stmt = $pdo->prepare("SELECT user_id, verification_sent_at FROM users WHERE verification_token = ?");
+// Find pending registration
+$stmt = $pdo->prepare("SELECT * FROM user_registrations WHERE verification_token = ?");
 $stmt->execute([$token]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+$registration = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$user) {
-    // token missing/invalid
+if (!$registration) {
+    // token not found
     header("Location: $redirectFail");
     exit;
 }
 
-// Optional: check expiry (uncomment & adjust hours if you want expiration)
-/*
-$sent = strtotime($user['verification_sent_at']);
-$hoursValid = 24;
-if ($sent === false || (time() - $sent) > ($hoursValid * 3600)) {
+// Check expiry
+$expires = strtotime($registration['expires_at']);
+if ($expires === false || time() > $expires) {
     // token expired
-    header("Location: $redirectFail");
+    header("Location: $redirectExpired&email=" . urlencode($registration['email']));
     exit;
 }
-*/
 
-// Mark verified
-$update = $pdo->prepare("UPDATE users SET is_verified = 1, verification_token = NULL, verification_sent_at = NULL WHERE user_id = ?");
-$ok = $update->execute([$user['user_id']]);
+try {
+    $pdo->beginTransaction();
 
-if ($ok) {
+    // Insert into users table
+    $insert = $pdo->prepare("
+        INSERT INTO users (username, first_name, last_name, email, phone_number, password_hash)
+        VALUES (:username, :first_name, :last_name, :email, :phone_number, :password_hash)
+    ");
+    $insert->execute([
+        ':username'      => $registration['username'],
+        ':first_name'    => $registration['first_name'],
+        ':last_name'     => $registration['last_name'],
+        ':email'         => $registration['email'],
+        ':phone_number'  => $registration['phone_number'],
+        ':password_hash' => $registration['password_hash']
+    ]);
+
+    // Delete from user_registrations
+    $delete = $pdo->prepare("DELETE FROM user_registrations WHERE reg_id = ?");
+    $delete->execute([$registration['reg_id']]);
+
+    $pdo->commit();
+
     header("Location: $redirectSuccess");
     exit;
-} else {
-    // update failed for some reason
+
+} catch (Exception $e) {
+    $pdo->rollBack();
+    error_log("Verification error: " . $e->getMessage());
     header("Location: $redirectFail");
     exit;
 }

@@ -15,6 +15,10 @@ return [
     'verify'          => __DIR__ . '/../verify.php',                // <--- new (maps to backend/verify.php)
     'verify_success'  => __DIR__ . '/../../pages/verify_success.php',
     'verify_notice'   => __DIR__ . '/../../components/verify_notice.php',
+    'verify_failed'   => __DIR__ . '/../../pages/verify_failed.php',
+    'verify_expired'  => __DIR__ . '/../../pages/verify_expired.php',
+    'resend_verification' => __DIR__ . '/../resend_verification.php', // ✅ add this
+
     // Optional 404 page; router will fall back to it
     '404'             => __DIR__ . '/../../pages/404.php',
 

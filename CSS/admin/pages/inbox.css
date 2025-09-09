@@ -1,240 +1,241 @@
- body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        height: 100vh;
-        display: flex;
-        background: #f7f7f7;
-    }
-
-    /* MAIN CONTAINER - inbox and feedback side by side */
-    .main {
-  display: flex;
-  flex: 1;
-  height: 100vh;
-  margin-left: 0; /* remove any accidental margin */
-  box-sizing: border-box;
+body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    background: #f4f6f8;
+    color: #333;
 }
 
-    /* LEFT PANEL (Inbox) */
-  .inbox-panel {
-  width: 360px;
-  min-width: 300px;   /* prevents ugly stretching */
-  max-width: 400px;   /* keeps compact */
-  background: #fff;
-  border-right: 1px solid #ccc;
-  display: flex;
-  flex-direction: column;
+/* MAIN LAYOUT */
+.main {
+    display: flex;
+    flex: 1;
+    height: 100vh;
+    margin-left: 0;
+    box-sizing: border-box;
+}
+
+/* LEFT PANEL (Inbox) */
+.inbox-panel {
+    width: 360px;
+    min-width: 300px;
+    max-width: 400px;
+    background: #fff;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+}
+
+/* Search Bar */
+.search-bar {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #fafafa;
+    border-bottom: 1px solid #eee;
+}
+.search-bar input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    outline: none;
+    font-size: 14px;
+}
+.search-bar input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 4px rgba(0,123,255,0.3);
+}
+.search-bar button {
+    background: none;
+    border: none;
+    font-size: 16px;
+    margin-left: 8px;
+    cursor: pointer;
+    color: #666;
+}
+.search-bar button:hover {
+    color: #007bff;
+}
+
+/* Inbox Header */
+.inbox-title {
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #444;
+}
+.actions {
+    display: flex;
+    gap: 8px;
+    padding: 0 12px 10px;
+}
+.actions button {
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #f9f9f9;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+.actions button:hover {
+    background: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+/* Mail List */
+.mail-list {
+    flex: 1;
+    overflow-y: auto;
+    background: #f4f4f4;
+}
+.mail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    border-bottom: 1px solid #e6e6e6;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    background: #fff;
+}
+.mail-item:hover {
+    background: #f0f7ff;
+}
+.checkbox {
+    width: 16px;
+    height: 16px;
+}
+.unread-dot {
+    width: 10px;
+    height: 10px;
+    background: #007bff;
+    border-radius: 50%;
+}
+.mail-avatar {
+    width: 36px;
+    height: 36px;
+    background: #ddd;
+    border-radius: 50%;
+}
+.mail-info {
+    flex: 1;
+}
+.mail-sender {
+    font-weight: bold;
+    font-size: 14px;
+    color: #222;
+}
+.mail-subject {
+    font-size: 13px;
+    color: #666;
+}
+.mail-date {
+    font-size: 12px;
+    color: #999;
 }
 
 /* FEEDBACK PANEL */
 .feedback-panel {
-  flex: 1;
-  background: #fafafa;
-  display: flex;
-  flex-direction: column;
+    flex: 1;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    width: 700px;
+    height: 100%;
+    border-left: 1px solid #eee;
+    border-radius: 0px 12px 12px 0px;
+    box-shadow: inset 2px 0 8px rgba(0,0,0,0.03);
 }
 
-#first-row {
-    width: 100%;
-    font-size: 14px;
+/* Feedback Header */
+.feedback-from {
+    margin: 20px;
     font-weight: bold;
+    font-size: 22px;
+    color: #333;
+}
+.feedback-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 20px 10px;
+}
+.feedback-avatar {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #bbb, #ddd);
+    border-radius: 50%;
+}
+.feedback-details {
+    display: flex;
+    flex-direction: column;
+}
+.feedback-email {
+    font-size: 13px;
+    color: #777;
 }
 
-/* Title */
-
-
-.search-bar {
-        display: flex;
-        align-items: center;
-        padding: 10px;
-        background: #fff;
-        border-bottom: 1px solid #ccc;
-    }
-    .search-bar input {
-        flex: 1;
-        padding: 6px 8px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        outline: none;
-    }
-    .search-bar button {
-        background: none;
-        border: none;
-        font-size: 16px;
-        margin-left: 6px;
-        cursor: pointer;
-    }
-    .inbox-title {
-        padding: 10px;
-        font-size: 14px;
-        font-weight: bold;
-    }
-    .actions {
-        display: flex-inline;
-        gap: 10px;
-        padding: 0;
-    }
-    .actions button {
-        flex: 1;
-        padding: 2px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        background: #fff;
-        cursor: pointer;
-        font-size: 11px;
-    }
-    .mail-list {
-        flex: 1;
-        overflow-y: auto;
-        background: #e0e0e0;
-    }
-    .mail-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 12px;
-        border-bottom: 1px solid #ccc;
-        cursor: pointer;
-    }
-    .mail-item:hover {
-        background: #dcdcdc;
-    }
-    .checkbox {
-        width: 16px;
-        height: 16px;
-    }
-    .unread-dot {
-        width: 10px;
-        height: 10px;
-        background: #007bff;
-        border-radius: 50%;
-    }
-    .mail-avatar {
-        width: 32px;
-        height: 32px;
-        background: #ddd;
-        border-radius: 50%;
-    }
-    .mail-info {
-        flex: 1;
-    }
-    .mail-sender {
-        font-weight: bold;
-        font-size: 14px;
-    }
-    .mail-subject {
-        font-size: 12px;
-        color: #555;
-    }
-    .mail-date {
-        font-size: 12px;
-        color: #777;
-    }
-
-    /* RIGHT PANEL (Feedback) */
-  /* RIGHT PANEL (Feedback) */
-.feedback-panel {
-  flex: 1;
-  max-width: calc(100% - 360px - 250px); /* adjust the 250px until the gaps look equal */
-  background: #fafafa;
-  display: flex;
-  flex-direction: column;
-}
-
-
-/* Make message area scroll if content is too long */
+/* Feedback message */
 .feedback-message {
     margin: 20px;
     font-size: 15px;
-    line-height: 1.5;
-    overflow-y: auto;
-    flex: 1; /* fill remaining vertical space */
+    line-height: 1.6;
+    color: #444;
+   
 }
-    .header {
-        display: flex;
-        justify-content: flex-end;
-        padding: 10px 20px;
-        border-bottom: 1px solid #ccc;
-    }
-    .profile {
-        font-size: 14px;
-        background: #eee;
-        padding: 5px 10px;
-        border-radius: 20px;
-        cursor: pointer;
-    }
-    .feedback-from {
-        margin: 20px;
-        font-weight: bold;
-        font-size: 24px;
-    }
-    .feedback-user {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin: 0 20px 10px;
-    }
-    .feedback-avatar {
-        width: 40px;
-        height: 40px;
-        background: #ddd;
-        border-radius: 50%;
-    }
-    .feedback-details {
-        display: flex;
-        flex-direction: column;
-    }
-    .feedback-email {
-        font-size: 13px;
-        color: #777;
-    }
-    .feedback-close {
+
+/* Close Button (Mobile only) */
+.feedback-close {
     display: none;
     background: #007bff;
     color: #fff;
     border: none;
     padding: 6px 12px;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
+    transition: background 0.2s;
 }
-  /* MOBILE FIX */
+.feedback-close:hover {
+    background: #0056b3;
+}
+
+/* MOBILE FIX */
 @media (max-width: 768px) {
   .main {
-    flex-direction: column; /* stack vertically */
+    flex-direction: column;
   }
-
   .inbox-panel {
-    width: 100%;    /* full width on mobile */
-    max-width: none;
+    width: 100%;
     border-right: none;
     border-bottom: 1px solid #ccc;
   }
-
   .feedback-panel {
-    display: none;  /* hidden by default */
+    display: none;
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 90%;     /* nice modal size */
+    width: 80%;
     max-width: 500px;
     height: auto;
     max-height: 80%;
     transform: translate(-50%, -50%);
     background: #fff;
     border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
     z-index: 1000;
     overflow-y: auto;
     padding: 20px;
   }
-
   .feedback-panel.active {
-    display: flex; /* only when opened */
+    display: flex;
   }
-
   .feedback-close {
     display: block;
-    align-content: end;
+    margin-left: auto;
   }
 }
-   

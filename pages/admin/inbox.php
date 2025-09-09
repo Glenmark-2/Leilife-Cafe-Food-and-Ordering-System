@@ -4,17 +4,17 @@ $inbox = [
     [
         "sender" => "Google",
         "email" => "bastagoogleaccgnagfeedback@",
-        "subject" => "You Google Account was recovered successf..",
+        "subject" => "You Google Account was recovered successfuly",
         "date" => "Sep 3",
         "message" => "The unli wings were amazing! Garlic Parmesan was my favorite, crispy and flavorful. The staff was friendly and always ready to refill. Worth the price!",
-        "unread" => true
+        "unread" => false
     ],
     [
         "sender" => "Google",
         "email" => "support@google.com",
-        "subject" => "You Google Account was recovered successf..",
+        "subject" => "You Google Account was recovered successfully",
         "date" => "Sep 3",
-        "message" => "Your account has been recovered successfully.",
+        "message" => "The unli wings were amazing! Garlic Parmesan was my favorite, crispy and flavorful. The staff was friendly and always ready to refill. Worth the price!",
         "unread" => true
     ],
     [
@@ -22,7 +22,7 @@ $inbox = [
         "email" => "noreply@google.com",
         "subject" => "You Google Account was recovered successf..",
         "date" => "Sep 3",
-        "message" => "Another sample feedback message...",
+        "message" => "The unli wings were amazing! Garlic Parmesan was my favorite",
         "unread" => false
     ]
 ];

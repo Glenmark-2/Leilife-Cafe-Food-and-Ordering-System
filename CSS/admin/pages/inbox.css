@@ -1,3 +1,240 @@
-body{
-    background-color: aquamarine;
+ body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        height: 100vh;
+        display: flex;
+        background: #f7f7f7;
+    }
+
+    /* MAIN CONTAINER - inbox and feedback side by side */
+    .main {
+  display: flex;
+  flex: 1;
+  height: 100vh;
+  margin-left: 0; /* remove any accidental margin */
+  box-sizing: border-box;
 }
+
+    /* LEFT PANEL (Inbox) */
+  .inbox-panel {
+  width: 360px;
+  min-width: 300px;   /* prevents ugly stretching */
+  max-width: 400px;   /* keeps compact */
+  background: #fff;
+  border-right: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+}
+
+/* FEEDBACK PANEL */
+.feedback-panel {
+  flex: 1;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+}
+
+#first-row {
+    width: 100%;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Title */
+
+
+.search-bar {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background: #fff;
+        border-bottom: 1px solid #ccc;
+    }
+    .search-bar input {
+        flex: 1;
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        outline: none;
+    }
+    .search-bar button {
+        background: none;
+        border: none;
+        font-size: 16px;
+        margin-left: 6px;
+        cursor: pointer;
+    }
+    .inbox-title {
+        padding: 10px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    .actions {
+        display: flex-inline;
+        gap: 10px;
+        padding: 0;
+    }
+    .actions button {
+        flex: 1;
+        padding: 2px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background: #fff;
+        cursor: pointer;
+        font-size: 11px;
+    }
+    .mail-list {
+        flex: 1;
+        overflow-y: auto;
+        background: #e0e0e0;
+    }
+    .mail-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        border-bottom: 1px solid #ccc;
+        cursor: pointer;
+    }
+    .mail-item:hover {
+        background: #dcdcdc;
+    }
+    .checkbox {
+        width: 16px;
+        height: 16px;
+    }
+    .unread-dot {
+        width: 10px;
+        height: 10px;
+        background: #007bff;
+        border-radius: 50%;
+    }
+    .mail-avatar {
+        width: 32px;
+        height: 32px;
+        background: #ddd;
+        border-radius: 50%;
+    }
+    .mail-info {
+        flex: 1;
+    }
+    .mail-sender {
+        font-weight: bold;
+        font-size: 14px;
+    }
+    .mail-subject {
+        font-size: 12px;
+        color: #555;
+    }
+    .mail-date {
+        font-size: 12px;
+        color: #777;
+    }
+
+    /* RIGHT PANEL (Feedback) */
+  /* RIGHT PANEL (Feedback) */
+.feedback-panel {
+  flex: 1;
+  max-width: calc(100% - 360px - 250px); /* adjust the 250px until the gaps look equal */
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* Make message area scroll if content is too long */
+.feedback-message {
+    margin: 20px;
+    font-size: 15px;
+    line-height: 1.5;
+    overflow-y: auto;
+    flex: 1; /* fill remaining vertical space */
+}
+    .header {
+        display: flex;
+        justify-content: flex-end;
+        padding: 10px 20px;
+        border-bottom: 1px solid #ccc;
+    }
+    .profile {
+        font-size: 14px;
+        background: #eee;
+        padding: 5px 10px;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+    .feedback-from {
+        margin: 20px;
+        font-weight: bold;
+        font-size: 24px;
+    }
+    .feedback-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 20px 10px;
+    }
+    .feedback-avatar {
+        width: 40px;
+        height: 40px;
+        background: #ddd;
+        border-radius: 50%;
+    }
+    .feedback-details {
+        display: flex;
+        flex-direction: column;
+    }
+    .feedback-email {
+        font-size: 13px;
+        color: #777;
+    }
+    .feedback-close {
+    display: none;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+  /* MOBILE FIX */
+@media (max-width: 768px) {
+  .main {
+    flex-direction: column; /* stack vertically */
+  }
+
+  .inbox-panel {
+    width: 100%;    /* full width on mobile */
+    max-width: none;
+    border-right: none;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .feedback-panel {
+    display: none;  /* hidden by default */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 90%;     /* nice modal size */
+    max-width: 500px;
+    height: auto;
+    max-height: 80%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .feedback-panel.active {
+    display: flex; /* only when opened */
+  }
+
+  .feedback-close {
+    display: block;
+    align-content: end;
+  }
+}
+   

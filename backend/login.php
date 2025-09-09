@@ -24,10 +24,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($user && password_verify($password, $user['password_hash'])) {
             // 🚨 Block login if not verified
-            if ((int)$user['is_verified'] === 0) {
-                echo "<script>alert('Please verify your email before logging in.'); window.location.href='/Leilife/public/index.php?page=verify_notice';</script>";
-                exit;
-            }
+            // if ((int)$user['is_verified'] === 0) {
+            //     echo "<script>alert('Please verify your email before logging in.'); window.location.href='/Leilife/public/index.php?page=verify_notice';</script>";
+            //     exit;
+            // }
 
             // ✅ Verified user → allow login
             $_SESSION['user_id'] = $user['user_id'];

@@ -6,15 +6,15 @@
 
     <div id="box">
         <!-- ✅ Wrap inputs inside a form -->
-        <form action="../backend/signUp.php" method="POST">
+        <form action="../backend/signUp.php" method="POST" style="width: 100%;">
             <p class="label-input">User Details</p>
-            <div class="input-box">
+            <div class="sign-up-form">
                 <input type="text" name="fname" required placeholder="First name">
                 <input type="text" name="lname" required placeholder="Last name">
             </div>
 
             <p class="label-input">Login & Contact Details</p>
-            <div class="input-box">
+            <div class="sign-up-form">
                 <input type="email" name="email" required placeholder="Email address">
                 <input type="tel" name="phone_number" required placeholder="Phone number">
                 <input type="password" name="password" required placeholder="Password">

@@ -24,8 +24,8 @@ function sendVerificationEmail(string $toEmail, string $token): bool {
         $mail->isSMTP();
         $mail->Host       = 'smtp.ethereal.email';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'genoveva.ziemann@ethereal.email';
-        $mail->Password   = 'vC2QQWExbZ31KGWqwf';
+        $mail->Username   = 'isac.adams98@ethereal.email';
+        $mail->Password   = 'usuUWaPbvw9TzH7Kkm';
         $mail->SMTPSecure = 'tls';
         $mail->Port       = 587;
 

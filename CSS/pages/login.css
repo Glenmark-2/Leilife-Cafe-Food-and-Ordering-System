@@ -114,10 +114,10 @@ button.google-btn {
     gap: 8px;
 }
 
-/* button.google-btn img {
+button.google-btn img {
     height: 20px;
     width: 20px;
-} */
+}
 
 button.google-btn:hover {
     background-color: #f4f4f4;

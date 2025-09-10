@@ -1,62 +1,120 @@
 <?php
-// backend/signup.php
+declare(strict_types=1);
+
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', '1');
 
 require_once __DIR__ . "/db_script/db.php";
-require_once __DIR__ . "/send_mail.php"; // should expose sendVerificationEmail($email, $token)
+require_once __DIR__ . "/send_mail.php";
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo "<script>alert('Invalid request method.'); window.history.back();</script>";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+function wants_json(): bool {
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+        return true;
+    }
+    if (!empty($_SERVER['HTTP_ACCEPT']) && stripos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) {
+        return true;
+    }
+    return false;
+}
+
+function json_response(array $data, int $status = 200): void {
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code($status);
+    echo json_encode($data);
     exit;
 }
 
-// Collect + sanitize
+function respond(bool $success, array $errors = [], ?string $redirect = null): void {
+    if (wants_json()) {
+        if ($success) {
+            json_response(['success' => true, 'redirect' => $redirect]);
+        } else {
+            json_response(['success' => false, 'errors' => $errors], 400);
+        }
+    } else {
+        if (!$success) {
+            $_SESSION['signup_errors'] = $errors;
+            header("Location: /Leilife/public/index.php?page=signUp");
+        } else {
+            header("Location: " . $redirect);
+        }
+        exit;
+    }
+}
+
+// --- 1) Allow POST only
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    respond(false, ["Invalid request method."]);
+}
+
+// --- 2) CSRF Protection
+if (
+    !isset($_POST['csrf_token'], $_SESSION['csrf_token']) ||
+    !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
+) {
+    respond(false, ["Security check failed. Please try again."]);
+}
+
+// --- 3) Collect & sanitize
 $fname    = trim($_POST['fname'] ?? '');
 $lname    = trim($_POST['lname'] ?? '');
-$email    = trim($_POST['email'] ?? '');
+$email    = strtolower(trim($_POST['email'] ?? ''));
 $phone    = trim($_POST['phone_number'] ?? '');
-$password = trim($_POST['password'] ?? '');
-$confirm  = trim($_POST['confirm_password'] ?? '');
+$password = $_POST['password'] ?? '';
+$confirm  = $_POST['confirm_password'] ?? '';
 $terms    = isset($_POST['terms']);
 
+// --- 4) Validation
+$errors = [];
+
 if (!$terms) {
-    echo "<script>alert('You must accept the Terms & Conditions.'); window.history.back();</script>";
-    exit;
+    $errors[] = "You must accept the Terms & Conditions.";
 }
-
-if ($password !== $confirm) {
-    echo "<script>alert('Passwords do not match!'); window.history.back();</script>";
-    exit;
-}
-
 if (empty($fname) || empty($lname) || empty($email) || empty($password)) {
-    echo "<script>alert('Please fill in all required fields!'); window.history.back();</script>";
-    exit;
+    $errors[] = "Please fill in all required fields.";
 }
-
+if (strlen($fname) > 100 || strlen($lname) > 100) {
+    $errors[] = "Name too long (max 100 characters).";
+}
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    echo "<script>alert('Please enter a valid email address.'); window.history.back();</script>";
-    exit;
+    $errors[] = "Invalid email address.";
+}
+if (!preg_match('/^\+?\d{7,15}$/', $phone)) {
+    $errors[] = "Invalid phone number format.";
+}
+if ($password !== $confirm) {
+    $errors[] = "Passwords do not match.";
+}
+if (strlen($password) < 8) {
+    $errors[] = "Password must be at least 8 characters long.";
 }
 
-// Hash password
+if (!empty($errors)) {
+    respond(false, $errors);
+}
+
+// --- 5) Hash password
 $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-// base username (simple). We'll ensure uniqueness below.
-$base_username = strtolower(preg_replace('/\s+/', '', $fname . '.' . $lname));
-
-// helper to create a unique username across users + registrations
-function make_unique_username($pdo, $base) {
+// --- 6) Unique username generator
+function make_unique_username(PDO $pdo, string $base): string {
     $username = $base;
     $i = 1;
-    while (true) {
-        $stmt = $pdo->prepare("
-            SELECT 1 FROM users WHERE username = :u
+    $stmt = $pdo->prepare("
+        SELECT username FROM (
+            SELECT username FROM users
             UNION
-            SELECT 1 FROM user_registrations WHERE username = :u
-            LIMIT 1
-        ");
+            SELECT username FROM user_registrations
+        ) AS combined
+        WHERE username = :u
+        LIMIT 1
+    ");
+
+    while (true) {
         $stmt->execute([':u' => $username]);
         if (!$stmt->fetch()) break;
         $username = $base . $i;
@@ -65,86 +123,85 @@ function make_unique_username($pdo, $base) {
     return $username;
 }
 
+$base_username = strtolower(preg_replace('/\s+/', '', $fname . '.' . $lname));
+
+// --- 7) Database ops
 try {
-    // 1) If email already exists in users -> reject
+    // Check if email exists
     $stmt = $pdo->prepare("SELECT user_id FROM users WHERE email = :email LIMIT 1");
     $stmt->execute([':email' => $email]);
     if ($stmt->fetch()) {
-        echo "<script>alert('Email already registered. Please login or reset your password.'); window.history.back();</script>";
-        exit;
+        respond(false, ["Email already registered. Please log in or reset your password."]);
     }
 
-    // 2) Check if there is already a pending registration
+    // Check pending registrations
     $stmt = $pdo->prepare("SELECT reg_id, expires_at FROM user_registrations WHERE email = :email LIMIT 1");
     $stmt->execute([':email' => $email]);
     $pending = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $token = bin2hex(random_bytes(16));
-    $sent_at = date('Y-m-d H:i:s');
-    $expires_at = date('Y-m-d H:i:s', time() + 10); // 1 hour
+    $token      = bin2hex(random_bytes(16));
+    $sent_at    = date('Y-m-d H:i:s');
+    $expires_at = date('Y-m-d H:i:s', time() + 3600);
+
+    if ($pending && strtotime($pending['expires_at']) > time()) {
+        $upd = $pdo->prepare("
+            UPDATE user_registrations 
+            SET verification_token = :token,
+                verification_sent_at = :sent_at,
+                expires_at = :expires_at
+            WHERE reg_id = :id
+        ");
+        $upd->execute([
+            ':token'     => $token,
+            ':sent_at'   => $sent_at,
+            ':expires_at'=> $expires_at,
+            ':id'        => $pending['reg_id']
+        ]);
+
+        if (!sendVerificationEmail($email, $token)) {
+            throw new RuntimeException("Could not send verification email. Contact support.");
+        }
+
+        respond(true, [], "/Leilife/public/index.php?page=verify_notice");
+    }
 
     if ($pending) {
-        // If pending and not expired -> update token and resend
-        if (strtotime($pending['expires_at']) > time()) {
-            $upd = $pdo->prepare("UPDATE user_registrations 
-                                  SET verification_token = :token, verification_sent_at = :sent_at, expires_at = :expires_at
-                                  WHERE reg_id = :id");
-            $upd->execute([
-                ':token' => $token,
-                ':sent_at' => $sent_at,
-                ':expires_at' => $expires_at,
-                ':id' => $pending['reg_id']
-            ]);
-
-            if (sendVerificationEmail($email, $token)) {
-                header("Location: /Leilife/public/index.php?page=verify_notice");
-                exit;
-            } else {
-                echo "<script>alert('Could not send verification email. Contact support.'); window.history.back();</script>";
-                exit;
-            }
-        } else {
-            // expired -> delete and continue to insert new below
-            $del = $pdo->prepare("DELETE FROM user_registrations WHERE reg_id = :id");
-            $del->execute([':id' => $pending['reg_id']]);
-        }
+        $del = $pdo->prepare("DELETE FROM user_registrations WHERE reg_id = :id");
+        $del->execute([':id' => $pending['reg_id']]);
     }
 
-    // 3) Create a unique username and insert into registrations
+    // Insert new registration
     $username = make_unique_username($pdo, $base_username);
 
-    $ins = $pdo->prepare("INSERT INTO user_registrations
-        (username, first_name, last_name, email, phone_number, password_hash, verification_token, verification_sent_at, expires_at)
-        VALUES (:username, :fname, :lname, :email, :phone, :password_hash, :token, :sent_at, :expires_at)
+    $ins = $pdo->prepare("
+        INSERT INTO user_registrations
+        (username, first_name, last_name, email, phone_number, password_hash,
+         verification_token, verification_sent_at, expires_at)
+        VALUES
+        (:username, :fname, :lname, :email, :phone, :password_hash,
+         :token, :sent_at, :expires_at)
     ");
     $ins->execute([
-        ':username' => $username,
-        ':fname' => $fname,
-        ':lname' => $lname,
-        ':email' => $email,
-        ':phone' => $phone,
+        ':username'      => $username,
+        ':fname'         => $fname,
+        ':lname'         => $lname,
+        ':email'         => $email,
+        ':phone'         => $phone,
         ':password_hash' => $password_hash,
-        ':token' => $token,
-        ':sent_at' => $sent_at,
-        ':expires_at' => $expires_at
+        ':token'         => $token,
+        ':sent_at'       => $sent_at,
+        ':expires_at'    => $expires_at
     ]);
 
-    // Send verification email
-    if (sendVerificationEmail($email, $token)) {
-        header("Location: /Leilife/public/index.php?page=verify_notice");
-        exit;
-    } else {
-        echo "<script>alert('Signup saved but verification email could not be sent. Contact support.'); window.location.href='/Leilife/public/index.php?page=home';</script>";
-        exit;
+    if (!sendVerificationEmail($email, $token)) {
+        throw new RuntimeException("Signup saved but verification email could not be sent. Contact support.");
     }
 
+    respond(true, [], "/Leilife/public/index.php?page=verify_notice");
+
 } catch (PDOException $e) {
-    // Handle duplicate email / unique constraint more gracefully
-    if ($e->getCode() == 23000) { // integrity constraint violation (duplicate)
-        echo "<script>alert('That email or username is already taken. Try a different one.'); window.history.back();</script>";
-        exit;
-    }
-    // For debugging (you already enable errors). In production log this instead.
-    echo "<script>alert('Database error: " . htmlspecialchars($e->getMessage()) . "'); window.history.back();</script>";
-    exit;
+    error_log("Signup DB error: " . $e->getMessage());
+    respond(false, ["A database error occurred. Please try again later."]);
+} catch (RuntimeException $e) {
+    respond(false, [$e->getMessage()]);
 }

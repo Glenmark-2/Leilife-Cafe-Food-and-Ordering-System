@@ -1,97 +1,101 @@
+<!-- pages/signUp.php (or wherever you render the page) -->
 <div id="body-container">
-    <div id="title">
-        <h1>Ready to sign up to Leilife?</h1>
-        <p id="subtitle">Tell us more about you so we can give you a better delivery experience.</p>
-    </div>
+  <div id="title">
+    <h1>Ready to sign up to Leilife?</h1>
+    <p id="subtitle">Tell us more about you so we can give you a better delivery experience.</p>
+  </div>
 
-    <div id="box">
-        <!-- ✅ Wrap inputs inside a form -->
-        <form action="../backend/signUp.php" method="POST" style="width: 100%;">
-            <p class="label-input">User Details</p>
-            <div class="sign-up-form">
-                <input type="text" name="fname" required placeholder="First name">
-                <input type="text" name="lname" required placeholder="Last name">
-            </div>
+  <div id="box">
+    <?php
+      if (session_status() === PHP_SESSION_NONE) session_start();
+      if (!isset($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+      }
+    ?>
 
-            <p class="label-input">Login & Contact Details</p>
-            <div class="sign-up-form">
-                <input type="email" name="email" required placeholder="Email address">
-                <input type="tel" name="phone_number" required placeholder="Phone number">
-                <input type="password" name="password" required placeholder="Password">
-                <input type="password" name="confirm_password" required placeholder="Confirm password">
-            </div>
-
-            <!-- Checkbox with modal trigger -->
-            <div class="checkbox-container">
-                <input type="checkbox" name="terms" id="terms" required>
-                <label for="terms">
-                    By registering your details, you agree with our
-                    <span id="termsLink" style="color:#243238; cursor:pointer; font-weight:bold;">Terms & Conditions</span>.
-                </label>
-            </div>
-
-            <center>
-                <?php
-                include "../components/buttonTemplate.php";
-                echo createButton(45, 360, "Create your Account", "create-btn", 16, "submit");
-                ?>
-            </center>
-        </form>
-    </div>
-</div>
-
-<!-- Terms & Conditions Modal -->
-<div id="termsModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Terms and Conditions</h2>
-        <div class="modal-body">
-            <p id="terms-text">Welcome! By signing up, you agree to the following terms:</p>
-            <ol>
-                <li><strong>Acceptance of Terms:</strong> You agree to abide by these Terms and Conditions when using our services.</li>
-                <li><strong>Eligibility:</strong> You must be at least 18 years old to create an account.</li>
-                <li><strong>Account Responsibilities:</strong> Keep your login credentials secure and provide accurate information.</li>
-                <li><strong>Privacy:</strong> Your data will be collected and used according to our Privacy Policy.</li>
-                <li><strong>Acceptable Use:</strong> You may not use the service for illegal activities or to harm others.</li>
-                <li><strong>Intellectual Property:</strong> All content belongs to us and cannot be copied without permission.</li>
-                <li><strong>Termination:</strong> Accounts violating these terms may be suspended or terminated.</li>
-                <li><strong>Disclaimer:</strong> We are not liable for any damages or loss caused by using the service.</li>
-                <li><strong>Changes to Terms:</strong> We may update these terms anytime; continued use constitutes acceptance.</li>
-                <li><strong>Governing Law:</strong> These terms are governed by the laws of [Your Country].</li>
-            </ol>
+        <!-- Error container -->
+        <div id="error-container" class="error-messages" style="display: none;">
+            <?php
+            if (!empty($_SESSION['signup_errors'])) {
+                foreach ($_SESSION['signup_errors'] as $error) {
+                    echo '<p class="error">' . htmlspecialchars($error) . '</p>';
+                }
+                // force display if PHP errors exist
+                echo "<script>document.getElementById('error-container').style.display = 'block';</script>";
+                unset($_SESSION['signup_errors']);
+            }
+            ?>
         </div>
-        <?php 
-        echo createButton(40, 150, "I Accept", "acceptBtn", 16);
+
+
+    <form id="signup-form"
+          action="/Leilife/backend/signup.php"
+          method="POST"
+          novalidate>
+      <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+
+      <legend>User Details</legend>
+      <div class="sign-up-form">
+        <label for="fname">First Name <span class="required">*</span></label>
+        <input type="text" id="fname" name="fname" maxlength="100" required placeholder="First name" autocomplete="given-name">
+            
+        <label for="lname">Last Name <span class="required">*</span></label>
+        <input type="text" id="lname" name="lname" maxlength="100" required placeholder="Last name" autocomplete="family-name">
+      </div>
+
+      <legend>Login & Contact Details</legend>
+      <div class="sign-up-form">
+        <label for="email">Email <span class="required">*</span></label>
+        <input type="email" id="email" name="email" required placeholder="Email address" autocomplete="email">
+
+        <label for="phone_number">Phone Number <span class="required">*</span></label>
+        <input type="tel" id="phone_number" name="phone_number" required placeholder="+1234567890" pattern="^\+?\d{7,15}$" autocomplete="tel">
+
+        <label for="password">Password <span class="required">*</span></label>
+        <input type="password" id="password" name="password" required placeholder="Password" minlength="8" autocomplete="new-password">
+
+        <label for="confirm_password">Confirm Password <span class="required">*</span></label>
+        <input type="password" id="confirm_password" name="confirm_password" required placeholder="Confirm password" minlength="8" autocomplete="new-password">
+      </div>
+
+      <div class="checkbox-container">
+        <input type="checkbox" name="terms" id="terms" required>
+        <label for="terms">
+          By registering your details, you agree with our
+          <a href="/Leilife/public/index.php?page=terms" target="_blank" rel="noopener noreferrer">Terms & Conditions</a>.
+        </label>
+      </div>
+
+      <center>
+        <?php
+          include "../components/buttonTemplate.php";
+          echo createButton(45, 360, "Create your Account", "create-btn", 16, "submit");
         ?>
-    </div>
+      </center>
+    </form>
+  </div>
 </div>
 
+<style>
+  /* Hide the error box if empty */
+  #error-container:empty { display: none; }
+</style>
 
+<!-- Watchdog: set a flag; the JS must flip it to "ready" -->
 <script>
-// Modal elements
-const modal = document.getElementById("termsModal");
-const termsLink = document.getElementById("termsLink");
-const closeBtn = document.querySelector(".modal-content .close");
-const acceptBtn = document.getElementById("acceptBtn");
-const checkbox = document.getElementById("terms");
-
-// Show modal
-termsLink.onclick = () => modal.style.display = "flex";
-
-// Close modal
-closeBtn.onclick = () => modal.style.display = "none";
-
-// Accept button: check checkbox + close modal
-acceptBtn.onclick = () => {
-    checkbox.checked = true;
-    modal.style.display = "none";
-};
-
-// Click outside modal to close
-window.onclick = e => {
-    if (e.target == modal) modal.style.display = "none";
-};
-
+  window.__signupJSReady = false;
 </script>
 
-<script src="../Scripts/pages/sign-up.js"></script>
+<!-- Use an ABSOLUTE path + cache-buster -->
+<script src="/Leilife/Scripts/pages/sign-up.js?v=4" defer></script>
+
+<!-- If the JS never flips the flag, surface a clear console message -->
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      if (!window.__signupJSReady) {
+        console.error('[signup] sign-up.js did not initialize. Check script path, 404s, or console errors.');
+      }
+    }, 0);
+  });
+</script>

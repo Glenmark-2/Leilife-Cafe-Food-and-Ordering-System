@@ -72,6 +72,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div id="new-product-modal">
         <div id="left">
             <img id="new-product-photo" src="public/assests/about us.png" alt="photo">
+              <input type="file" id="uploadInput" style="display:none;" accept="image/*">
             <button id="uploadBtn">Upload Photo</button>
         </div>
 
@@ -95,6 +96,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <option value="Night">Night</option>
                     </select>
                 </div>
+                
 
                 <div class="form-row status-row">
                     <label>Status:</label>
@@ -112,6 +114,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <script>
 // ---- Live search ----
+const BASE_URL = "http://localhost/Leilife/";
 const searchInput = document.getElementById('search-input');
 const staffRows = document.querySelectorAll('.product-row');
 
@@ -161,27 +164,55 @@ document.querySelectorAll('.editBtn').forEach(btn => {
 
         } else {
             // Disable fields again
-            nameInput.disabled = roleInput.disabled = shiftSelect.disabled = statusBtn.disabled = true;
+    nameInput.disabled = roleInput.disabled = shiftSelect.disabled = statusBtn.disabled = true;
 
-            // Reset field styles
-            [nameInput, roleInput, shiftSelect].forEach(el => {
-                el.style.padding = '0';
-                el.style.border = 'none';
-                el.style.borderRadius = '0';
-                el.style.backgroundColor = 'transparent';
-            });
+    // Reset field styles
+    [nameInput, roleInput, shiftSelect].forEach(el => {
+        el.style.padding = '0';
+        el.style.border = 'none';
+        el.style.borderRadius = '0';
+        el.style.backgroundColor = 'transparent';
+    });
 
-            // Reset button look
-            btn.textContent = 'Edit';
-            btn.style.backgroundColor = '#C6C3BD';
-            btn.style.color = '#22333B';
+    // Reset button look
+    btn.textContent = 'Edit';
+    btn.style.backgroundColor = '#C6C3BD';
+    btn.style.color = '#22333B';
 
-            // Enable other edit buttons
-            document.querySelectorAll('.editBtn').forEach(otherBtn => {
-                otherBtn.disabled = false;
-                otherBtn.style.opacity = '1';
-                otherBtn.style.cursor = 'pointer';
-            });
+    // Enable other edit buttons
+    document.querySelectorAll('.editBtn').forEach(otherBtn => {
+        otherBtn.disabled = false;
+        otherBtn.style.opacity = '1';
+        otherBtn.style.cursor = 'pointer';
+    });
+
+    // ✅ Send update to backend
+    // ✅ Send update to backend
+const staffId = row.dataset.id;
+const updatedData = {
+    id: staffId,                               // dati: staff_id
+    name: nameInput.value,                     // dati: staff_name
+    role: roleInput.value,                     // dati: staff_role
+    shift: shiftSelect.value,
+    status: statusBtn.textContent
+};
+
+fetch(BASE_URL + "backend/admin/update_staff.php", {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updatedData)
+})
+.then(res => res.json())
+.then(data => {
+    console.log("Response from server:", data);
+    if (data.success) {
+        showModal("Staff updated successfully!", "success");
+    } else {
+        showModal("Update failed: " + data.message, "error");
+    }
+})
+.catch(err => showModal("Fetch error: " + err.message, "error"));
+
         }
     });
 });
@@ -203,4 +234,105 @@ const cancel = document.getElementById("cancel");
 
 addMember.addEventListener('click', () => modal.style.display = "flex");
 cancel.addEventListener('click', () => modal.style.display = "none");
+
+
+
+// open file picker
+document.getElementById("uploadBtn").addEventListener("click", () => {
+    document.getElementById("uploadInput").click();
+});
+
+// preview image sa modal
+document.getElementById("uploadInput").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        document.getElementById("new-product-photo").src = URL.createObjectURL(file);
+    }
+});
+
+// ADD STAFF
+document.getElementById("add").addEventListener("click", () => {
+    const name   = document.getElementById("name").value.trim();
+    const role   = document.getElementById("role").value.trim();
+    const shift  = document.getElementById("category").value;
+    const status = "Available";
+    const file   = document.getElementById("uploadInput").files[0];
+
+    if (!name || !role || !shift) {
+        showModal("Please fill all fields", "error");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("role", role);
+    formData.append("shift", shift);
+    formData.append("status", status);
+    if (file) formData.append("photo", file);
+
+    fetch(BASE_URL + "backend/admin/add_staff.php", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+        showModal("Staff added successfully!", "success");
+
+        // close modal
+        document.getElementById("modal").style.display = "none";
+
+        // clear fields
+        document.getElementById("name").value = "";
+        document.getElementById("role").value = "";
+        document.getElementById("category").value = "";
+        document.getElementById("uploadInput").value = "";
+        document.getElementById("new-product-photo").src = "public/assests/about us.png";
+
+        // 🔹 Append new row directly
+        const tbody = document.getElementById("staffTableBody");
+        const newRow = document.createElement("tr");
+        newRow.innerHTML = `
+            <td>${data.inserted_id}</td>
+            <td>${document.getElementById("name").value}</td>
+            <td>${document.getElementById("role").value}</td>
+            <td>${document.getElementById("category").value}</td>
+            <td>Available</td>
+            <td><img src="public/staffs/${data.staff_image}" width="40"></td>
+        `;
+        loadStaffTable();
+
+    } else {
+        showModal("Error: " + data.message, "error");
+    }
+    })
+    .catch(err => showModal("Fetch error: " + err.message, "error"));
+});
+
+function loadStaffTable() {
+    fetch(BASE_URL + "backend/admin/get_staff.php")
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.getElementById("staffTableBody");
+            tbody.innerHTML = ""; // clear table
+
+            data.forEach(staff => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${staff.staff_id}</td>
+                    <td>${staff.staff_name}</td>
+                    <td>${staff.staff_role}</td>
+                    <td>${staff.shift}</td>
+                    <td>${staff.status}</td>
+                    <td><img src="public/staffs/${staff.staff_image}" width="40"></td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(err => {
+            console.error("Error loading staff:", err);
+        });
+}
+
+
 </script>

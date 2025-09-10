@@ -5,11 +5,12 @@
     z-index: 999;   
     display: flex;
     flex-direction: column;
-    width: 300px; /* slightly wider for breathing space */
+    width: 350px; /* slightly wider for breathing space */
     background: white; 
     font-family: Arial, sans-serif;
     font-size: 13px;
     box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+    height: 90vh; /* taller cart */
 }
 
     .inside-div {
@@ -51,14 +52,43 @@
         font-size: 14px;
     }
 
-    #mid-div {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 4px 0;
-        gap: 6px;
-    }
+   #mid-div {
+  display: flex;
+  flex-direction: column; /* stack like a list */
+  gap: 8px; /* spacing between items */
+}
+.cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee;
+  padding: 8px 0;
+}
+.cart-item:last-child {
+  border-bottom: none;
+}
+.trash-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
 
+.trash-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    filter: brightness(0) saturate(100%) invert(34%) sepia(86%) saturate(4802%) hue-rotate(348deg) brightness(97%) contrast(95%);
+    transition: filter 0.2s ease-in-out;
+}
+
+.trash-btn:hover .trash-icon {
+    filter: brightness(0) saturate(100%) invert(17%) sepia(92%) saturate(6800%) hue-rotate(2deg) brightness(92%) contrast(120%);
+}
     #mid-div img {
         width: 14px; 
         height: 16px; /* smaller trash icon */
@@ -84,6 +114,7 @@
         border: 1px solid #000; 
         background-color: lightgray; 
         border-radius: 50%; 
+        margin-right: 10px;
         width: 22px; 
         height: 22px; 
         font-size: 13px;
@@ -105,13 +136,24 @@
         font-size: 13px;
     }
 
-    #second-div{
-        background-color: #aaa480;
-        padding: 12px;
-    }
+    #second-div {
+    background-color: #aaa480;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
-    .second-div-content{
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-    }
+.second-div-content {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.checkout-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+   

@@ -18,7 +18,8 @@ if (!$productId) {
 }
 
 // fetch product info
-$stmt = $pdo->prepare("SELECT product_name, product_price, price_large, product_picture FROM products WHERE product_id=:id");
+$stmt = $pdo->prepare("SELECT product_name, product_price, price_large, product_picture 
+                       FROM products WHERE product_id=:id");
 $stmt->execute(['id'=>$productId]);
 $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -29,7 +30,7 @@ if (!$product) {
 
 $price = ($size === 'large') ? $product['price_large'] : $product['product_price'];
 
-// cart item array
+// cart item
 $item = [
     'id' => $productId,
     'name' => $product['product_name'],
@@ -40,13 +41,15 @@ $item = [
     'image' => $product['product_picture']
 ];
 
-// initialize session cart
+// initialize cart
 if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
 
-// check if same item exists in cart
+// check if same item exists
 $found = false;
 foreach ($_SESSION['cart'] as &$cartItem) {
-    if ($cartItem['id']==$item['id'] && $cartItem['size']==$item['size'] && $cartItem['flavor']==$item['flavor']) {
+    if ($cartItem['id']==$item['id'] && 
+        $cartItem['size']==$item['size'] && 
+        $cartItem['flavor']==$item['flavor']) {
         $cartItem['quantity'] += $quantity;
         $found = true;
         break;
@@ -54,52 +57,9 @@ foreach ($_SESSION['cart'] as &$cartItem) {
 }
 if (!$found) $_SESSION['cart'][] = $item;
 
-// generate cart HTML dynamically
-ob_start();
-?>
-<div class="inside-div" id="first-div">
-    <div id="top-div">
-        <img src="../public/assests/motorbike.png" alt="motor" id="motor">
-        <p id="mode">Delivery</p>
-        <?php include "../components/buttonTemplate.php";
-            echo createButton(25,60,"Change", "change",10);
-        ?> 
-    </div>
+// return JSON cart
+echo json_encode([
+    'success' => true,
+    'cart' => $_SESSION['cart']
+]);
 
-    <h3>My Cart</h3>
-
-    <?php foreach($_SESSION['cart'] as $cItem): ?>
-    <div id="mid-div">
-        <img src="../public/assests/trash-bin.png" alt="trash" style="width:18px; height:20px;">
-        
-        <div class="qty-controls">
-            <input type="number" min=1 value="<?= $cItem['quantity'] ?>" max=10 disabled>
-            <button onclick="changeQty(1)">+</button>
-        </div>
-
-        <p class="product-name"><?= htmlspecialchars($cItem['name']) ?> <?= htmlspecialchars($cItem['flavor']) ? "(" . htmlspecialchars($cItem['flavor']) . ")" : "" ?></p>
-        <p class="product-price">P<?= number_format($cItem['price'] * $cItem['quantity'],2) ?></p>
-    </div>
-    <?php endforeach; ?>
-</div>
-
-<div class="inside-div" id="second-div">
-    <div class="second-div-content">
-        <p>Subtotal</p>
-        <p>P<?= number_format(array_sum(array_map(fn($i)=>$i['price']*$i['quantity'], $_SESSION['cart'])),2) ?></p>
-    </div>
-    <div class="second-div-content">
-        <p style="margin-top:0;">Delivery fee</p>
-        <p style="margin-top:0;">P50.00</p>
-    </div>
-    <div class="second-div-content">
-        <p><b>Total</b></p>
-        <p><b>P<?= number_format(array_sum(array_map(fn($i)=>$i['price']*$i['quantity'], $_SESSION['cart'])) + 50,2) ?></b></p>
-    </div>
-
-    <?php echo createButton(40,280,"Check out", "check-out",18); ?>
-</div>
-<?php
-$cartHtml = ob_get_clean();
-
-echo json_encode(['success'=>true, 'cart_html'=>$cartHtml]);

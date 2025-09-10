@@ -136,15 +136,12 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(res=>res.json())
         .then(data=>{
-            if(data.success){
-                // update cart dynamically
-                const cartBox = document.getElementById('cart-box');
-                if(cartBox){
-                    cartBox.innerHTML = data.cart_html; // cart.php HTML from backend
-                }
-            } else {
-                console.error('Add to cart error:', data.message);
-            }
+           if (data.success) {
+    cart = data.cart;   // ✅ update global cart array
+    renderCart();       // ✅ re-render the cart UI from JS
+} else {
+    console.error('Add to cart error:', data.message);
+}
         });
     });
 });

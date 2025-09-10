@@ -1,13 +1,14 @@
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(100) UNIQUE,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
     email VARCHAR(150) UNIQUE NOT NULL,
     phone_number VARCHAR(20),
-    password_hash VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NULL, -- allow NULL for Google users
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
+    auth_provider ENUM('local','google') DEFAULT 'local',
+    google_id VARCHAR(50) NULL
 );
 
 CREATE TABLE admins (

@@ -1,18 +1,23 @@
+<?php
+require_once __DIR__ . '/../../backend/db_script/db.php';
+
+// Fetch all staff roles
+$stmt = $pdo->query("SELECT * FROM staff_roles");
+$staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
+
 <div id="first-row">
     <h2>Role</h2>
 </div>
 
-
-
 <div id="third-row">
     <div id="top">
-        <form action="search.php" method="get" class="search-bar" role="search">
+        <form class="search-bar" role="search">
             <input
                 type="search"
                 id="search-input"
-                name="q"
-                placeholder="🔍 Search product"
-                aria-label="Search products">
+                placeholder="🔍 Search staff"
+                aria-label="Search staff">
         </form>
 
         <button type="button" id="add-member"><span>+ Add new member</span></button>
@@ -27,36 +32,42 @@
         </div>
 
         <div id="products-content">
-            <div id="product-name">
-                <img id="profile-photo" src="public/assests/about us.png" alt="profile-photo">
-                <div style="align-content: center; width:100%;">
-                    <p>Ms. Fried Chicken</p>
+            <?php foreach ($staffRoles as $staff): ?>
+            <div class="product-row" data-id="<?= $staff['staff_id'] ?>">
+                <div id="product-name">
+                    <img id="profile-photo" src="<?= !empty($staff['staff_image']) ? "public/staffs/" . $staff['staff_image'] : "public/assests/about us.png" ?>" alt="profile-photo">
+                    <div style="align-content: center; width:100%;">
+                        <input type="text" class="inputData" value="<?= htmlspecialchars($staff['staff_name']) ?>" disabled>
+                    </div>
+                </div>
+
+                <div id="price-content">
+                    <input type="text" class="inputData" value="<?= htmlspecialchars($staff['staff_role']) ?>" disabled>
+                </div>
+
+                <div id="category-content">
+                    <select class="pcategory" disabled>
+                        <option value="Day" <?= $staff['shift']=='Day'?'selected':'' ?>>Day</option>
+                        <option value="Night" <?= $staff['shift']=='Night'?'selected':'' ?>>Night</option>
+                    </select>
+                </div>
+
+                <div id="status-content">
+                    <button id="statusBtn" class="<?= strtolower($staff['status'] ?? 'Available') === 'unavailable' ? 'clicked' : '' ?>" type="button" disabled>
+                        <?= ucfirst($staff['status'] ?? 'Available') ?>
+                    </button>
+                </div>
+
+                <div id="edit-content">
+                    <button id="editBtn" class="editBtn" type="button">Edit</button>
                 </div>
             </div>
-
-            <div id="price-content">
-                <p>Admin/Owner</p>
-            </div>
-
-            <div id="category-content">
-                <select class="pcategory" disabled>
-                    <option selected>Day</option>
-                    <option>Night</option>
-                </select>
-            </div>
-
-            <div id="status-content">
-                <button class="statusBtn" id="statusBtn" type="button" disabled>Available</button>
-            </div>
-
-            <div id="edit-content">
-                <button class="editBtn" id="editBtn" type="button">Edit</button>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 </div>
 
-<!-- MODAL -->
+<!-- Modal -->
 <div id="modal">
     <div id="new-product-modal">
         <div id="left">
@@ -80,12 +91,12 @@
                     <label for="category">Shift:</label>
                     <select id="category" name="category" required>
                         <option value="">Select shift</option>
-                        <option value="day">Day</option>
-                        <option value="night">Night</option>
+                        <option value="Day">Day</option>
+                        <option value="Night">Night</option>
                     </select>
                 </div>
 
-                <div class="form-row">
+                <div class="form-row status-row">
                     <label>Status:</label>
                     <div id="available">Available</div>
                 </div>
@@ -98,81 +109,98 @@
         </div>
     </div>
 </div>
+
 <script>
-   
+// ---- Live search ----
+const searchInput = document.getElementById('search-input');
+const staffRows = document.querySelectorAll('.product-row');
 
-    // 🔹 Status button toggle
-    document.querySelectorAll('.statusBtn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (!btn.disabled) { // only if editable
-                if (btn.textContent === "Available") {
-                    btn.textContent = "Unavailable";
-                    btn.classList.add('clicked');
-                } else {
-                    btn.textContent = "Available";
-                    btn.classList.remove('clicked');
+searchInput.addEventListener('input', () => {
+    const search = searchInput.value.toLowerCase();
+    staffRows.forEach(row => {
+        const name = row.querySelector('#product-name .inputData').value.toLowerCase();
+        row.style.display = name.includes(search) ? 'flex' : 'none';
+    });
+});
+
+// ---- Edit & Save ----
+document.querySelectorAll('.editBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const row = btn.closest('.product-row');
+        const nameInput = row.querySelector('#product-name .inputData');
+        const roleInput = row.querySelector('#price-content .inputData');
+        const shiftSelect = row.querySelector('.pcategory');
+        const statusBtn = row.querySelector('#statusBtn');
+        const isEditing = !nameInput.disabled;
+
+        if (!isEditing) {
+            // Disable other edit buttons
+            document.querySelectorAll('.editBtn').forEach(otherBtn => {
+                if (otherBtn !== btn) {
+                    otherBtn.disabled = true;
+                    otherBtn.style.opacity = '0.5';
+                    otherBtn.style.cursor = 'not-allowed';
                 }
-            }
-        });
+            });
+
+            // Enable current row fields
+            nameInput.disabled = roleInput.disabled = shiftSelect.disabled = statusBtn.disabled = false;
+
+            // Apply edit styles (same as products.php)
+            [nameInput, roleInput, shiftSelect].forEach(el => {
+                el.style.padding = '5px 10px';
+                el.style.border = '1px solid black';
+                el.style.borderRadius = '10px';
+                el.style.backgroundColor = '#ffffff';
+            });
+
+            // Change button to Save
+            btn.textContent = 'Save';
+            btn.style.backgroundColor = '#75c277';
+            btn.style.color = '#036d2b';
+
+        } else {
+            // Disable fields again
+            nameInput.disabled = roleInput.disabled = shiftSelect.disabled = statusBtn.disabled = true;
+
+            // Reset field styles
+            [nameInput, roleInput, shiftSelect].forEach(el => {
+                el.style.padding = '0';
+                el.style.border = 'none';
+                el.style.borderRadius = '0';
+                el.style.backgroundColor = 'transparent';
+            });
+
+            // Reset button look
+            btn.textContent = 'Edit';
+            btn.style.backgroundColor = '#C6C3BD';
+            btn.style.color = '#22333B';
+
+            // Enable other edit buttons
+            document.querySelectorAll('.editBtn').forEach(otherBtn => {
+                otherBtn.disabled = false;
+                otherBtn.style.opacity = '1';
+                otherBtn.style.cursor = 'pointer';
+            });
+        }
     });
+});
 
-    // 🔹 Edit / Save toggle per row
-    document.querySelectorAll('.editBtn').forEach(editBtn => {
-        let isEditing = false;
-
-        editBtn.addEventListener("click", () => {
-            const row = editBtn.closest("#products-content"); // find that product row
-            const pcategory = row.querySelector(".pcategory");
-            const statusBtn = row.querySelector(".statusBtn");
-
-            if (!isEditing) {
-                // Enable fields
-                pcategory.disabled = false;
-                statusBtn.disabled = false;
-
-                // Styling for editable state
-                pcategory.style.backgroundColor = "#ffffff";
-                pcategory.style.padding = "5px";
-                pcategory.style.borderRadius = "10px";
-                statusBtn.style.opacity = "1";
-
-                // Change button look
-                editBtn.textContent = "Save";
-                editBtn.style.backgroundColor = "#75c277";
-                editBtn.style.color = "#036d2b";
-
-                isEditing = true;
-            } else {
-                // Disable again
-                pcategory.disabled = true;
-                statusBtn.disabled = true;
-
-                // Reset styles
-                pcategory.style.backgroundColor = "transparent";
-                statusBtn.style.opacity = "0.6";
-
-                // Example: log saved values
-                
-                // Reset button look
-                editBtn.textContent = "Edit";
-                editBtn.style.backgroundColor = "#C6C3BD";
-                editBtn.style.color = "#22333B";
-
-                isEditing = false;
-            }
-        });
+// ---- Status toggle ----
+document.querySelectorAll('#statusBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (!btn.disabled) {
+            btn.textContent = btn.textContent === 'Available' ? 'Unavailable' : 'Available';
+            btn.classList.toggle('clicked');
+        }
     });
+});
 
-    // 🔹 Modal controls
-    const addMember = document.getElementById("add-member");
-    const modal = document.getElementById("modal");
-    const cancel = document.getElementById("cancel");
+// ---- Modal ----
+const addMember = document.getElementById("add-member");
+const modal = document.getElementById("modal");
+const cancel = document.getElementById("cancel");
 
-    addMember.addEventListener('click', () => {
-        modal.style.display = "flex";
-    });
-
-    cancel.addEventListener("click", () => {
-        modal.style.display = "none";
-    });
+addMember.addEventListener('click', () => modal.style.display = "flex");
+cancel.addEventListener('click', () => modal.style.display = "none");
 </script>

@@ -1,11 +1,17 @@
+<?php
+if(session_status()===PHP_SESSION_NONE) session_start();
 
+// Load cart from session if exists
+$cart = $_SESSION['cart'] ?? [];
+?>
 
 <div id="cart-box">
     <div class="inside-div" id="first-div">
         <div id="top-div">
             <img src="../public/assests/motorbike.png" alt="motor" id="motor">
             <p id="mode">Delivery</p>
-            <?php include "../components/buttonTemplate.php";
+            <?php 
+                include "../components/buttonTemplate.php";
                 echo createButton(25,60,"Change", "change",10);
             ?> 
         </div>
@@ -13,31 +19,23 @@
         <h3>My Cart</h3>
 
         <div id="mid-div">
-            <img src="../public/assests/trash-bin.png" alt="trash" style="width: 18px; height:20px;">
-            
-            <div class="qty-controls">
-                <input id="quantity" type="number" min=1 value="1" max=10 disabled>
-                <button onclick="changeQty(1)">+</button>
-            </div>
-
-            <p class="product-name">Product name</p>
-            <p class="product-price">P100.00</p>
+            <!-- Cart items will be rendered here -->
         </div>
     </div>
 
     <div class="inside-div" id="second-div">
-        <div class="second-div-content" >
+        <div class="second-div-content">
             <p>Subtotal</p>
-            <p>P100.00</p>
+            <p id="subtotal">₱0.00</p>
         </div>
-        <div class="second-div-content" >
+        <div class="second-div-content">
             <p style="margin-top: 0;">Delivery fee</p>
-            <p style="margin-top: 0;">P50.00</p>
+            <p id="delivery-fee" style="margin-top: 0;">₱50.00</p>
         </div>
 
         <div class="second-div-content">
             <p><b>Total</b></p>
-            <p><b>P150.00</b></p>
+            <p id="total"><b>₱0.00</b></p>
         </div>
 
         <?php 
@@ -46,4 +44,82 @@
     </div>
 </div>
 
-<script src="../Scripts/pages/cart.js"></script>
+<script>
+const changeBtn = document.getElementById("change");
+let mode = document.getElementById("mode");
+let motor = document.getElementById("motor");
+const deliveryFee = 50;
+
+// Toggle delivery/pickup
+changeBtn.addEventListener('click', () => {
+    if (mode.textContent === "Delivery") {
+        motor.src = "../public/assests/walk.png";
+        mode.textContent = "Pick up";
+    } else {
+        motor.src = "../public/assests/motorbike.png";
+        mode.textContent = "Delivery";
+    }
+});
+
+// Cart items in JS
+let cart = <?php echo json_encode($cart); ?>;
+
+// Render cart items
+function renderCart() {
+    const midDiv = document.getElementById("mid-div");
+    midDiv.innerHTML = "";
+    let subtotal = 0;
+
+    cart.forEach((item, index) => {
+        const itemDiv = document.createElement("div");
+        itemDiv.classList.add("cart-item");
+
+        itemDiv.innerHTML = `
+            <img src="../public/products/${item.image}" alt="${item.name}" class="cart-img">
+            <div class="qty-controls">
+                <button onclick="changeItemQty(${index}, -1)">-</button>
+                <input type="number" value="${item.quantity}" readonly>
+                <button onclick="changeItemQty(${index}, 1)">+</button>
+            </div>
+            <p class="product-name">${item.name} ${item.flavor ? '('+item.flavor+')' : ''} [${item.size}]</p>
+            <p class="product-price">₱${(item.price*item.quantity).toFixed(2)}</p>
+            <button onclick="removeItem(${index})">🗑️</button>
+        `;
+
+        midDiv.appendChild(itemDiv);
+        subtotal += item.price * item.quantity;
+    });
+
+    document.getElementById("subtotal").textContent = `₱${subtotal.toFixed(2)}`;
+    document.getElementById("total").textContent = `₱${(subtotal + deliveryFee).toFixed(2)}`;
+
+    // Update session
+    updateSession();
+}
+
+// Change item quantity
+function changeItemQty(index, change) {
+    cart[index].quantity += change;
+    if (cart[index].quantity < 1) cart[index].quantity = 1;
+    renderCart();
+}
+
+// Remove item
+function removeItem(index) {
+    cart.splice(index, 1);
+    renderCart();
+}
+
+// Sync cart to PHP session
+function updateSession() {
+    fetch('../backend/update_cart.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(cart)
+    });
+}
+
+// Initial render
+renderCart();
+</script>
+

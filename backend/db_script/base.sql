@@ -153,13 +153,14 @@ CREATE TABLE transactions (
 );
 
 CREATE TABLE staff_roles (
-    staff_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    role_name VARCHAR(100),
-    shift VARCHAR(100),
-    status ENUM('active','inactive') DEFAULT 'active',
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    staff_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    staff_name VARCHAR(255) NOT NULL,
+    staff_role VARCHAR(100) NOT NULL,
+    shift ENUM('Day', 'Night') DEFAULT 'Day',
+    status ENUM('Available', 'Unavailable') DEFAULT 'Available',
+    staff_image VARCHAR(255) DEFAULT NULL
 );
+
 
 
 

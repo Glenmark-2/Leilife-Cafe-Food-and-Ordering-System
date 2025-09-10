@@ -4,16 +4,20 @@
     display: flex;
     flex-direction: row;
     gap: 20px;
+    align-items: flex-start; /* 🔑 prevent image from stretching */
 }
 
 .product-image {
     width: 30%;
+    height: auto;      /* make sure it scales naturally */
+    object-fit: cover; /* if you later give it fixed height */
     border-radius: 15px;
 }
 
+
 .product-details {
     background-color: aliceblue;
-    width: 100%;
+    width: 70%;
     padding: 30px;
     border-radius: 20px;
 }
@@ -46,4 +50,60 @@
     .product-details h2{
         font-size: medium;
     }
+}
+
+/* ✅ Flavor section */
+.flavor-section {
+    margin-bottom: 25px;
+}
+
+.flavor-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #333;
+    text-align: left; /* keep title left aligned */
+}
+
+/* ✅ 2-column grid for flavors */
+.flavor-options {
+    display: grid;
+    grid-template-columns: repeat(2, auto); /* shrink columns to content */
+    gap: 8px 20px; /* space between rows/columns */
+    justify-content: flex-start; /* align left by default */
+    margin-left: 100px; /* add left spacing on desktop */
+    
+    width: auto; /* let content define width */
+}
+
+/* 📱 Mobile: center when screen is small */
+@media (max-width: 768px) {
+    .flavor-options {
+        justify-content: center; /* center options */
+        margin-left: 0; /* remove desktop margin */
+    }
+}
+
+
+
+/* ✅ individual option */
+.flavor-option {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* keep radio/checkbox left of text */
+    font-size: 14px;
+    font-weight: 500;
+    color: #222;
+    cursor: pointer;
+}
+
+
+.flavor-option input[type="radio"],
+.flavor-option input[type="checkbox"] {
+    margin-right: 8px;
+    accent-color: #0077cc; /* modern browsers */
+    transform: scale(1.1);
+    cursor: pointer;
+    width: fit-content;
+    height: fit-content;
 }

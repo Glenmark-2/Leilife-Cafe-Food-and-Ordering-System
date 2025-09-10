@@ -3,7 +3,7 @@
 <div class="card">
     <img src="<?php echo $image ?>" alt="<?php echo $name; ?>">
     <div class="card-body">
-        <h3><?php echo $name; ?></h3>
+        <h3><?php echo ucwords($name); ?></h3>
 
         <div class="price-actions">
             <div class="price">₱<?php echo $price; ?></div>
@@ -16,7 +16,11 @@
                     <button type="submit" class="buy-btn" id="buy-btn" onclick="window.location.href='./pages/soloProduct.php'">Buy</button>
                 </form>
             </div> -->
-            <button class="buy-btn" id="buy-btn" onclick="window.location.href = 'index.php?page=solo-product'" >buy</button>
+            <button class="buy-btn" 
+        onclick="window.location.href = 'index.php?page=solo-product&id=<?= $product['product_id'] ?>'">
+    Buy
+</button>
+
         </div>
     </div>
 </div>

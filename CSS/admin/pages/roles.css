@@ -82,10 +82,21 @@
 
 #products-content{
     display: flex;
-    flex-direction: row;
+    flex-direction: column; /* Change from row → column */
     margin-top: 10px;
     padding: 0 10px;
+    gap: 10px; /* space between each staff row */
+}
+
+
+.product-row{
+    display: flex;
+    flex-direction: row; /* each staff data still in a row */
+    align-items: center;
     gap: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #f0f0f0; /* optional: subtle background for each row */
 }
 
 #product-name{
@@ -186,6 +197,8 @@ select {
     display: flex;
     gap: 30px;
     flex-direction: row;        /* default layout */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+
 }
 
 .form-row{
@@ -380,6 +393,14 @@ select {
 
     select, .inputData {
         font-size: 0.75rem;
+    }
+}
+
+
+@media (max-width: 768px){
+    #products-content{
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 }
 

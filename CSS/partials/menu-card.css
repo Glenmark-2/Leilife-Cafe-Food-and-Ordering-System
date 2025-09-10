@@ -64,3 +64,22 @@
 .buy-btn:hover {
     background: #1a242f;
 }
+
+.card.unavailable {
+    position: relative;
+    filter: brightness(0.6); /* darken image */
+}
+
+.unavailable-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    background-color: rgba(255, 0, 0, 0.7);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 6px;
+    pointer-events: none; /* allow clicks to pass through */
+}

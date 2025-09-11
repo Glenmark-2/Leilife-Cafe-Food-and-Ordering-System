@@ -1,18 +1,24 @@
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("✅ login.js loaded");
+
   const form = document.getElementById("login-form");
   const errorContainer = document.getElementById("login-error-container");
+  const spinner = document.getElementById("spinner");
+
+  if (!form) {
+    console.error("❌ Login form not found!");
+    return;
+  }
 
   // --- Utility functions ---
   const showError = (messages) => {
     if (!errorContainer) return;
-
     let html = "";
     if (Array.isArray(messages)) {
       html = messages.map((err) => `<p class="error">${err}</p>`).join("");
     } else if (typeof messages === "string") {
       html = `<p class="error">${messages}</p>`;
     }
-
     errorContainer.innerHTML = html;
     errorContainer.style.display = html ? "block" : "none";
   };
@@ -23,7 +29,10 @@ document.addEventListener("DOMContentLoaded", () => {
     errorContainer.style.display = "block";
   };
 
-  if (!form) return;
+  const toggleSpinner = (show) => {
+    if (!spinner) return;
+    spinner.style.display = show ? "block" : "none";
+  };
 
   // --- AJAX submit ---
   form.addEventListener("submit", async (e) => {
@@ -33,6 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
       errorContainer.innerHTML = "";
       errorContainer.style.display = "none";
     }
+
+    toggleSpinner(true);
 
     try {
       const formData = new FormData(form);
@@ -57,7 +68,10 @@ document.addEventListener("DOMContentLoaded", () => {
         showError(result.errors || "Invalid email or password.");
       } else {
         if (result.redirect) {
-          window.location.href = result.redirect;
+          showSuccess("Login successful! Redirecting...");
+          setTimeout(() => {
+            window.location.href = result.redirect;
+          }, 1000);
         } else {
           showSuccess("Login successful! Redirecting...");
           setTimeout(() => {
@@ -68,6 +82,8 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       console.error("Login error:", err);
       showError("A network error occurred. Please try again.");
+    } finally {
+      toggleSpinner(false);
     }
   });
 });

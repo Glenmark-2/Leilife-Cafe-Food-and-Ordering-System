@@ -2,8 +2,15 @@
 // backend/verify.php
 // Verify token, check expiry, move user to `users` if valid
 
+declare(strict_types=1);
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
+// Start buffering to prevent "headers already sent"
+ob_start();
+
+// DB connection
 if (!isset($pdo)) {
-    // prefer db init in backend/db_script
     if (file_exists(__DIR__ . '/db_script/init.php')) {
         require_once __DIR__ . '/db_script/init.php';
     } elseif (file_exists(__DIR__ . '/db.php')) {
@@ -13,15 +20,24 @@ if (!isset($pdo)) {
     }
 }
 
+// Central redirect helper
+function safe_redirect(string $url): void {
+    if (!headers_sent()) {
+        header("Location: " . $url);
+        exit;
+    }
+    echo "<script>window.location.href='" . htmlspecialchars($url, ENT_QUOTES) . "';</script>";
+    exit;
+}
+
 // Redirect destinations
 $redirectSuccess = "/Leilife/public/index.php?page=verify_success";
 $redirectFail    = "/Leilife/public/index.php?page=verify_failed";
 $redirectExpired = "/Leilife/public/index.php?page=verify_expired";
 
 // Ensure token exists
-if (!isset($_GET['token']) || empty($_GET['token'])) {
-    header("Location: $redirectFail");
-    exit;
+if (empty($_GET['token'])) {
+    safe_redirect($redirectFail);
 }
 
 $token = $_GET['token'];
@@ -32,17 +48,13 @@ $stmt->execute([$token]);
 $registration = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$registration) {
-    // token not found
-    header("Location: $redirectFail");
-    exit;
+    safe_redirect($redirectFail);
 }
 
 // Check expiry
 $expires = strtotime($registration['expires_at']);
 if ($expires === false || time() > $expires) {
-    // token expired
-    header("Location: $redirectExpired&email=" . urlencode($registration['email']));
-    exit;
+    safe_redirect($redirectExpired . "&email=" . urlencode($registration['email']));
 }
 
 try {
@@ -68,12 +80,12 @@ try {
 
     $pdo->commit();
 
-    header("Location: $redirectSuccess");
-    exit;
+    safe_redirect($redirectSuccess);
 
 } catch (Exception $e) {
     $pdo->rollBack();
     error_log("Verification error: " . $e->getMessage());
-    header("Location: $redirectFail");
-    exit;
+    safe_redirect($redirectFail);
 }
+
+ob_end_flush();

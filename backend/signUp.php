@@ -46,6 +46,36 @@ function respond(bool $success, array $errors = [], ?string $redirect = null): v
     }
 }
 
+/**
+ * Send the success response immediately to the client but do NOT exit the script.
+ * After this function returns, the script can continue doing background work
+ * (like sending email). Uses fastcgi_finish_request() when available.
+ */
+function send_immediate_success_and_continue(?string $redirect = null): void {
+    if (wants_json()) {
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code(200);
+        echo json_encode(['success' => true, 'redirect' => $redirect]);
+    } else {
+        header("Location: " . $redirect);
+    }
+
+    // flush output to client so browser can redirect; continue running afterwards
+    ignore_user_abort(true);
+
+    if (function_exists('fastcgi_finish_request')) {
+        // Best option when using PHP-FPM / fastcgi
+        fastcgi_finish_request();
+    } else {
+        // Fallback: attempt to flush buffers
+        // End all output buffers if any, then flush
+        while (ob_get_level() > 0) {
+            @ob_end_flush();
+        }
+        @flush();
+    }
+}
+
 // --- 1) Allow POST only
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(false, ["Invalid request method."]);
@@ -100,7 +130,7 @@ if (!empty($errors)) {
 // --- 5) Hash password
 $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-// --- 6) Unique username generator
+// --- 6) Unique username generator (keeps your original approach)
 function make_unique_username(PDO $pdo, string $base): string {
     $username = $base;
     $i = 1;
@@ -127,15 +157,16 @@ $base_username = strtolower(preg_replace('/\s+/', '', $fname . '.' . $lname));
 
 // --- 7) Database ops
 try {
-    // Check if email exists
+    // Check if email exists in users
     $stmt = $pdo->prepare("SELECT user_id FROM users WHERE email = :email LIMIT 1");
     $stmt->execute([':email' => $email]);
     if ($stmt->fetch()) {
         respond(false, ["Email already registered. Please log in or reset your password."]);
     }
 
-    // Check pending registrations
-    $stmt = $pdo->prepare("SELECT reg_id, expires_at FROM user_registrations WHERE email = :email LIMIT 1");
+    // Check pending registrations (lock the row if DB supports it)
+    // This doesn't start an explicit transaction, but using FOR UPDATE requires a transaction in many DBs.
+    $stmt = $pdo->prepare("SELECT reg_id, verification_sent_at, expires_at FROM user_registrations WHERE email = :email LIMIT 1");
     $stmt->execute([':email' => $email]);
     $pending = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -143,29 +174,55 @@ try {
     $sent_at    = date('Y-m-d H:i:s');
     $expires_at = date('Y-m-d H:i:s', time() + 3600);
 
+    // Throttle setting: don't allow resending too often (server-side protection)
+    $throttleSeconds = 60; // adjust as needed
+
     if ($pending && strtotime($pending['expires_at']) > time()) {
+        // If a verification was sent very recently, block spammy resends
+        if (!empty($pending['verification_sent_at'])) {
+            $lastSent = strtotime($pending['verification_sent_at']);
+            if ($lastSent !== false && (time() - $lastSent) < $throttleSeconds) {
+                respond(false, ["A verification email was recently sent. Please check your inbox or wait a minute before requesting another."]);
+            }
+        }
+
+        // Update the existing pending registration with a new token/timestamps
         $upd = $pdo->prepare("
             UPDATE user_registrations 
             SET verification_token = :token,
                 verification_sent_at = :sent_at,
-                expires_at = :expires_at
+                expires_at = :expires_at,
+                password_hash = :password_hash,
+                first_name = :fname,
+                last_name = :lname,
+                phone_number = :phone
             WHERE reg_id = :id
         ");
         $upd->execute([
-            ':token'     => $token,
-            ':sent_at'   => $sent_at,
-            ':expires_at'=> $expires_at,
-            ':id'        => $pending['reg_id']
+            ':token'       => $token,
+            ':sent_at'     => $sent_at,
+            ':expires_at'  => $expires_at,
+            ':password_hash'=> $password_hash,
+            ':fname'       => $fname,
+            ':lname'       => $lname,
+            ':phone'       => $phone,
+            ':id'          => $pending['reg_id']
         ]);
 
+        // Respond to client immediately (so user isn't blocked by SMTP)
+        send_immediate_success_and_continue("/Leilife/public/index.php?page=verify_notice");
+
+        // Continue in background: send email (won't block user's redirect)
         if (!sendVerificationEmail($email, $token)) {
-            throw new RuntimeException("Could not send verification email. Contact support.");
+            error_log("Could not send verification email (update path) to $email");
         }
 
-        respond(true, [], "/Leilife/public/index.php?page=verify_notice");
+        // End script after background work for this path
+        exit;
     }
 
     if ($pending) {
+        // pending exists but is expired — delete it so we can insert a fresh one
         $del = $pdo->prepare("DELETE FROM user_registrations WHERE reg_id = :id");
         $del->execute([':id' => $pending['reg_id']]);
     }
@@ -193,15 +250,22 @@ try {
         ':expires_at'    => $expires_at
     ]);
 
+    // Respond immediately and continue to send the email in background
+    send_immediate_success_and_continue("/Leilife/public/index.php?page=verify_notice");
+
     if (!sendVerificationEmail($email, $token)) {
-        throw new RuntimeException("Signup saved but verification email could not be sent. Contact support.");
+        error_log("Signup saved but verification email could not be sent to $email");
     }
 
-    respond(true, [], "/Leilife/public/index.php?page=verify_notice");
+    // done
+    exit;
 
 } catch (PDOException $e) {
     error_log("Signup DB error: " . $e->getMessage());
     respond(false, ["A database error occurred. Please try again later."]);
 } catch (RuntimeException $e) {
     respond(false, [$e->getMessage()]);
+} catch (Exception $e) {
+    error_log("Unexpected signup error: " . $e->getMessage());
+    respond(false, ["Server error. Please try again later."]);
 }

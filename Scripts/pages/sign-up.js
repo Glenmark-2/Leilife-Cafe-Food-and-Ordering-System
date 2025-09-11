@@ -36,6 +36,12 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    const submitBtn = form.querySelector("button[type=submit]");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Creating account...";
+    }
+
     if (errorContainer) {
       errorContainer.innerHTML = "";
       errorContainer.style.display = "none";
@@ -57,6 +63,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!result.success) {
         showError(result.errors || "Unknown error occurred.");
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Create Account";
+        }
       } else {
         if (result.redirect) {
           window.location.href = result.redirect;
@@ -70,6 +80,10 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       console.error("Signup error:", err);
       showError("A network error occurred. Please try again.");
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Create Account";
+      }
     }
   });
 });

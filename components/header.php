@@ -89,6 +89,6 @@ if (isset($page_styles[$page])) {
 
 <!-- Page container -->
 <!-- cart here  -->
- <?php include "../pages/cart.php"; ?>
+
 
 <script src="../Scripts/components/header.js"></script>

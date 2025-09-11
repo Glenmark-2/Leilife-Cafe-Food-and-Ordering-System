@@ -1,32 +1,47 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Leilife</title>
+    <link rel="stylesheet" href="/Leilife/public/css/styles.css"> <!-- your main CSS -->
+    <style>
+        /* Inline fallback styles (can move to CSS file) */
+        .error { color: red; margin: 5px 0; }
+        .success { color: green; margin: 5px 0; }
+        .spinner {
+            display: none;
+            margin: 10px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #login-error-container:empty { display: none; }
+    </style>
+</head>
+<body>
 <center>
    <div id="box-container">
       <!-- Close button -->
       <button id="close-btn">&times;</button>
 
       <div id="box-content">
-         <img src="\Leilife\public\assests\Mask group.png" alt="Logo">
+         <img src="/Leilife/public/assests/Mask group.png" alt="Logo">
          <h1>Welcome back!</h1>
-
-         <?php
-         if (session_status() === PHP_SESSION_NONE) {
-             session_start();
-         }
-         if (!isset($_SESSION['csrf_token'])) {
-             $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-         }
-         ?>
-
-         <!-- Error container (hidden by default, shown by JS or fallback PHP) -->
-         <div id="login-error-container" class="error-messages">
-            <?php
-            if (!empty($_SESSION['login_errors'])) {
-                foreach ($_SESSION['login_errors'] as $error) {
-                    echo '<p class="error">' . htmlspecialchars($error) . '</p>';
-                }
-                unset($_SESSION['login_errors']); // clear after showing
-            }
-            ?>
-         </div>
 
          <!-- Local Login Form -->
          <form action="/Leilife/backend/login.php" method="POST" id="login-form">
@@ -41,32 +56,33 @@
             <button type="submit" class="login-btn">Login</button>
          </form>
 
+         <!-- Spinner -->
+         <div id="spinner" class="spinner"></div>
+
+         <!-- Error container -->
+         <div id="login-error-container" class="error-messages"></div>
+
          <!-- Continue with Google -->
          <button type="button" class="google-btn" onclick="window.location.href='/Leilife/backend/google_login.php'">
             <img id="google-logo" src="/Leilife/public/assests/google.logo.webp" alt="Google Logo"
-                 style="width: 25px; height:25px; max-width:30px; max-height:30px">
+                 style="width: 25px; height:25px; max-width:30px; max-height:30px;">
             Continue with Google
          </button>
 
          <button id="forgot-pass">Forgot your password?</button>
 
          <div class="terms">
-            <p style="margin-top: 0;">By continuing, you agree to our updated Terms & Conditions and Privacy Policy.</p>
+            <p>By continuing, you agree to our updated Terms & Conditions and Privacy Policy.</p>
          </div>
 
-         <div class="signup" style="margin-top: 0;">
-            <p style="margin:0;">Don't have an account? <button>Sign up</button></p>
+         <div class="signup">
+            <p>Don't have an account? <a href="/Leilife/pages/signup.php">Sign up</a></p>
          </div>
       </div>
    </div>
 </center>
 
-<!-- Hide error box if empty -->
-<style>
-   #login-error-container:empty {
-      display: none;
-   }
-</style>
-
-<!-- ✅ Correct JS path -->
-<script src="../Scripts/pages/login.js"></script>
+<!-- ✅ Absolute path to ensure JS loads -->
+<script src="/Leilife/Scripts/pages/login.js"></script>
+</body>
+</html>

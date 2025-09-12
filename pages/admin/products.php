@@ -5,8 +5,12 @@ require_once __DIR__ . '/../../backend/db_script/appData.php';
 $appData = new AppData($pdo);
 $appData->loadCategories();
 $appData->loadProducts();
+$mainCategories = array_unique(
+    array_map(fn($c) => $c['main_category_name'] ?? '', $appData->categories)
+);
 
-$mainCategories = array_unique(array_map(fn($p) => $p['main_category_name'] ?? '', $appData->products));
+// Para maayos ang order (optional)
+$mainCategories = array_values($mainCategories);
 ?>
 
 <div id="first-row">
@@ -57,15 +61,20 @@ $mainCategories = array_unique(array_map(fn($p) => $p['main_category_name'] ?? '
             </div>
 
             <div id="category-content">
-                <select id="pcategory" disabled>
-                    <option value="<?= htmlspecialchars($product['main_category_name']) ?>" selected><?= htmlspecialchars($product['main_category_name']) ?></option>
-                    <?php foreach ($mainCategories as $cat): ?>
-                        <?php if($cat !== $product['main_category_name']): ?>
-                            <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+    <select id="pcategory" disabled>
+        <option value="<?= htmlspecialchars($product['category_id']) ?>" selected>
+            <?= htmlspecialchars($product['main_category_name']) ?>
+        </option>
+        <?php foreach ($appData->categories as $cat): ?>
+            <?php if ($cat['category_id'] != $product['category_id']): ?>
+                <option value="<?= htmlspecialchars($cat['category_id']) ?>">
+                    <?= htmlspecialchars($cat['main_category_name']) ?>
+                </option>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </select>
+</div>
+
 
             <div id="status-content">
                 <button id="statusBtn" type="button" disabled class="<?= strtolower($product['status'] ?? 'available') === 'unavailable' ? 'clicked' : '' ?>"><?= ucfirst($product['status'] ?? 'Available') ?></button>
@@ -123,7 +132,8 @@ $mainCategories = array_unique(array_map(fn($p) => $p['main_category_name'] ?? '
     </div>
 </div>
 
-<script>
+<script >
+const BASE_URL = "http://localhost/Leilife/";
 // ---- Live filtering ----
 const searchInput = document.getElementById('search-input');
 const categoryButtons = document.querySelectorAll('.box-row');
@@ -158,10 +168,12 @@ categoryButtons.forEach(btn => {
 document.querySelectorAll('.editBtn').forEach(btn => {
     btn.addEventListener('click', () => {
         const row = btn.closest('.product-row');
-        const nameInput = row.querySelector('#product-name .inputData');
-        const roleInput = row.querySelector('#price-content .inputData');
-        const shiftSelect = row.querySelector('.pcategory');
+        const productId = row.dataset.id;
+        const nameInput = row.querySelector('#pname');
+        const priceInput = row.querySelector('#pprice');
+        const categorySelect = row.querySelector('#pcategory');
         const statusBtn = row.querySelector('#statusBtn');
+
         const isEditing = !nameInput.disabled;
 
         if (!isEditing) {
@@ -175,10 +187,13 @@ document.querySelectorAll('.editBtn').forEach(btn => {
             });
 
             // Enable current row fields
-            nameInput.disabled = roleInput.disabled = shiftSelect.disabled = statusBtn.disabled = false;
+            nameInput.disabled = false;
+            priceInput.disabled = false;
+            categorySelect.disabled = false;
+            statusBtn.disabled = false;
 
-            // Style editable fields same as products.php
-            [nameInput, roleInput, shiftSelect].forEach(el => {
+            // Style editable fields
+            [nameInput, priceInput, categorySelect].forEach(el => {
                 el.style.padding = '5px 10px';
                 el.style.border = '1px solid black';
                 el.style.borderRadius = '10px';
@@ -191,31 +206,77 @@ document.querySelectorAll('.editBtn').forEach(btn => {
             btn.style.color = '#036d2b';
 
         } else {
-            // Disable fields again
-            nameInput.disabled = roleInput.disabled = shiftSelect.disabled = statusBtn.disabled = true;
+            // Collect updated data
+            const updatedData = {
+    product_id: productId,
+    product_name: nameInput.value,
+    product_price: priceInput.value,
+    category_id: categorySelect.value,  // ✅ category_id not name
+    status: statusBtn.textContent
+};
 
-            // Reset field styles
-            [nameInput, roleInput, shiftSelect].forEach(el => {
-                el.style.padding = '0';
-                el.style.border = 'none';
-                el.style.borderRadius = '0';
-                el.style.backgroundColor = 'transparent';
-            });
 
-            // Reset button look
-            btn.textContent = 'Edit';
-            btn.style.backgroundColor = '#C6C3BD';
-            btn.style.color = '#22333B';
+            // Send to backend
+            fetch(BASE_URL+'backend/admin/update_product.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedData)
+            })
+            .then(res => res.json())
+            .then(data => {
+    if (data.success) {
+        // refresh row values with updated product (kasama main_category_name)
+        const updated = data.product;
+        nameInput.value = updated.product_name;
+        priceInput.value = updated.product_price;
+        categorySelect.value = updated.category_id;
+        // refresh visible text ng <option>
+        categorySelect.querySelector(`option[value="${updated.category_id}"]`).textContent = updated.main_category_name;
+        statusBtn.textContent = updated.status;
 
-            // Enable other edit buttons
-            document.querySelectorAll('.editBtn').forEach(otherBtn => {
-                otherBtn.disabled = false;
-                otherBtn.style.opacity = '1';
-                otherBtn.style.cursor = 'pointer';
+        // disable edit mode UI
+        nameInput.disabled = true;
+        priceInput.disabled = true;
+        categorySelect.disabled = true;
+        statusBtn.disabled = true;
+
+        btn.textContent = 'Edit';
+        btn.style.backgroundColor = '#C6C3BD';
+        btn.style.color = '#22333B';
+
+        document.querySelectorAll('.editBtn').forEach(otherBtn => {
+            otherBtn.disabled = false;
+            otherBtn.style.opacity = '1';
+            otherBtn.style.cursor = 'pointer';
+        });
+
+        showModal('Product updated successfully!', 'success');
+
+    } else {
+        showModal('Failed to update product.', 'error');
+    }
+})
+
+            .catch(err => {
+                console.error(err);
+                showModal('Error saving product.', 'error');
             });
         }
     });
 });
+
+// ---- Status toggle ----
+document.querySelectorAll('#statusBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (!btn.disabled) {
+            btn.textContent = btn.textContent === 'Available' ? 'Unavailable' : 'Available';
+            btn.classList.toggle('clicked');
+        }
+    });
+});
+
 
 // ---- Status toggle ----
 document.querySelectorAll('#statusBtn').forEach(btn => {
@@ -232,4 +293,80 @@ const cancel = document.getElementById("cancel");
 
 addItem.addEventListener('click', () => modal.style.display = "flex");
 cancel?.addEventListener('click', () => modal.style.display = "none");
+
+
+function showModal(message, type = "success", autoClose = true, duration = 3000) {
+  // check if modal already exists
+  let modal = document.getElementById("notif-modal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "notif-modal";
+    modal.className = "notif-modal";
+    modal.innerHTML = `
+      <div class="notif-content">
+        <p id="notif-message"></p>
+        <button id="notif-close">OK</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    // basic styles
+    const style = document.createElement("style");
+    style.innerHTML = `
+      .notif-modal {
+        display: none;
+        position: fixed;
+        z-index: 10000;
+        left: 0; top: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.4);
+        justify-content: center;
+        align-items: center;
+      }
+      .notif-content {
+        background: white;
+        padding: 20px 30px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        min-width: 250px;
+        animation: popin 0.3s ease;
+      }
+      .notif-content p { margin-bottom: 15px; font-size: 16px; }
+      .notif-content button {
+        padding: 6px 16px; border: none; border-radius: 6px;
+        cursor: pointer; font-size: 14px; color: white;
+      }
+      .notif-content button.success { background: #4caf50; }
+      .notif-content button.error { background: #f44336; }
+      @keyframes popin {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // set message
+  document.getElementById("notif-message").textContent = message;
+
+  // set button color based on type
+  const closeBtn = document.getElementById("notif-close");
+  closeBtn.className = type === "success" ? "success" : "error";
+
+  // show modal
+  modal.style.display = "flex";
+
+  // close handlers
+  const closeModal = () => modal.style.display = "none";
+  closeBtn.onclick = closeModal;
+  modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+  // auto close after duration
+  if (autoClose) {
+    setTimeout(() => {
+      closeModal();
+    }, duration);
+  }
+}
 </script>

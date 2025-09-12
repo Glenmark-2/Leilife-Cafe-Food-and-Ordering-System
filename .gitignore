@@ -1,0 +1,28 @@
+# Composer vendor folder
+/vendor/
+
+# Environment files
+.env
+.env.*   # .env.local, .env.testing, etc.
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDE/editor
+.idea/
+.vscode/
+*.swp
+
+# Logs and caches
+/storage/logs/
+/storage/framework/cache/
+/storage/framework/sessions/
+/storage/framework/views/
+*.log
+
+# PHPUnit / testing
+/phpunit.xml
+/phpunit.xml.dist
+
+

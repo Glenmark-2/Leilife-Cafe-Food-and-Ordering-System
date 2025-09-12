@@ -67,5 +67,22 @@ if (!class_exists('AppData')) {
             ");
             $this->feedback = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
+
+        // --- user info ---
+public function loadUserInfo($user_id) {
+    $stmt = $this->db->prepare("SELECT * FROM users WHERE user_id = :user_id");
+    $stmt->execute(['user_id' => $user_id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+} 
+
+// --- user info ---
+public function loadUserAddress($user_id) {
+    $stmt = $this->db->prepare("SELECT * FROM addresses WHERE user_id = :user_id");
+    $stmt->execute(['user_id' => $user_id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
     }
+
+    
 }

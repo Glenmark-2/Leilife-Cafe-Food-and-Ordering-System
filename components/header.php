@@ -36,7 +36,7 @@ if (isset($page_styles[$page])) {
 <!-- Navbar -->
 <nav class="navbar" id="siteNav">
   <!-- Logo -->
-  <a class="navbar-brand" href="index.php?page=home">
+  <a class="navbar-brand" id="logo" href="index.php?page=home">
     <img src="/Leilife/public/assests/Mask group.png" alt="Logo">
   </a>
 

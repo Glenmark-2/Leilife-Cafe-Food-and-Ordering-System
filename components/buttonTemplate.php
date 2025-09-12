@@ -1,6 +1,6 @@
 <?php
 if (!function_exists('createButton')) {
-    function createButton($height, $width, $text, $id = "", $fontSize = 16, $type = "button") {
+    function createButton($height, $width, $text, $id = "", $fontSize = 16, $type = "button", $attributes = []) {
         $hoverColor = "#445566"; 
         $defaultColor = "#22333c";
 
@@ -11,9 +11,16 @@ if (!function_exists('createButton')) {
 
         $idAttribute = $id ? "id='{$id}'" : "";
 
-        return "<button type='{$type}' {$idAttribute} style='{$style}' 
+        // convert $attributes array to HTML string
+        $extraAttrs = "";
+        foreach ($attributes as $key => $value) {
+            $extraAttrs .= " {$key}='{$value}'";
+        }
+
+        return "<button type='{$type}' {$idAttribute} {$extraAttrs} style='{$style}' 
                     onmouseover=\"this.style.backgroundColor='{$hoverColor}'\" 
                     onmouseout=\"this.style.backgroundColor='{$defaultColor}'\">{$text}</button>";
     }
 }
+
 ?>

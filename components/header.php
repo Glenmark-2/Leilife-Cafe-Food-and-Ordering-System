@@ -31,7 +31,7 @@ if (isset($page_styles[$page])) {
 
 
 </head>
-<body>
+<body class="has-fixed-nav">
 
 <!-- Navbar -->
 <nav class="navbar" id="siteNav">

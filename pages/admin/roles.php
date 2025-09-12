@@ -71,7 +71,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <div id="modal">
     <div id="new-product-modal">
         <div id="left">
-            <img id="new-product-photo" src="public/assests/about us.png" alt="photo">
+            <img id="new-product-photo" src="public/assests/uploadImg.jpg" alt="photo">
               <input type="file" id="uploadInput" style="display:none;" accept="image/*">
             <button id="uploadBtn">Upload Photo</button>
         </div>
@@ -149,7 +149,7 @@ document.querySelectorAll('.editBtn').forEach(btn => {
             // Enable current row fields
             nameInput.disabled = roleInput.disabled = shiftSelect.disabled = statusBtn.disabled = false;
 
-            // Apply edit styles (same as products.php)
+            // Apply edit styles
             [nameInput, roleInput, shiftSelect].forEach(el => {
                 el.style.padding = '5px 10px';
                 el.style.border = '1px solid black';
@@ -157,62 +157,69 @@ document.querySelectorAll('.editBtn').forEach(btn => {
                 el.style.backgroundColor = '#ffffff';
             });
 
-            // Change button to Save
+            // Set initial status color based on current text
+            if (statusBtn.textContent.trim() === 'Available') {
+                statusBtn.classList.add('available');
+                statusBtn.classList.remove('clicked');
+            } else {
+                statusBtn.classList.add('clicked');
+                statusBtn.classList.remove('available');
+            }
+
+            // Change Edit button to Save
             btn.textContent = 'Save';
             btn.style.backgroundColor = '#75c277';
             btn.style.color = '#036d2b';
 
         } else {
             // Disable fields again
-    nameInput.disabled = roleInput.disabled = shiftSelect.disabled = statusBtn.disabled = true;
+            nameInput.disabled = roleInput.disabled = shiftSelect.disabled = statusBtn.disabled = true;
 
-    // Reset field styles
-    [nameInput, roleInput, shiftSelect].forEach(el => {
-        el.style.padding = '0';
-        el.style.border = 'none';
-        el.style.borderRadius = '0';
-        el.style.backgroundColor = 'transparent';
-    });
+            // Reset field styles
+            [nameInput, roleInput, shiftSelect].forEach(el => {
+                el.style.padding = '0';
+                el.style.border = 'none';
+                el.style.borderRadius = '0';
+                el.style.backgroundColor = 'transparent';
+            });
 
-    // Reset button look
-    btn.textContent = 'Edit';
-    btn.style.backgroundColor = '#C6C3BD';
-    btn.style.color = '#22333B';
+            // Reset button look
+            btn.textContent = 'Edit';
+            btn.style.backgroundColor = '#C6C3BD';
+            btn.style.color = '#22333B';
 
-    // Enable other edit buttons
-    document.querySelectorAll('.editBtn').forEach(otherBtn => {
-        otherBtn.disabled = false;
-        otherBtn.style.opacity = '1';
-        otherBtn.style.cursor = 'pointer';
-    });
+            // Enable other edit buttons
+            document.querySelectorAll('.editBtn').forEach(otherBtn => {
+                otherBtn.disabled = false;
+                otherBtn.style.opacity = '1';
+                otherBtn.style.cursor = 'pointer';
+            });
 
-    // ✅ Send update to backend
-    // ✅ Send update to backend
-const staffId = row.dataset.id;
-const updatedData = {
-    id: staffId,                               // dati: staff_id
-    name: nameInput.value,                     // dati: staff_name
-    role: roleInput.value,                     // dati: staff_role
-    shift: shiftSelect.value,
-    status: statusBtn.textContent
-};
+            // Send update to backend
+            const staffId = row.dataset.id;
+            const updatedData = {
+                id: staffId,
+                name: nameInput.value,
+                role: roleInput.value,
+                shift: shiftSelect.value,
+                status: statusBtn.textContent
+            };
 
-fetch(BASE_URL + "backend/admin/update_staff.php", {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(updatedData)
-})
-.then(res => res.json())
-.then(data => {
-    console.log("Response from server:", data);
-    if (data.success) {
-        showModal("Staff updated successfully!", "success");
-    } else {
-        showModal("Update failed: " + data.message, "error");
-    }
-})
-.catch(err => showModal("Fetch error: " + err.message, "error"));
-
+            fetch(BASE_URL + "backend/admin/update_staff.php", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log("Response from server:", data);
+                if (data.success) {
+                    showModal("Staff updated successfully!", "success");
+                } else {
+                    showModal("Update failed: " + data.message, "error");
+                }
+            })
+            .catch(err => showModal("Fetch error: " + err.message, "error"));
         }
     });
 });

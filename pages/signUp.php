@@ -36,25 +36,26 @@
 
       <legend>User Details</legend>
       <div class="sign-up-form">
-        <label for="fname">First Name <span class="required">*</span></label>
+        <!-- <label for="fname">First Name <span class="required">*</span></label> -->
         <input type="text" id="fname" name="fname" maxlength="100" required placeholder="First name" autocomplete="given-name">
             
-        <label for="lname">Last Name <span class="required">*</span></label>
+        <!-- <label for="lname">Last Name <span class="required">*</span></label> -->
         <input type="text" id="lname" name="lname" maxlength="100" required placeholder="Last name" autocomplete="family-name">
       </div>
-
+      
+        <br>
       <legend>Login & Contact Details</legend>
       <div class="sign-up-form">
-        <label for="email">Email <span class="required">*</span></label>
+        <!-- <label for="email">Email <span class="required">*</span></label> -->
         <input type="email" id="email" name="email" required placeholder="Email address" autocomplete="email">
 
-        <label for="phone_number">Phone Number <span class="required">*</span></label>
+        <!-- <label for="phone_number">Phone Number <span class="required">*</span></label> -->
         <input type="tel" id="phone_number" name="phone_number" required placeholder="+1234567890" pattern="^\+?\d{7,15}$" autocomplete="tel">
 
-        <label for="password">Password <span class="required">*</span></label>
+        <!-- <label for="password">Password <span class="required">*</span></label> -->
         <input type="password" id="password" name="password" required placeholder="Password" minlength="8" autocomplete="new-password">
 
-        <label for="confirm_password">Confirm Password <span class="required">*</span></label>
+        <!-- <label for="confirm_password">Confirm Password <span class="required">*</span></label> -->
         <input type="password" id="confirm_password" name="confirm_password" required placeholder="Confirm password" minlength="8" autocomplete="new-password">
       </div>
 

@@ -49,6 +49,28 @@ if (!class_exists('AppData')) {
     ");
     $this->products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+public function adminloadProducts() {
+    $stmt = $this->db->query("
+        SELECT DISTINCT
+    p.product_id, 
+    p.category_id,   
+    p.product_name, 
+    p.product_price, 
+    p.price_large,
+    p.status, 
+    p.product_picture,
+    c.category_name, 
+    c.main_category_id,
+    mc.main_category_name
+FROM products p
+JOIN categories c 
+    ON p.category_id = c.category_id
+JOIN categories mc
+    ON c.main_category_id = mc.main_category_id;
+
+    ");
+    $this->products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 
         // --- Orders ---

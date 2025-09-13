@@ -76,18 +76,27 @@
         font-weight: normal;
     }
 
-    input[disabled] {
-        border: none;
-        background: transparent;
-        font-size: 0.9rem;
-        padding: 0;
-        color: black;
+.info input {
+    border: none;
+    background: transparent;
+    font-size: 0.9rem;
+    padding: 0;
+    color: black;
+    outline: none;
+    border-bottom: 1px solid transparent; /* keep consistent height */
+}
+
+
+
+
+    .error{
+        display: none;
     }
 
     /* Responsive Desktop */
     @media (max-width: 768px) {
     .white-box {
-        width: 90%;   /* ✅ makes it full width but keeps margin */
+        width: 80vw;   /* ✅ makes it full width but keeps margin */
         padding: 16px;
     }
 

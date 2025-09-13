@@ -4,12 +4,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("login-form");
   const errorContainer = document.getElementById("login-error-container");
   const spinner = document.getElementById("spinner");
+  const forgotPassBtn = document.getElementById("forgot-pass");
 
+  // --- Forgot Password redirect ---
+  if (forgotPassBtn) {
+    forgotPassBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // stop any default form/button behavior
+      window.location.href = "/Leilife/public/index.php?page=forgot-password";
+      // adjust path if you’re routing through index.php?page=forgot_password
+    });
+  }
+
+  // --- rest of your login.js (unchanged) ---
   if (!form) {
     console.error("❌ Login form not found!");
     return;
   }
-
   // --- Utility functions ---
   const showError = (messages) => {
     if (!errorContainer) return;

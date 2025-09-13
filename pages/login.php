@@ -6,12 +6,6 @@ if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login - Leilife</title>
-    <link rel="stylesheet" href="/Leilife/public/css/styles.css"> <!-- your main CSS -->
     <style>
         /* Inline fallback styles (can move to CSS file) */
         .error { color: red; margin: 5px 0; }
@@ -83,6 +77,5 @@ if (!isset($_SESSION['csrf_token'])) {
 </center>
 
 <!-- ✅ Absolute path to ensure JS loads -->
-<script src="/Leilife/Scripts/pages/login.js"></script>
-</body>
-</html>
+<script src="/Leilife/Scripts/pages/login.js" defer></script>
+

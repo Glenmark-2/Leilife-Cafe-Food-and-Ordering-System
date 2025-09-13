@@ -12,10 +12,51 @@ $userAddress = $appData->loadUserAddress($user_id);
 
 <!-- Profile Header -->
 <div class="white-box">
-    <div id="first-box"> 
-        <img src="../public/assests/uploadImg.jpg" alt="profile-photo"> 
-        <div> 
-            <h2><?= htmlspecialchars($userInfo["first_name"] ?? 'Unknown') . ' ' . htmlspecialchars($userInfo["last_name"] ?? 'Unknown'); ?></h2> 
+    <div id="first-box">
+        <!-- <img src="../public/assests/uploadImg.jpg"  /> -->
+
+
+        <?php
+        function isUrl($value)
+        {
+            if (empty($value)) {
+                return false;
+            }
+            $value = trim($value);
+            return filter_var($value, FILTER_VALIDATE_URL) !== false;
+        }
+        ?>
+
+        <form action="../backend/update_user_photo.php" method="POST" enctype="multipart/form-data">
+            <input type="file" name="profile_photo" id="profile-input" accept="image/*" hidden>
+
+            <button type="button" id="profile-btn">
+                <?php if (!empty($userInfo['profile_picture'])): ?>
+                    <?php if (isUrl($userInfo['profile_picture'])): ?>
+                        <img
+                            src="<?= htmlspecialchars(trim($userInfo['profile_picture'])) ?>"
+                            alt="profile-photo" />
+                    <?php else: ?>
+                        <img
+                            src="../public/profile_photos/<?= htmlspecialchars($userInfo['profile_picture']) ?>"
+                            alt="profile-photo"
+                            class="profile-photo" />
+                    <?php endif; ?>
+                <?php else: ?>
+                    <img
+                        src="../public/assests/uploadImg.jpg"
+                        alt="profile-photo"
+                        class="profile-photo" />
+                <?php endif; ?>
+            </button>
+
+            <button type="submit" hidden id="submit-photo"></button>
+        </form>
+
+
+
+        <div>
+            <h2><?= htmlspecialchars($userInfo["first_name"] ?? 'Unknown') . ' ' . htmlspecialchars($userInfo["last_name"] ?? 'Unknown'); ?></h2>
             <p>Customer</p>
         </div>
     </div>
@@ -44,22 +85,22 @@ $userAddress = $appData->loadUserAddress($user_id);
                 <p>First name</p>
                 <h4 class="display-value"><?= htmlspecialchars($userInfo["first_name"] ?? ''); ?></h4>
                 <input class="edit-input" type="text" name="first_name"
-                       value="<?= htmlspecialchars($userInfo["first_name"] ?? ''); ?>" style="display:none;">
+                    value="<?= htmlspecialchars($userInfo["first_name"] ?? ''); ?>" style="display:none;">
             </div>
 
             <div class="info">
                 <p>Last name</p>
                 <h4 class="display-value"><?= htmlspecialchars($userInfo["last_name"] ?? ''); ?></h4>
                 <input class="edit-input" type="text" name="last_name"
-                       value="<?= htmlspecialchars($userInfo["last_name"] ?? ''); ?>" style="display:none;">
+                    value="<?= htmlspecialchars($userInfo["last_name"] ?? ''); ?>" style="display:none;">
             </div>
 
             <div class="info">
                 <p>Phone number</p>
                 <h4 class="display-value"><?= htmlspecialchars($userInfo["phone_number"] ?? ''); ?></h4>
-                <input class="edit-input" type="text" name="phone_number" 
-                       value="<?= htmlspecialchars($userInfo["phone_number"] ?? ''); ?>"
-                       placeholder="+63" style="display:none;">
+                <input class="edit-input" type="text" name="phone_number"
+                    value="<?= htmlspecialchars($userInfo["phone_number"] ?? ''); ?>"
+                    placeholder="+63" style="display:none;">
             </div>
 
             <div class="info">
@@ -95,7 +136,9 @@ $userAddress = $appData->loadUserAddress($user_id);
 
     <?php if (!$userAddress): ?>
         <div class="row-info" style="display:flex; justify-content:center;">
-            <center><p>Set Address</p></center>
+            <center>
+                <p>Set Address</p>
+            </center>
         </div>
     <?php else: ?>
         <div class="row-info">
@@ -207,14 +250,28 @@ $userAddress = $appData->loadUserAddress($user_id);
     if (editAddress) {
         editAddress.addEventListener("click", () => {
             if (modalOverlay) {
-                modalOverlay.style.display = "flex"; 
+                modalOverlay.style.display = "flex";
             }
         });
     }
 
     function closeModal() {
         if (modalOverlay) {
-            modalOverlay.style.display = "none"; 
+            modalOverlay.style.display = "none";
         }
     }
+
+    const profileBtn = document.getElementById("profile-btn");
+    const profileInput = document.getElementById("profile-input");
+    const submitBtn = document.getElementById("submit-photo");
+
+    profileBtn.addEventListener("click", () => {
+        profileInput.click(); // open file picker
+    });
+
+    profileInput.addEventListener("change", () => {
+        if (profileInput.files.length > 0) {
+            submitBtn.click(); // auto-submit form
+        }
+    });
 </script>

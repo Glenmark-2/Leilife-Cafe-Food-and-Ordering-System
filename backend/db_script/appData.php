@@ -1,6 +1,7 @@
 <?php
 if (!class_exists('AppData')) {
-    class AppData {
+    class AppData
+    {
         private $db;
 
         public $users = [];
@@ -10,31 +11,36 @@ if (!class_exists('AppData')) {
         public $orders = [];
         public $feedback = [];
 
-        public function __construct($pdo) {
+        public function __construct($pdo)
+        {
             $this->db = $pdo;
         }
 
         // --- Users ---
-        public function loadUsers() {
+        public function loadUsers()
+        {
             $stmt = $this->db->query("SELECT user_id, username, first_name, last_name, email, phone_number, created_at FROM users");
             $this->users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         // --- Admins ---
-        public function loadAdmins() {
+        public function loadAdmins()
+        {
             $stmt = $this->db->query("SELECT admin_id, name, email, role, shift, status, created_at FROM admins");
             $this->admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         // --- Categories ---
-        public function loadCategories() {
+        public function loadCategories()
+        {
             $stmt = $this->db->query("SELECT category_id, category_name, main_category_name FROM categories");
             $this->categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         // --- Products ---
-        public function loadProducts() {
-    $stmt = $this->db->query("
+        public function loadProducts()
+        {
+            $stmt = $this->db->query("
         SELECT p.product_id, 
                p.category_id,   
                p.product_name, 
@@ -47,10 +53,11 @@ if (!class_exists('AppData')) {
         FROM products p
         JOIN categories c ON p.category_id = c.category_id
     ");
-    $this->products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-public function adminloadProducts() {
-    $stmt = $this->db->query("
+            $this->products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        public function adminloadProducts()
+        {
+            $stmt = $this->db->query("
         SELECT DISTINCT
     p.product_id, 
     p.category_id,   
@@ -69,18 +76,20 @@ JOIN categories mc
     ON c.main_category_id = mc.main_category_id;
 
     ");
-    $this->products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+            $this->products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
 
         // --- Orders ---
-        public function loadOrders() {
+        public function loadOrders()
+        {
             $stmt = $this->db->query("SELECT * FROM orders");
             $this->orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         // --- Feedback ---
-        public function loadFeedback() {
+        public function loadFeedback()
+        {
             $stmt = $this->db->query("
                 SELECT f.feedback_id, f.comments, f.rating, u.username, p.product_name
                 FROM feedback f
@@ -91,20 +100,19 @@ JOIN categories mc
         }
 
         // --- user info ---
-public function loadUserInfo($user_id) {
-    $stmt = $this->db->prepare("SELECT * FROM users WHERE user_id = :user_id");
-    $stmt->execute(['user_id' => $user_id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-} 
+        public function loadUserInfo($user_id)
+        {
+            $stmt = $this->db->prepare("SELECT * FROM users WHERE user_id = :user_id");
+            $stmt->execute(['user_id' => $user_id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        }
 
-// --- user info ---
-public function loadUserAddress($user_id) {
-    $stmt = $this->db->prepare("SELECT * FROM addresses WHERE user_id = :user_id");
-    $stmt->execute(['user_id' => $user_id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}
-
+        // --- user info ---
+        public function loadUserAddress($user_id)
+        {
+            $stmt = $this->db->prepare("SELECT * FROM addresses WHERE user_id = :user_id");
+            $stmt->execute(['user_id' => $user_id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        }
     }
-
-    
 }

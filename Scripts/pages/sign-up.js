@@ -69,11 +69,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       } else {
         if (result.redirect) {
-          window.location.href = result.redirect;
+          // ✅ replace so signup page isn’t kept in history
+          window.location.replace(result.redirect);
         } else {
           showSuccess("Account created successfully! Redirecting...");
           setTimeout(() => {
-            window.location.href = "/Leilife/public/index.php?page=verify_notice";
+            // ✅ replace so back doesn’t return to signup
+            window.location.replace("/Leilife/public/index.php?page=verify_notice");
           }, 1500);
         }
       }

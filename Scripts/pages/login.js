@@ -80,12 +80,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (result.redirect) {
           showSuccess("Login successful! Redirecting...");
           setTimeout(() => {
-            window.location.href = result.redirect;
+            window.location.replace(result.redirect); 
           }, 1000);
         } else {
           showSuccess("Login successful! Redirecting...");
           setTimeout(() => {
-            window.location.href = "/Leilife/public/index.php?page=home";
+            window.location.replace("/Leilife/public/index.php?page=home");
           }, 1000);
         }
       }

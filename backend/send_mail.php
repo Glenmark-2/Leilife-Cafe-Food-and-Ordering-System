@@ -42,7 +42,7 @@ function sendResetLink(string $toEmail, string $token): bool {
 
         $mail->Body = "Hello!<br><br>
                        Please click the button below to reset your password:<br><br>
-                       <a href='{$verifyLink}'target='_blank' style='display:inline-block;padding:10px 20px;background:#28a745;color:#fff;text-decoration:none;border-radius:5px;'>Verify Email</a><br><br>
+                       <a href='{$verifyLink}' target='_blank' style='display:inline-block;padding:10px 20px;background:#28a745;color:#fff;text-decoration:none;border-radius:5px;'>Verify Email</a><br><br>
                        Thank you!";
 
         $mail->send();
@@ -78,9 +78,9 @@ function sendVerificationEmail(string $toEmail, string $token): bool {
         $verifyLink = "http://localhost/Leilife/public/index.php?page=verify&token=" . urlencode($token);
 
         $mail->Body = "Hello!<br><br>
-                       Please click the button below to verify your email:<br><br>
-                       <a href='{$verifyLink}' 'target='_blank' style='display:inline-block;padding:10px 20px;background:#28a745;color:#fff;text-decoration:none;border-radius:5px;'>Verify Email</a><br><br>
-                       Thank you!";
+               Please click the button below to verify your email:<br><br>
+               <a href='{$verifyLink}' target='_blank' style='display:inline-block;padding:10px 20px;background:#28a745;color:#fff;text-decoration:none;border-radius:5px;'>Verify Email</a><br><br>
+               Thank you!";
 
         $mail->send();
         return true;

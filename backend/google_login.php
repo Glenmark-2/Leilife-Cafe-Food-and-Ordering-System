@@ -48,6 +48,8 @@ $google_account_info = $google_oauth->userinfo->get();
 $email     = $google_account_info->email;
 $google_id = $google_account_info->id;
 $fullName  = $google_account_info->name;
+$profile_picture  = $google_account_info->picture;
+
 
 // Split name into first/last
 $nameParts  = explode(" ", $fullName, 2);
@@ -61,9 +63,21 @@ try {
     $stmt->execute([':email' => $email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+
     if ($user) {
+        // Update profile picture if it's empty or different
+        if (empty($user['profile_picture']) || $user['profile_picture'] !== $profile_picture) {
+            $update = $pdo->prepare("UPDATE users SET profile_picture = :profile_picture WHERE user_id = :id");
+            $update->execute([
+                ':profile_picture' => $profile_picture, 
+                ':id' => $user['user_id']
+            ]);
+        }
+
+
         if ($user['auth_provider'] === 'google') {
             // ✅ Existing Google user → log them in
+            $_SESSION['profile_picture'] = $profile_picture;
             $_SESSION['user_id']  = $user['user_id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['email']    = $user['email'];
@@ -74,15 +88,17 @@ try {
     } else {
         // 🚀 New Google user → auto-register
         $stmt = $pdo->prepare("
-            INSERT INTO users (username, first_name, last_name, email, password_hash, auth_provider, google_id) 
-            VALUES (:username, :first_name, :last_name, :email, NULL, 'google', :google_id)
+            INSERT INTO users (username, first_name, last_name, email, password_hash, auth_provider, google_id, profile_picture) 
+            VALUES (:username, :first_name, :last_name, :email, NULL, 'google', :google_id, :profile_picture)
         ");
         $stmt->execute([
             ':username'   => $username,
             ':first_name' => $first_name,
             ':last_name'  => $last_name,
             ':email'      => $email,
-            ':google_id'  => $google_id
+            ':google_id'  => $google_id,
+            ':profile_picture' => $profile_picture
+
         ]);
 
         $new_user_id = $pdo->lastInsertId();
@@ -93,7 +109,6 @@ try {
 
     header("Location: /Leilife/public/index.php?page=home");
     exit;
-
 } catch (PDOException $e) {
     die("Database error: " . htmlspecialchars($e->getMessage()));
 }

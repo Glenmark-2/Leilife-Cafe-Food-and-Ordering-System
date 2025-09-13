@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await res.json();
       if (result.success) {
         showMessage("✅ Password changed successfully! Redirecting...", "success");
-        setTimeout(() => (window.location.href = "/Leilife/public/index.php?page=home"), 2000);
+        setTimeout(() => (window.location.replace("/Leilife/public/index.php?page=home")), 2000);
       } else {
         throw new Error(result.error || "❌ Failed to reset password.");
       }

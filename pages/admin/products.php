@@ -51,20 +51,27 @@ $mainCategories = array_values($mainCategories);
             <input type="checkbox" class="checkbox">
 
             <!-- Product name -->
-            <div id="product-name">
-                <img id="product-photo" 
-                     src="<?= !empty($product['product_picture']) 
-                            ? "public/products/" . trim($product['product_picture']) 
-                            : "public/assests/image-43.png" ?>" 
-                     alt="product-photo">
-                <div style="align-content: center; width:100%;">
-                    <input type="text" id="pname" class="inputData" 
-                           value="<?= htmlspecialchars($product['product_name']) ?>" disabled>
-                    <p style="font-size: .5em; color:gray; margin-left:3px;">
-                        #<?= htmlspecialchars($product['product_id']) ?>
-                    </p>
-                </div>
-            </div>
+           <!-- Product name -->
+<div id="product-name">
+    <img id="product-photo" 
+         src="<?= !empty($product['product_picture']) 
+                ? "public/products/" . trim($product['product_picture']) 
+                : "public/assests/image-43.png" ?>" 
+         alt="product-photo">
+
+    <!-- hidden file input for photo upload -->
+    <input type="file" id="photoInput-<?= $product['product_id'] ?>" 
+           class="photoInput" accept="image/*" style="display:none;">
+
+    <div style="align-content: center; width:100%;">
+        <input type="text" id="pname" class="inputData" 
+               value="<?= htmlspecialchars($product['product_name']) ?>" disabled>
+        <p style="font-size: .5em; color:gray; margin-left:3px;">
+            #<?= htmlspecialchars($product['product_id']) ?>
+        </p>
+    </div>
+</div>
+
 
             <!-- Price -->
             <div id="price-content">
@@ -158,7 +165,6 @@ function filterProducts() {
     const activeCategoryBtn = document.querySelector('.box-row.clicked');
     const category = activeCategoryBtn ? activeCategoryBtn.dataset.category : 'All';
 
-    // always re-query para walang duplicates
     const rows = document.querySelectorAll('.product-row');  
 
     rows.forEach(row => {
@@ -171,7 +177,6 @@ function filterProducts() {
         row.style.display = matchesSearch && matchesCategory ? 'flex' : 'none';
     });
 }
-
 
 searchInput.addEventListener('input', filterProducts);
 categoryButtons.forEach(btn => {
@@ -198,22 +203,73 @@ function toggleEdit(btn) {
     const isEditing = !nameInput.disabled;
 
     if (!isEditing) {
-        // Enable edit
+        // === ENTER EDIT MODE ===
         nameInput.disabled = false;
         priceInput.disabled = false;
         categorySelect.disabled = false;
         statusBtn.disabled = false;
+
+        // Lagyan ng visual indicator na editable
+        nameInput.style.border = "1px solid #888";
+        priceInput.style.border = "1px solid #888";
+        categorySelect.style.border = "1px solid #888";
+        statusBtn.style.opacity = "1"; // mas malinaw
+
         btn.textContent = "Save";
         btn.style.backgroundColor = "#75c277";
         btn.style.color = "#036d2b";
+
+        // Store original values sa dataset para ma-compare later
+        row.dataset.originalName = nameInput.value;
+        row.dataset.originalPrice = priceInput.value;
+        row.dataset.originalCategory = categorySelect.value;
+        row.dataset.originalStatus = statusBtn.textContent;
+
     } else {
-        // Save changes
+        // === SAVE MODE ===
+        const originalName = row.dataset.originalName;
+        const originalPrice = row.dataset.originalPrice;
+        const originalCategory = row.dataset.originalCategory;
+        const originalStatus = row.dataset.originalStatus;
+
+        const newName = nameInput.value;
+        const newPrice = priceInput.value;
+        const newCategory = categorySelect.value;
+        const newStatus = statusBtn.textContent;
+
+        if (
+            originalName === newName &&
+            originalPrice === newPrice &&
+            originalCategory === newCategory &&
+            originalStatus === newStatus
+        ) {
+            // Walang binago -> balik agad sa non-editable state
+            nameInput.disabled = true;
+            priceInput.disabled = true;
+            categorySelect.disabled = true;
+            statusBtn.disabled = true;
+
+            // Reset styles
+            nameInput.style.border = "none";
+            priceInput.style.border = "none";
+            categorySelect.style.border = "none";
+            statusBtn.style.opacity = "0.7";
+
+            btn.textContent = "Edit";
+            btn.style.backgroundColor = "#C6C3BD";
+            btn.style.color = "#22333B";
+
+            showModal("No changes made.", "warning");
+            return;
+        }
+
+        // Kung may binago → proceed sa update
         const updatedData = {
             product_id: productId,
-            product_name: nameInput.value,
-            product_price: priceInput.value,
-            main_category_name: categorySelect.value,
-            status: statusBtn.textContent
+            product_name: newName,
+            product_price: newPrice,
+            main_category_name: newCategory,
+            status: newStatus
         };
 
         fetch(BASE_URL + 'backend/admin/update_product.php', {
@@ -227,20 +283,24 @@ function toggleEdit(btn) {
                 const updated = data.product;
                 nameInput.value = updated.product_name;
                 priceInput.value = updated.product_price;
-                // Set the category properly
-            [...categorySelect.options].forEach(opt => {
-    if (opt.value === updated.main_category_name) {
-        opt.selected = true;
-    }
-});
 
+                [...categorySelect.options].forEach(opt => {
+                    opt.selected = (opt.value === updated.main_category_name);
+                });
                 statusBtn.textContent = updated.status;
 
-                // Disable again
+                // balik sa non-edit mode
                 nameInput.disabled = true;
                 priceInput.disabled = true;
                 categorySelect.disabled = true;
                 statusBtn.disabled = true;
+
+                // Reset styles
+                nameInput.style.border = "none";
+                priceInput.style.border = "none";
+                categorySelect.style.border = "none";
+                statusBtn.style.opacity = "0.7";
+
                 btn.textContent = "Edit";
                 btn.style.backgroundColor = "#C6C3BD";
                 btn.style.color = "#22333B";
@@ -253,6 +313,7 @@ function toggleEdit(btn) {
         .catch(() => showModal("Error saving product.", "error"));
     }
 }
+
 
 // --- Status toggle ---
 document.querySelectorAll('#statusBtn').forEach(btn => {
@@ -271,8 +332,37 @@ const cancel = document.getElementById("cancel");
 
 addItem.addEventListener('click', () => modal.style.display = "flex");
 cancel?.addEventListener('click', () => modal.style.display = "none");
+document.getElementById("add").addEventListener("click", () => {
+    const name = document.getElementById("name").value;
+    const price = document.getElementById("price").value;
+    const mainCategoryName = document.getElementById("category").value; 
+    const status = "Available"; // default
 
-function showModal(message, type = "success", autoClose = true, duration = 3000) {
+    const data = {
+        name: name,
+        price: price,
+        main_category_name: mainCategoryName,
+        status: status
+    };
+
+    fetch(BASE_URL + "backend/admin/add_product.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showModal("Product added successfully!", "success");
+            modal.style.display = "none";
+        } else {
+            showModal(data.message || "Failed to add product.", "error");
+        }
+    })
+    .catch(err => showModal("Error: " + err, "error"));
+});
+
+function showModal(message, type = "success", autoClose = true, duration = 4000) {
     let modal = document.getElementById("notif-modal");
     if (!modal) {
         modal = document.createElement("div");

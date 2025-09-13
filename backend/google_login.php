@@ -13,6 +13,9 @@ $GOOGLE_CLIENT_ID     = $_ENV['GOOGLE_CLIENT_ID'] ?? '';
 $GOOGLE_CLIENT_SECRET = $_ENV['GOOGLE_CLIENT_SECRET'] ?? '';
 $GOOGLE_REDIRECT_URI  = $_ENV['GOOGLE_REDIRECT_URI'] ?? '';
 
+error_reporting(E_ALL & ~E_DEPRECATED);
+
+
 if (!$GOOGLE_CLIENT_ID || !$GOOGLE_CLIENT_SECRET || !$GOOGLE_REDIRECT_URI) {
     die("Google OAuth credentials not set in environment.");
 }

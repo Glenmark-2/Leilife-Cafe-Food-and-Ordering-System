@@ -37,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([':user_id' => $user_id]);
         $existing = $stmt->fetch(PDO::FETCH_ASSOC);
 
+
         if ($existing) {
             $sql = "UPDATE addresses 
             SET first_name = :first_name, 
@@ -63,9 +64,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
         } else {
             $sql = "INSERT INTO addresses 
-            (user_id, first_name, last_name, phone_number, street_address, barangay, city, region, province)
-            VALUES 
-            (:user_id, :first_name, :last_name, :phone, :street_address, :barangay, :city, :region, :province)";
+(user_id, first_name, last_name, phone_number, street_address, barangay, city, region, province, payment_method, delivery_option) 
+VALUES 
+(:user_id, :first_name, :last_name, :phone, :street_address, :barangay, :city, :region, :province, :payment_method, :delivery_option)";
 
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
@@ -76,8 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':street_address' => $street_address,
                 ':barangay' => $barangay,
                 ':city' => $city,
+                ':region' => $region,
                 ':province' => $province,
-                ':region' => $region
+                ':payment_method' => 'cash_on_delivery',
+                ':delivery_option' => 'delivery'
             ]);
         }
 

@@ -1,5 +1,4 @@
 <?php
-phpinfo();
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/db_script/db.php';
 require_once __DIR__ . '/db_script/env.php'; // wherever your loadEnv() function is defined

@@ -18,6 +18,7 @@ return [
     'verify_failed'   => __DIR__ . '/../../pages/verify_failed.php',
     'verify_expired'  => __DIR__ . '/../../pages/verify_expired.php',
     'resend_verification' => __DIR__ . '/../resend_verification.php', // ✅ add this
+    'change_password' => __DIR__ . '/../../components/change_password.php',
 
     // Optional 404 page; router will fall back to it
     '404'             => __DIR__ . '/../../pages/404.php',

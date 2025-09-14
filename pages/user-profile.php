@@ -3,12 +3,24 @@
 <?php
 require_once __DIR__ . '/../backend/db_script/db.php';
 include "../components/buttonTemplate.php";
+
+// instantiate AppData (you already do this elsewhere)
 $appData = new AppData($pdo);
 
-$user_id = $_SESSION['user_id'];
+$user_id = $_SESSION['user_id'] ?? null;
 $userInfo = $appData->loadUserInfo($user_id);
 $userAddress = $appData->loadUserAddress($user_id);
+
+// compute hasPassword by calling the AppData method
+$hasPassword = false;
+if ($user_id) {
+    $hasPassword = $appData->userHasPassword((int) $user_id);
+}
+
+// now include the modal component (it will use $hasPassword safely)
+include __DIR__ . '/../components/change_password.php';
 ?>
+
 
 <!-- Profile Header -->
 <div class="white-box">
@@ -33,20 +45,13 @@ $userAddress = $appData->loadUserAddress($user_id);
             <button type="button" id="profile-btn">
                 <?php if (!empty($userInfo['profile_picture'])): ?>
                     <?php if (isUrl($userInfo['profile_picture'])): ?>
-                        <img
-                            src="<?= htmlspecialchars(trim($userInfo['profile_picture'])) ?>"
-                            alt="profile-photo" />
+                        <img src="<?= htmlspecialchars(trim($userInfo['profile_picture'])) ?>" alt="profile-photo" />
                     <?php else: ?>
-                        <img
-                            src="../public/profile_photos/<?= htmlspecialchars($userInfo['profile_picture']) ?>"
-                            alt="profile-photo"
-                            class="profile-photo" />
+                        <img src="../public/profile_photos/<?= htmlspecialchars($userInfo['profile_picture']) ?>"
+                            alt="profile-photo" class="profile-photo" />
                     <?php endif; ?>
                 <?php else: ?>
-                    <img
-                        src="../public/assests/uploadImg.jpg"
-                        alt="profile-photo"
-                        class="profile-photo" />
+                    <img src="../public/assests/uploadImg.jpg" alt="profile-photo" class="profile-photo" />
                 <?php endif; ?>
             </button>
 
@@ -56,7 +61,8 @@ $userAddress = $appData->loadUserAddress($user_id);
 
 
         <div>
-            <h2><?= htmlspecialchars($userInfo["first_name"] ?? 'Unknown') . ' ' . htmlspecialchars($userInfo["last_name"] ?? 'Unknown'); ?></h2>
+            <h2><?= htmlspecialchars($userInfo["first_name"] ?? 'Unknown') . ' ' . htmlspecialchars($userInfo["last_name"] ?? 'Unknown'); ?>
+            </h2>
             <p>Customer</p>
         </div>
     </div>
@@ -99,8 +105,8 @@ $userAddress = $appData->loadUserAddress($user_id);
                 <p>Phone number</p>
                 <h4 class="display-value"><?= htmlspecialchars($userInfo["phone_number"] ?? ''); ?></h4>
                 <input class="edit-input" type="text" name="phone_number"
-                    value="<?= htmlspecialchars($userInfo["phone_number"] ?? ''); ?>"
-                    placeholder="+63" style="display:none;">
+                    value="<?= htmlspecialchars($userInfo["phone_number"] ?? ''); ?>" placeholder="+63"
+                    style="display:none;">
             </div>
 
             <div class="info">
@@ -112,6 +118,10 @@ $userAddress = $appData->loadUserAddress($user_id);
                 <p>User role</p>
                 <h4>Customer</h4>
             </div>
+            <button type="button" id="open-password-modal" class="change-password">
+                <?php echo $hasPassword ? "Change Password" : "Set Password"; ?>
+            </button>
+
         </div>
     </form>
 </div>
@@ -166,7 +176,12 @@ $userAddress = $appData->loadUserAddress($user_id);
     <?php endif; ?>
 
     <!-- Logout Button -->
-    
+    <div class="title-info" style="justify-content: flex-end; margin-top:10px;">
+        <a href="/Leilife/backend/logout.php">
+            <?php echo createButton(25, 90, "Logout", "logout-btn"); ?>
+        </a>
+    </div>
+
 </div>
 
 <!-- Order History -->
@@ -270,4 +285,34 @@ $userAddress = $appData->loadUserAddress($user_id);
             submitBtn.click(); // auto-submit form
         }
     });
+
+    // Password modal references
+    const openPasswordModalBtn = document.getElementById("open-password-modal");
+    const passwordModal = document.getElementById("password-modal");
+
+    // Show modal
+    if (openPasswordModalBtn) {
+        openPasswordModalBtn.addEventListener("click", () => {
+            if (passwordModal) {
+                passwordModal.style.display = "flex";
+            }
+        });
+    }
+
+    // Close modal
+    function closePasswordModal() {
+        if (passwordModal) {
+            passwordModal.style.display = "none";
+        }
+    }
+
+    // Optional: click outside to close
+    if (passwordModal) {
+        passwordModal.addEventListener("click", (e) => {
+            if (e.target === passwordModal) {
+                closePasswordModal();
+            }
+        });
+    }
+
 </script>

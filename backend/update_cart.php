@@ -13,22 +13,33 @@ if (!is_array($cart)) {
 // Save session cart
 $_SESSION['cart'] = $cart;
 
-$sessionId = session_id();
-$userId = $_SESSION['user_id'] ?? null;
+$sessionId  = session_id();
+$userId     = $_SESSION['user_id'] ?? null;
+$guestToken = $_COOKIE['guest_token'] ?? null;
 
-// Find or create cart
-$sql = "SELECT cart_id FROM carts WHERE session_id = :sid OR (user_id = :uid AND :uid IS NOT NULL) LIMIT 1";
-$stmt = $pdo->prepare($sql);
-$stmt->execute(['sid' => $sessionId, 'uid' => $userId]);
+// --- Find or create cart ---
+if ($userId) {
+    $sql = "SELECT cart_id FROM carts WHERE user_id = :uid LIMIT 1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['uid' => $userId]);
+} else {
+    $sql = "SELECT cart_id FROM carts WHERE guest_token = :gtoken OR session_id = :sid LIMIT 1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['gtoken' => $guestToken, 'sid' => $sessionId]);
+}
 $cartRow = $stmt->fetch();
 
 if ($cartRow) {
     $cartId = $cartRow['cart_id'];
 } else {
     $stmt = $pdo->prepare("INSERT INTO carts 
-        (session_id, user_id, option_type, sub_total, delivery_fee, total, created_at, updated_at)
-        VALUES (:sid, :uid, 'delivery', 0, 50, 50, NOW(), NOW())");
-    $stmt->execute(['sid' => $sessionId, 'uid' => $userId]);
+        (session_id, user_id, guest_token, option_type, sub_total, delivery_fee, total, created_at, updated_at)
+        VALUES (:sid, :uid, :gtoken, 'delivery', 0, 50, 50, NOW(), NOW())");
+    $stmt->execute([
+        'sid'    => $sessionId,
+        'uid'    => $userId,
+        'gtoken' => $guestToken
+    ]);
     $cartId = $pdo->lastInsertId();
 }
 
@@ -55,7 +66,7 @@ foreach ($cart as $item) {
 
     $flavorIdsCsv = null;
     if (!empty($item['flavor_ids']) && is_array($item['flavor_ids'])) {
-        $flavorIdsCsv = implode(',', $item['flavor_ids']); // store all selected flavors
+        $flavorIdsCsv = implode(',', $item['flavor_ids']);
     }
 
     // Check if the same product + size + flavor combination exists

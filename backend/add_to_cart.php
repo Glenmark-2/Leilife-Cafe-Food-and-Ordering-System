@@ -55,23 +55,42 @@ if (!empty($flavorIds)) {
     $flavorNames = implode(', ', $fstmt->fetchAll(PDO::FETCH_COLUMN));
 }
 
-// Find or create cart
+// --- Handle guest_token for persistent carts ---
+if (!$userId) {
+    if (empty($_COOKIE['guest_token'])) {
+        $guestToken = bin2hex(random_bytes(16));
+        setcookie("guest_token", $guestToken, time() + (86400*30), "/"); // 30 days
+    } else {
+        $guestToken = $_COOKIE['guest_token'];
+    }
+} else {
+    $guestToken = null;
+}
+
+// --- Find or create cart ---
 if ($userId) {
+    // Logged in: fetch by user_id
     $stmt = $pdo->prepare("SELECT cart_id FROM carts WHERE user_id=:uid LIMIT 1");
     $stmt->execute(['uid'=>$userId]);
 } else {
-    $stmt = $pdo->prepare("SELECT cart_id FROM carts WHERE session_id=:sid LIMIT 1");
-    $stmt->execute(['sid'=>$sessionId]);
+    // Guest: fetch by session_id or guest_token
+    $stmt = $pdo->prepare("SELECT cart_id FROM carts WHERE session_id=:sid OR guest_token=:gtoken LIMIT 1");
+    $stmt->execute(['sid'=>$sessionId, 'gtoken'=>$guestToken]);
 }
 $cartRow = $stmt->fetch();
 $cartId = $cartRow ? $cartRow['cart_id'] : null;
 
 if (!$cartId) {
-    $stmt = $pdo->prepare("INSERT INTO carts (user_id, session_id, option_type, sub_total, delivery_fee, total, created_at, updated_at)
-                           VALUES (:uid, :sid, 'delivery', 0, 50, 50, NOW(), NOW())");
-    $stmt->execute(['uid'=>$userId,'sid'=>$sessionId]);
+    $stmt = $pdo->prepare("INSERT INTO carts (user_id, session_id, guest_token, option_type, sub_total, delivery_fee, total, created_at, updated_at)
+                           VALUES (:uid, :sid, :gtoken, 'delivery', 0, 50, 50, NOW(), NOW())");
+    $stmt->execute([
+        'uid'    => $userId,
+        'sid'    => $sessionId,
+        'gtoken' => $guestToken
+    ]);
     $cartId = $pdo->lastInsertId();
 }
+
 
 // Check if same item exists (same product, size, and exact flavor combination)
 $check = $pdo->prepare("

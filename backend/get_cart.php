@@ -3,7 +3,8 @@ session_start();
 require_once './db_script/init.php';
 
 $sessionId = session_id();
-$userId = $_SESSION['user_id'] ?? null;
+$userId    = $_SESSION['user_id'] ?? null;
+$guestToken = $_COOKIE['guest_token'] ?? null;
 
 if ($userId) {
     // Logged in → always fetch by user_id
@@ -14,13 +15,17 @@ if ($userId) {
     $stmt = $pdo->prepare($sql);
     $stmt->execute(['uid' => $userId]);
 } else {
-    // Guest → fetch by session_id
+    // Guest → check guest_token first, fallback to session_id
     $sql = "SELECT cart_id, sub_total, delivery_fee, total 
             FROM carts 
-            WHERE session_id = :sid 
+            WHERE guest_token = :gtoken 
+               OR session_id = :sid 
             LIMIT 1";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute(['sid' => $sessionId]);
+    $stmt->execute([
+        'gtoken' => $guestToken,
+        'sid'    => $sessionId
+    ]);
 }
 
 $cartRow = $stmt->fetch();
@@ -29,7 +34,11 @@ if (!$cartRow) {
     echo json_encode([
         'success' => true,
         'cart' => [],
-        'totals' => ['subtotal'=>0,'delivery_fee'=>50,'total'=>50]
+        'totals' => [
+            'subtotal'     => 0,
+            'delivery_fee' => 50,
+            'total'        => 50
+        ]
     ]);
     exit;
 }
@@ -52,7 +61,7 @@ foreach ($items as &$item) {
     $item['flavor_names'] = '';
     if (!empty($item['flavor_ids'])) {
         $flavorIds = explode(',', $item['flavor_ids']);
-        $in = str_repeat('?,', count($flavorIds)-1) . '?';
+        $in = str_repeat('?,', count($flavorIds) - 1) . '?';
         $fstmt = $pdo->prepare("SELECT flavor_name FROM product_flavors WHERE flavor_id IN ($in)");
         $fstmt->execute($flavorIds);
         $names = $fstmt->fetchAll(PDO::FETCH_COLUMN);
@@ -67,8 +76,8 @@ echo json_encode([
     'success' => true,
     'cart' => $items,
     'totals' => [
-        'subtotal' => (float)$cartRow['sub_total'],
+        'subtotal'     => (float)$cartRow['sub_total'],
         'delivery_fee' => (float)$cartRow['delivery_fee'],
-        'total' => (float)$cartRow['total']
+        'total'        => (float)$cartRow['total']
     ]
 ]);

@@ -56,10 +56,17 @@ if (isset($page_styles[$page])) {
   <div class="navbar-actions">
     <?php if (isset($_SESSION['user_id'])): ?>
         <a href="index.php?page=user-profile" class="btn-link">Profile</a>
-        <a href="index.php?page=cart" class="btn-dark">Cart</a>
+        <a href="../backend/logout.php"class="btn-dark">Sign out</a>
+        <a href="#" id="cartBtn">
+      <img src="../public/assests/cart.png" alt="cart" id="cartImg">
+    </a>
     <?php else: ?>
         <a href="#" id="loginBtn" class="btn-link">Login</a>
         <a href="index.php?page=signUp" class="btn-dark">Sign Up</a>
+        
+    <a href="#" id="cartBtn">
+      <img src="../public/assests/cart.png" alt="cart" id="cartImg">
+    </a>
     <?php endif; ?>
   </div>
 </nav>
@@ -69,12 +76,14 @@ if (isset($page_styles[$page])) {
   <a href="index.php?page=menu">Menu</a>
   <a href="index.php?page=home#about-us">About</a>
   <a href="index.php?page=home#contact-section">Contact</a>
+  <a href="index.php?page=cart" id="cartBtnMobile">Cart</a>
 
   <!-- Dynamic auth links (mobile) -->
   <div class="auth-links">
     <?php if (isset($_SESSION['user_id'])): ?>
         <a href="index.php?page=user-profile">Profile</a>
-        <a href="index.php?page=cart">Cart</a>
+        <a href="index.php?page=cart" id="cartBtnMobile">Cart</a>
+        
     <?php else: ?>
         <a id="loginBtn" href="index.php?page=login">Login</a>
         <a href="index.php?page=signUp">Sign Up</a>
@@ -88,7 +97,24 @@ if (isset($page_styles[$page])) {
 
 
 <!-- Page container -->
-<!-- cart here  -->
 
+
+<!-- <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const cartBtn = document.getElementById("cartBtn");       // desktop
+  const cartModal = document.getElementById("cartModal");
+  const navbar = document.querySelector(".navbar");
+
+  if (cartBtn && cartModal) {
+    cartBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // prevent page reload only on desktop button
+      cartModal.style.display = cartModal.style.display === "flex" ? "none" : "flex";
+      navbar.classList.remove("navbar--hidden");
+    });
+  }
+
+  // No JS needed for mobile -> cartBtnMobile goes to index.php?page=cart
+});
+</script> -->
 
 <script src="../Scripts/components/header.js"></script>

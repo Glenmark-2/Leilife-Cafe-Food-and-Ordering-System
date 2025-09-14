@@ -166,11 +166,7 @@ $userAddress = $appData->loadUserAddress($user_id);
     <?php endif; ?>
 
     <!-- Logout Button -->
-    <div class="title-info" style="justify-content: flex-end; margin-top:10px;">
-        <a href="/Leilife/backend/logout.php">
-            <?php echo createButton(25, 90, "Logout", "logout-btn"); ?>
-        </a>
-    </div>
+    
 </div>
 
 <!-- Order History -->

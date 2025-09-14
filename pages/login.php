@@ -76,6 +76,7 @@ if (!isset($_SESSION['csrf_token'])) {
    </div>
 </center>
 
+
 <!-- ✅ Absolute path to ensure JS loads -->
 <script src="/Leilife/Scripts/pages/login.js" defer></script>
 

@@ -25,4 +25,7 @@ Thumbs.db
 /phpunit.xml
 /phpunit.xml.dist
 
+#profile pictures
+/public/profile_photos/
+
 

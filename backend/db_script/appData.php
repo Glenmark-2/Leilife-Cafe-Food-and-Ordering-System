@@ -114,5 +114,14 @@ JOIN categories mc
             $stmt->execute(['user_id' => $user_id]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         }
+
+        function userHasPassword(int $userId): bool {
+
+        $stmt = $this->db->prepare("SELECT password_hash FROM users WHERE user_id = :id LIMIT 1");
+        $stmt->execute([':id' => $userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return ($row && !empty($row['password_hash']));
+    }
     }
 }

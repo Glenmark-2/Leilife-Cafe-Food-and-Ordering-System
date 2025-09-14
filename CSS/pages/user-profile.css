@@ -140,6 +140,20 @@
         display: none;
     }
 
+    .change-password{
+        border: none;
+        background: none;
+        cursor: pointer;
+        width: fit-content;
+        height: fit-content;
+        padding: 10px 10px 10px 0px;
+        text-align: 'bottom';
+        margin-top: 5px;
+        font-size: 15px;
+        font-weight: 700;
+        color: red;
+    }
+
     /* Responsive Desktop */
     @media (max-width: 768px) {
     .white-box {

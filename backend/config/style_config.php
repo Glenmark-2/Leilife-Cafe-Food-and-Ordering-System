@@ -16,15 +16,16 @@ return [
     'signUp'          => ['../CSS/pages/signUp.css'],
     'login'           => ['../CSS/pages/login.css'],
     'solo-product'    => ['../CSS/pages/solo-product.css'],
-    'user-profile'    => ['../CSS/pages/user-profile.css','../CSS/admin/components/set-address-modal.css'],
+    'user-profile'    => [
+        '../CSS/pages/user-profile.css',
+        '../CSS/admin/components/set-address-modal.css',
+        '../CSS/components/change_password.css'
+    ],
     'order-tracking'  => ['../CSS/pages/order-tracking.css'],
     'forgot-password' => ['../CSS/pages/forgot-password.css'],
     'verify_success'  => ['../CSS/pages/verify_success.css'],
     'test_page'       => ['../CSS/components/verify_notice.css'],
 
-    
-     // optional: keep alias so previous links still pull the style
-     'verify_notice' => ['../CSS/components/verify_notice.css'],
-
-
+    // optional: keep alias so previous links still pull the style
+    'verify_notice' => ['../CSS/components/verify_notice.css'],
 ];

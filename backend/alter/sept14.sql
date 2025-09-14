@@ -27,6 +27,6 @@ CREATE TABLE cart_items (
     UNIQUE KEY unique_cart_item (cart_id, product_id, size, flavor_ids)
 );
 
-
+ALTER TABLE carts ADD COLUMN guest_token VARCHAR(64) DEFAULT NULL;
 
 

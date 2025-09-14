@@ -63,13 +63,13 @@ try {
         exit;
     }
 
-    if ($user['auth_provider'] !== 'local') {
-        echo json_encode([
-            "success" => false,
-            "errors"  => ["Please use the correct login method for this account."]
-        ]);
-        exit;
-    }
+    // if ($user['auth_provider'] !== 'local') {
+    //     echo json_encode([
+    //         "success" => false,
+    //         "errors"  => ["Please use the correct login method for this account."]
+    //     ]);
+    //     exit;
+    // }
 
     if (!password_verify($password, $user['password_hash'])) {
         echo json_encode($invalidLogin);

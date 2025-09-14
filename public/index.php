@@ -19,5 +19,15 @@ requireLogin($page);
 
 // 6) Render layout + page
 include __DIR__ . '/../components/header.php';
+
+echo '<div id="pageContent">';
 include $target;
+echo '</div>';
+
+// Cart modal (global)
+echo '<div id="cartModal">';
+include __DIR__ . '/../pages/cart.php';
+echo '</div>';
+
 include __DIR__ . '/../components/footer.php';
+

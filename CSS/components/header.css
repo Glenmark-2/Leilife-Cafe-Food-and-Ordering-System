@@ -171,5 +171,10 @@
     }
 
     /* small demo content style so you can test scrolling */
-    .demo-block { height: 900px; background: linear-gradient(180deg,#fff0,#eee); margin-bottom:1rem; border-radius:8px; padding:1rem; }
+    .demo-block { height: 900px; background: linear-gradient(180deg,#fff0,#eee); margin-bottom:1rem; border-radius:8px; padding:1rem;
+  }
   
+  #cartImg{
+    width: 30px;
+  }
+

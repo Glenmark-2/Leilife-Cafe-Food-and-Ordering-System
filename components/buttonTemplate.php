@@ -11,10 +11,13 @@ if (!function_exists('createButton')) {
 
         $idAttribute = $id ? "id='{$id}'" : "";
 
-        // convert $attributes array to HTML string
+        // initialize string for extra attributes
         $extraAttrs = "";
+
+        // convert $attributes array to HTML string
         foreach ($attributes as $key => $value) {
-            $extraAttrs .= " {$key}='{$value}'";
+            $safeValue = htmlspecialchars($value, ENT_QUOTES);
+            $extraAttrs .= " {$key}=\"{$safeValue}\"";
         }
 
         return "<button type='{$type}' {$idAttribute} {$extraAttrs} style='{$style}' 
@@ -22,5 +25,4 @@ if (!function_exists('createButton')) {
                     onmouseout=\"this.style.backgroundColor='{$defaultColor}'\">{$text}</button>";
     }
 }
-
 ?>

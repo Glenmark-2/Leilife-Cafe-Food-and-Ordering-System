@@ -85,8 +85,82 @@ try {
         exit;
     }
 
-    // ✅ Successful login
-    session_regenerate_id(true); // prevent session fixation
+    // ---------- CART MERGE ----------
+    // Capture the current session id BEFORE regenerating it
+    $oldSessionId = session_id();
+    $userId = (int)$user['user_id'];
+
+    try {
+        // Begin transaction for merge
+        $pdo->beginTransaction();
+
+        // Find guest cart by old session id
+        $guestStmt = $pdo->prepare("SELECT cart_id FROM carts WHERE session_id = :sid LIMIT 1");
+        $guestStmt->execute([':sid' => $oldSessionId]);
+        $guestCart = $guestStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($guestCart) {
+            $guestCartId = (int)$guestCart['cart_id'];
+
+            // Find existing user cart
+            $userStmt = $pdo->prepare("SELECT cart_id FROM carts WHERE user_id = :uid LIMIT 1");
+            $userStmt->execute([':uid' => $userId]);
+            $userCart = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($userCart) {
+                // Merge guest items into existing user cart
+                $userCartId = (int)$userCart['cart_id'];
+
+                $moveSql = "
+    INSERT INTO cart_items (cart_id, product_id, size, flavor_ids, quantity, created_at, updated_at)
+    SELECT :user_cart_id, product_id, size, flavor_ids, quantity, NOW(), NOW()
+    FROM cart_items
+    WHERE cart_id = :guest_cart_id
+    ON DUPLICATE KEY UPDATE
+        quantity = quantity + VALUES(quantity),
+        updated_at = NOW()
+";
+
+                $moveStmt = $pdo->prepare($moveSql);
+                $moveStmt->execute([
+                    ':user_cart_id'  => $userCartId,
+                    ':guest_cart_id' => $guestCartId
+                ]);
+
+                // remove guest cart items, then remove guest cart
+                $pdo->prepare("DELETE FROM cart_items WHERE cart_id = :guest_cart_id")
+                    ->execute([':guest_cart_id' => $guestCartId]);
+
+                $pdo->prepare("DELETE FROM carts WHERE cart_id = :guest_cart_id")
+                    ->execute([':guest_cart_id' => $guestCartId]);
+
+                // Recalculate totals for the user cart
+                recalcCartTotals($pdo, $userCartId);
+            } else {
+                // No existing user cart — assign the guest cart to this user.
+                // Make session_id NULL to indicate a user-owned cart (ensure session_id column is nullable)
+                $upd = $pdo->prepare("UPDATE carts SET user_id = :uid, session_id = NULL, updated_at = NOW() WHERE cart_id = :cid");
+                $upd->execute([':uid' => $userId, ':cid' => $guestCartId]);
+
+                // Recalculate totals for the now-user cart
+                recalcCartTotals($pdo, $guestCartId);
+            }
+        }
+
+        $pdo->commit();
+    } catch (PDOException $cartEx) {
+        // Roll back and log, but do not block login
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        error_log("Cart merge error: " . $cartEx->getMessage());
+    }
+    // ---------- END CART MERGE ----------
+
+    // Secure session: regenerate AFTER using the old session id for cart lookup/merge
+    session_regenerate_id(true);
+
+    // Set session user data
     $_SESSION['user_id']   = $user['user_id'];
     $_SESSION['username']  = $user['username'];
     $_SESSION['email']     = $user['email'];
@@ -97,7 +171,6 @@ try {
         "redirect" => "/Leilife/public/index.php?page=home"
     ]);
     exit;
-
 } catch (PDOException $e) {
     // Log internally, generic message for client
     error_log("Login DB error: " . $e->getMessage());
@@ -107,4 +180,36 @@ try {
         "errors"  => ["Something went wrong. Please try again later."]
     ]);
     exit;
+}
+
+/**
+ * Recalculate and update cart totals for a cart_id.
+ */
+function recalcCartTotals(PDO $pdo, int $cartId): void
+{
+    // Compute sub_total using product prices (fallback price_large -> product_price)
+    $sumSql = "
+        SELECT COALESCE(SUM(
+            (CASE
+                WHEN ci.size = 'large' THEN COALESCE(p.price_large, p.product_price)
+                ELSE p.product_price
+            END) * ci.quantity
+        ), 0) AS sub_total
+        FROM cart_items ci
+        JOIN products p ON ci.product_id = p.product_id
+        WHERE ci.cart_id = :cid
+    ";
+    $stmt = $pdo->prepare($sumSql);
+    $stmt->execute([':cid' => $cartId]);
+    $sub = (float)$stmt->fetchColumn();
+
+    $delivery = 0.00; // change if delivery logic applies now
+    $total = round($sub + $delivery, 2);
+
+    // $upd = $pdo->prepare("UPDATE carts SET sub_total = :sub, delivery_fee = :delivery, total = :total, updated_at = NOW() WHERE cart_id = :cid");
+$upd = $pdo->query("UPDATE carts 
+SET user_id = :uid, session_id = :sid, updated_at = NOW() 
+WHERE cart_id = :cid
+");
+    $upd->execute([':sub' => $sub, ':delivery' => $delivery, ':total' => $total, ':cid' => $cartId]);
 }

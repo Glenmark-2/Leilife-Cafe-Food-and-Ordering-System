@@ -23,7 +23,21 @@
   </div>
 </footer>
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const cartBtn = document.getElementById("cartBtn"); // button in header
+  const cartModal = document.getElementById("cartModal"); // modal in index
 
+  if (cartBtn && cartModal) {
+    cartBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      cartModal.classList.toggle("show");         // adds/removes CSS class
+      document.body.classList.toggle("cart-open"); // optional for shifting page content
+    });
+  }
+});
+
+</script>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

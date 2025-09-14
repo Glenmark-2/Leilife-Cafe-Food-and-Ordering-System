@@ -1,159 +1,150 @@
- #cart-box {
-    position: fixed; 
-    top: 75px;  /* push down so it appears just below the header */
-    right: 0;   /* stick to right side */
-    z-index: 999;   
-    display: flex;
-    flex-direction: column;
-    width: 350px; /* slightly wider for breathing space */
-    background: white; 
-    font-family: Arial, sans-serif;
-    font-size: 13px;
-    box-shadow: -2px 0 8px rgba(0,0,0,0.1);
-    height: 90vh; /* taller cart */
-}
+/* cart.css - full replacement */
 
-    .inside-div {
-        padding: 5px;
-        display: flex;
-        flex-direction: column;
-    }
-
-    #first-div{
-        height: 65vh;
-        margin: 12px;
-    }
-
-    #top-div {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border: 1px solid #d0d0d0;
-        padding: 6px;              
-        border-radius: 5px;
-    }
-
-    #top-div img {
-        width: 22px; /* smaller icon */
-        margin-right: 8px;
-    }
-
-    #top-div p {
-        flex-grow: 1;
-        margin: 0;
-        font-weight: bold;
-        font-size: 13px;
-    }
-
-    h3 {
-        margin-top: 15px;
-        margin-bottom: 0;
-        text-align: center;
-        font-size: 14px;
-    }
-
-   #mid-div {
+/* -------------------------
+   Basic modal sizing & toggle
+   ------------------------- */
+#cartModal {
+  display: none !important;          /* hidden by default */
+  position: fixed;
+  top: var(--nav-h, 70px);           /* space for header (set by JS) */
+  right: 0;
+  bottom: var(--footer-h, 0px);      /* space for footer (set by JS) */
+  width: 350px;
+  max-width: 400px;
+  background: #fff;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+  z-index: 1000;                     /* below navbar (navbar should have higher z-index) */
   display: flex;
-  flex-direction: column; /* stack like a list */
-  gap: 8px; /* spacing between items */
+  flex-direction: column;
+  overflow: hidden;                  /* contain internal scroll */
 }
-.cart-item {
+
+/* show state */
+#cartModal.show {
+  display: flex !important;
+}
+
+/* ensure header sits above cart */
+.navbar {
+  z-index: 1100;
+}
+
+/* -------------------------
+   Cart inner wrapper
+   ------------------------- */
+#cart-box {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* small helper */
+.inside-div {
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* -------------------------
+   Top / header area of cart
+   ------------------------- */
+#first-div {
+  flex: 1;                 /* fills available height between top and totals */
+  display: flex;
+  flex-direction: column;
+  margin: 12px;
+  overflow: hidden;        /* inner mid-div will scroll */
+}
+
+#top-div {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #eee;
-  padding: 8px 0;
-}
-.cart-item:last-child {
-  border-bottom: none;
-}
-.trash-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-right: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
+  border: 1px solid #d0d0d0;
+  padding: 6px;
+  border-radius: 5px;
+  flex-shrink: 0;          /* keep visible at top */
 }
 
-.trash-icon {
-    width: 16px;
-    height: 16px;
-    object-fit: contain;
-    filter: brightness(0) saturate(100%) invert(34%) sepia(86%) saturate(4802%) hue-rotate(348deg) brightness(97%) contrast(95%);
-    transition: filter 0.2s ease-in-out;
+#top-div img { width: 22px; margin-right: 8px; }
+#top-div p { flex-grow: 1; margin: 0; font-weight: bold; font-size: 13px; }
+
+h3 { margin-top: 15px; margin-bottom: 0; text-align: center; font-size: 14px; }
+
+/* -------------------------
+   Scrollable items list
+   ------------------------- */
+#mid-div {
+  flex: 1;                 /* grows to fill remaining space */
+  overflow-y: auto;        /* scrollable vertical area */
+  -webkit-overflow-scrolling: touch; /* smooth on iOS */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 20px;    /* breathing room above totals */
+  overflow-x: hidden;      /* prevent sideways scroll */
 }
 
-.trash-btn:hover .trash-icon {
-    filter: brightness(0) saturate(100%) invert(17%) sepia(92%) saturate(6800%) hue-rotate(2deg) brightness(92%) contrast(120%);
-}
-    #mid-div img {
-        width: 14px; 
-        height: 16px; /* smaller trash icon */
-        padding-top: 0;
-    }
+/* item styling */
+.cart-item { display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid #eee; padding:8px 0; }
+.cart-item:last-child { border-bottom:none; }
 
-    .qty-controls {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
+.trash-btn { background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center; }
+.trash-icon { width:16px; height:16px; object-fit:contain; transition:filter .2s; }
 
-    .qty-controls input {
-        width: 40px;
-        height: 24px;
-        text-align: center;
-        border: none;
-        font-size: 12px;
-        background-color: transparent;
-    }
+/* qty controls */
+.qty-controls { display:flex; align-items:center; gap:4px; }
+.qty-controls input { width:40px; height:24px; text-align:center; border:none; background:transparent; }
+.qty-controls button { width:22px; height:22px; border-radius:50%; border:none; background:transparent; cursor:pointer; }
 
-    .qty-controls button {
-        border: 1px solid #000; 
-        background-color: lightgray; 
-        border-radius: 50%; 
-        margin-right: 10px;
-        width: 22px; 
-        height: 22px; 
-        font-size: 13px;
-        color: black;
-        cursor: pointer;
-    }
+/* product text */
+.product-name { flex-grow:1; text-align:left; font-size:13px; }
+.product-price { font-weight:bold; color:#333; min-width:60px; text-align:right; font-size:13px; }
 
-    .product-name {
-        flex-grow: 1;
-        text-align: left;
-        font-size: 13px;
-    }
-
-    .product-price {
-        font-weight: bold;
-        color: #333;
-        min-width: 60px;
-        text-align: right;
-        font-size: 13px;
-    }
-
-    #second-div {
-    background-color: #aaa480;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+/* -------------------------
+   Totals / checkout pinned
+   ------------------------- */
+#second-div {
+  background-color: #aaa480;
+  padding: 12px;
+  flex-shrink: 0;          /* always visible, don't shrink */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 2px solid #ddd;
 }
 
-.second-div-content {
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
+.second-div-content { display:flex; justify-content:space-between; font-size:14px; }
+.checkout-wrapper { display:flex; justify-content:center; margin-top:12px; }
+
+/* -------------------------
+   Desktop -> push content (optional)
+   ------------------------- */
+body.cart-open #pageContent {
+  transition: margin-right .24s ease;
+  margin-right: 350px;    /* same width as cart; JS will adjust on resize if needed */
 }
 
-.checkout-wrapper {
-    display: flex;
-    justify-content: center;
-    margin-top: 12px;
+/* -------------------------
+   Mobile: full-width, full-height "page-like"
+   ------------------------- */
+@media (max-width: 768px) {
+  #cartModal {
+    top: var(--nav-h, 56px); /* keep below header; JS sets --nav-h */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: none;
+    height: calc(100vh - var(--nav-h, 56px) - var(--footer-h, 0px)); /* between header & footer */
+  }
+
+  /* totals still pinned */
+  #second-div { position: sticky; bottom: 0; z-index: 1001; }
+  #mid-div { padding-bottom: 80px; } /* avoid overlap with sticky totals */
 }
 
-   
+#product-name{
+  margin: 0 5px 0 10px;
+}

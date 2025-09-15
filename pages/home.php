@@ -201,21 +201,21 @@ require_once '../partials/intro-card.php';
   <div class="contact-form">
     <h2>Your Details</h2>
     <p>Let us know how we get back to you</p>
-    
+    <form method="POST" action="../backend/inbox.php">
     <div class="form-row">
-      <input class="contact-input" type="text" placeholder="Name">
-      <input class="contact-input" type="email" placeholder="Email Address">
+      <input class="contact-input" type="text" placeholder="Name" name="name" required>
+      <input class="contact-input" type="email" placeholder="Email Address" name="email" required>
     </div>
 
-    <input class="contact-input"  type="text" placeholder="Subject" class="form-control">
+    <input class="contact-input"  type="text" placeholder="Subject" class="form-control" name="subject">
 
-    <textarea style="width: max-width; height:100px" placeholder="Comments/Questions:"></textarea>
+    <textarea style="width: max-width; height:100px" placeholder="Comments/Questions:" name="message" required></textarea>
 
     <div style="display: flex; justify-content:flex-end; margin-top:10px">
       <?php
-          echo createButton(40, 100, "Submit", "submitBtn");
+          echo createButton(40, 100, "Submit", "submitBtn",16,"submit");
           ?>
     </div>
-    
+    </form>
   </div>
 </div>

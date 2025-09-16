@@ -24,6 +24,7 @@ if (
     respond(false, ["Security check failed. Please try again."]);
 }
 
+
 // ✅ Check logged-in user
 $userId = $_SESSION['user_id'] ?? null;
 if (!$userId) {
@@ -33,6 +34,7 @@ if (!$userId) {
 // ✅ Collect form data
 $newPassword     = $_POST['new_password'] ?? '';
 $confirmPassword = $_POST['confirm_password'] ?? '';
+$currentPasswordInput = $_POST['current_password'] ?? '';
 
 // ✅ Validate
 if ($newPassword !== $confirmPassword) {
@@ -41,6 +43,14 @@ if ($newPassword !== $confirmPassword) {
 
 if (strlen($newPassword) < 8) {
     jsonResponse(['success' => false, 'message' => 'Password must be at least 8 characters long.']);
+}
+
+$stmt = $pdo->prepare("SELECT password_hash FROM users WHERE user_id = :id");
+$stmt->execute([':id' => $userId]);
+$currentPassword = $stmt->fetchColumn(); 
+
+if (!$currentPassword || !password_verify($currentPasswordInput, $currentPassword)) {
+    jsonResponse(['success' => false, 'message' => 'Current password incorrect.']);
 }
 
 // ✅ Hash password

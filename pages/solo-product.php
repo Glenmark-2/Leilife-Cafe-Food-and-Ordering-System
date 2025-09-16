@@ -207,6 +207,14 @@ $isDrink = in_array($product['category_id'], [7, 8, 9, 10, 11, 12, 13]);
             .then(data => {
                 console.log("Add to cart response:", data);
                 if (data.success && typeof fetchCart === "function") fetchCart();
+            // setTimeout(() => {
+            //   if (document.referrer !== "") {
+            //     window.history.back();
+            //   } else {
+            //     window.location.href = "/Leilife/public/index.php?page=menu"; // fallback
+            //   }
+            // }, 1500);
+
             })
             .catch(err => console.error("Add to cart failed:", err));
         });

@@ -17,6 +17,7 @@ if (!$productId) {
     exit;
 }
 
+
 $sessionId = session_id();
 $userId = $_SESSION['user_id'] ?? null;
 
@@ -34,6 +35,7 @@ if (!$product) {
     echo json_encode(['success'=>false, 'message'=>'Product not found']);
     exit;
 }
+
 
 // Only drinks have size
 if ((int)$product['main_category_id'] !== 2) $size = null;

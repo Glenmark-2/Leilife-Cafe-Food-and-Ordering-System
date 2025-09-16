@@ -95,26 +95,4 @@ if (isset($page_styles[$page])) {
   <?php include "../pages/login.php" ?>
 </div>
 
-
-<!-- Page container -->
-
-
-<!-- <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const cartBtn = document.getElementById("cartBtn");       // desktop
-  const cartModal = document.getElementById("cartModal");
-  const navbar = document.querySelector(".navbar");
-
-  if (cartBtn && cartModal) {
-    cartBtn.addEventListener("click", (e) => {
-      e.preventDefault(); // prevent page reload only on desktop button
-      cartModal.style.display = cartModal.style.display === "flex" ? "none" : "flex";
-      navbar.classList.remove("navbar--hidden");
-    });
-  }
-
-  // No JS needed for mobile -> cartBtnMobile goes to index.php?page=cart
-});
-</script> -->
-
 <script src="../Scripts/components/header.js"></script>

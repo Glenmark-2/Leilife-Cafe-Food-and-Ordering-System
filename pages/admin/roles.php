@@ -7,11 +7,11 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <div id="first-row">
-    <h2>Role</h2>
+    <h2>Staff</h2>
 </div>
 
 <div id="third-row">
-    <div id="top">
+    <div id="search_add">
         <form class="search-bar" role="search">
             <input
                 type="search"
@@ -23,49 +23,78 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <button type="button" id="add-member"><span>+ Add new member</span></button>
     </div>
 
-    <div id="table-wrapper">
-        <div id="mid">
-            <p style="width: 26%;">Name</p>
-            <p style="width: 15%;">Role</p>
-            <p style="width: 15%;">Shift</p>
-            <p style="width: 15%;">Status</p>
-        </div>
+    <div id="table-container">
+        <table class="staff-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" class="checkbox"></th>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Shift</th>
+                    <th></th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="staff-content">
+                <?php foreach ($staffRoles as $staff): ?>
+                <tr class="staff-row" data-id="<?= $staff['staff_id'] ?>">
+                    <td><input type="checkbox" class="checkbox"></td>
 
-        <div id="products-content">
-            <?php foreach ($staffRoles as $staff): ?>
-            <div class="product-row" data-id="<?= $staff['staff_id'] ?>">
-                <div id="product-name">
-                    <img id="profile-photo" src="<?= !empty($staff['staff_image']) ? "public/staffs/" . $staff['staff_image'] : "public/assests/about us.png" ?>" alt="profile-photo">
-                    <div style="align-content: center; width:100%;">
-                        <input type="text" class="inputData" value="<?= htmlspecialchars($staff['staff_name']) ?>" disabled>
-                    </div>
-                </div>
+                    <!-- Name -->
+                    <td>
+                        <div class="name-cell">
+                            <img class="profile-photo"
+                                src="<?= !empty($staff['staff_image'])
+                                        ? "public/staffs/" . $staff['staff_image']
+                                        : "public/assests/about us.png" ?>"
+                                alt="profile-photo">
+                            <div>
+                                <input type="text" class="inputData"
+                                    value="<?= htmlspecialchars($staff['staff_name']) ?>" disabled>
+                                <p class="staff-id">#<?= htmlspecialchars($staff['staff_id']) ?></p>
+                            </div>
+                        </div>
+                    </td>
 
-                <div id="price-content">
-                    <input type="text" class="inputData" value="<?= htmlspecialchars($staff['staff_role']) ?>" disabled>
-                </div>
+                    <!-- Role -->
+                    <td>
+                        <input type="text" class="inputData"
+                            value="<?= htmlspecialchars($staff['staff_role']) ?>" disabled>
+                    </td>
 
-                <div id="category-content">
-                    <select class="pcategory" disabled>
-                        <option value="Day" <?= $staff['shift']=='Day'?'selected':'' ?>>Day</option>
-                        <option value="Night" <?= $staff['shift']=='Night'?'selected':'' ?>>Night</option>
-                    </select>
-                </div>
+                    <!-- Shift -->
+                    <td>
+                        <select class="pcategory" disabled>
+                            <option value="Day" <?= $staff['shift']=='Day'?'selected':'' ?>>Day</option>
+                            <option value="Night" <?= $staff['shift']=='Night'?'selected':'' ?>>Night</option>
+                        </select>
+                    </td>
 
-                <div id="status-content">
-                    <button id="statusBtn" class="<?= strtolower($staff['status'] ?? 'Available') === 'unavailable' ? 'clicked' : '' ?>" type="button" disabled>
-                        <?= ucfirst($staff['status'] ?? 'Available') ?>
-                    </button>
-                </div>
+                    <!-- Status -->
+                    <td>
+                       <td>
+    <button type="button"
+        class="statusBtn <?= strtolower($staff['status']) === 'available' ? 'available' : 'unavailable' ?>"
+        disabled>
+        <?= ucfirst($staff['status']) ?>
+    </button>
+</td>
 
-                <div id="edit-content">
-                    <button id="editBtn" class="editBtn" type="button">Edit</button>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
+
+                    </td>
+
+                    <!-- Edit -->
+                    <td>
+                        <button id="editBtn" class="editBtn" type="button">Edit</button>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
 </div>
+
 
 <!-- Modal -->
 <div id="modal">
@@ -115,25 +144,28 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <script>
 // ---- Live search ----
 const BASE_URL = "http://localhost/Leilife/";
+// live search staff
 const searchInput = document.getElementById('search-input');
-const staffRows = document.querySelectorAll('.product-row');
+const staffRows = document.querySelectorAll('.staff-row');
 
 searchInput.addEventListener('input', () => {
     const search = searchInput.value.toLowerCase();
     staffRows.forEach(row => {
-        const name = row.querySelector('#product-name .inputData').value.toLowerCase();
-        row.style.display = name.includes(search) ? 'flex' : 'none';
+        const name = row.querySelector('.name-cell .inputData').value.toLowerCase();
+        row.style.display = name.includes(search) ? 'table-row' : 'none'; // 🔑 table-row instead of flex
     });
 });
 
+
+// ---- Edit & Save ----
 // ---- Edit & Save ----
 document.querySelectorAll('.editBtn').forEach(btn => {
     btn.addEventListener('click', () => {
-        const row = btn.closest('.product-row');
-        const nameInput = row.querySelector('#product-name .inputData');
-        const roleInput = row.querySelector('#price-content .inputData');
-        const shiftSelect = row.querySelector('.pcategory');
-        const statusBtn = row.querySelector('#statusBtn');
+        const row = btn.closest('.staff-row'); // ✅ dati .product-row
+        const nameInput = row.querySelector('.name-cell .inputData'); // ✅ tama sa markup
+        const roleInput = row.querySelector('td:nth-child(3) .inputData'); // ✅ Role column
+        const shiftSelect = row.querySelector('.pcategory'); // ✅ Shift select
+        const statusBtn = row.querySelector('button'); // or add .statusBtn class sa button
         const isEditing = !nameInput.disabled;
 
         if (!isEditing) {
@@ -157,12 +189,12 @@ document.querySelectorAll('.editBtn').forEach(btn => {
                 el.style.backgroundColor = '#ffffff';
             });
 
-            // Set initial status color based on current text
+            // Set initial status color
             if (statusBtn.textContent.trim() === 'Available') {
                 statusBtn.classList.add('available');
-                statusBtn.classList.remove('clicked');
+                statusBtn.classList.remove('unavailable');
             } else {
-                statusBtn.classList.add('clicked');
+                statusBtn.classList.add('unavailable');
                 statusBtn.classList.remove('available');
             }
 
@@ -202,7 +234,7 @@ document.querySelectorAll('.editBtn').forEach(btn => {
                 name: nameInput.value,
                 role: roleInput.value,
                 shift: shiftSelect.value,
-                status: statusBtn.textContent
+                status: statusBtn.textContent.trim()
             };
 
             fetch(BASE_URL + "backend/admin/update_staff.php", {
@@ -224,15 +256,25 @@ document.querySelectorAll('.editBtn').forEach(btn => {
     });
 });
 
+
 // ---- Status toggle ----
-document.querySelectorAll('#statusBtn').forEach(btn => {
+// ---- Status toggle ----
+document.querySelectorAll('.statusBtn').forEach(btn => {
     btn.addEventListener('click', () => {
         if (!btn.disabled) {
-            btn.textContent = btn.textContent === 'Available' ? 'Unavailable' : 'Available';
-            btn.classList.toggle('clicked');
+            if (btn.textContent.trim() === 'Available') {
+                btn.textContent = 'Unavailable';
+                btn.classList.remove('available');
+                btn.classList.add('unavailable');
+            } else {
+                btn.textContent = 'Available';
+                btn.classList.remove('unavailable');
+                btn.classList.add('available');
+            }
         }
     });
 });
+
 
 // ---- Modal ----
 const addMember = document.getElementById("add-member");
@@ -415,5 +457,21 @@ function showModal(message, type = "success", autoClose = true, duration = 3000)
     }, duration);
   }
 }
+// Open modal
+addMember.addEventListener('click', () => {
+  modal.style.display = "flex";
+});
+
+// Close modal
+cancel.addEventListener('click', () => {
+  modal.style.display = "none";
+});
+
+// Optional: close when clicking outside modal content
+window.addEventListener("click", (e) => {
+  if (e.target === modal) {
+    modal.style.display = "none";
+  }
+});
 
 </script>

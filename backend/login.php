@@ -63,14 +63,6 @@ try {
         exit;
     }
 
-    // if ($user['auth_provider'] !== 'local') {
-    //     echo json_encode([
-    //         "success" => false,
-    //         "errors"  => ["Please use the correct login method for this account."]
-    //     ]);
-    //     exit;
-    // }
-
     if (!password_verify($password, $user['password_hash'])) {
         echo json_encode($invalidLogin);
         exit;
@@ -154,12 +146,19 @@ try {
     }
     // ---------- END CART MERGE ----------
 
-    // Important: regenerate after merge so session_id change doesn’t break mapping
-    session_regenerate_id(true);
+    // ✅ Clear guest token cookie so it won’t conflict after login
+    if (isset($_COOKIE['guest_token'])) {
+        setcookie("guest_token", "", time() - 3600, "/");
+        unset($_COOKIE['guest_token']);
+    }
 
+    // ✅ Set session values before regenerating
     $_SESSION['user_id']   = $user['user_id'];
     $_SESSION['username']  = $user['username'];
     $_SESSION['email']     = $user['email'];
+
+    // ✅ Now regenerate to prevent fixation
+    session_regenerate_id(true);
 
     echo json_encode([
         "success"  => true,
@@ -175,6 +174,7 @@ try {
     ]);
     exit;
 }
+
 
 /**
  * Recalculate and update cart totals for a cart_id.

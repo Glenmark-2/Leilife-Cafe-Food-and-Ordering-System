@@ -2,8 +2,8 @@
 session_start();
 require_once './db_script/init.php';
 
-$sessionId = session_id();
-$userId    = $_SESSION['user_id'] ?? null;
+$sessionId  = session_id();
+$userId     = $_SESSION['user_id'] ?? null;
 $guestToken = $_COOKIE['guest_token'] ?? null;
 
 if ($userId) {
@@ -36,7 +36,7 @@ if (!$cartRow) {
         'cart' => [],
         'totals' => [
             'subtotal'     => 0,
-            'delivery_fee' => 50,
+            'delivery_fee' => 50, // keep consistent with your default
             'total'        => 50
         ]
     ]);
@@ -47,8 +47,16 @@ $cartId = $cartRow['cart_id'];
 
 // Fetch cart items with product details
 $stmt = $pdo->prepare("
-    SELECT ci.cart_item_id, ci.product_id, ci.quantity, ci.size, ci.flavor_ids,
-           p.product_name, p.product_picture, p.product_price, p.price_large
+    SELECT 
+        ci.cart_item_id,
+        ci.product_id,
+        ci.quantity,
+        ci.size,
+        ci.flavor_ids,
+        p.product_name,
+        p.product_picture,
+        p.product_price,
+        p.price_large
     FROM cart_items ci
     JOIN products p ON ci.product_id = p.product_id
     WHERE ci.cart_id = ?
@@ -56,9 +64,10 @@ $stmt = $pdo->prepare("
 $stmt->execute([$cartId]);
 $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Add flavor names
+// Enrich each item with flavor names + computed final price
 foreach ($items as &$item) {
     $item['flavor_names'] = '';
+
     if (!empty($item['flavor_ids'])) {
         $flavorIds = explode(',', $item['flavor_ids']);
         $in = str_repeat('?,', count($flavorIds) - 1) . '?';
@@ -68,8 +77,10 @@ foreach ($items as &$item) {
         $item['flavor_names'] = implode(', ', $names);
     }
 
-    // Calculate final price per item
-    $item['final_price'] = ($item['size'] === 'large') ? $item['price_large'] : $item['product_price'];
+    // Calculate final price (based on size)
+    $item['final_price'] = ($item['size'] === 'large') 
+        ? (float)$item['price_large'] 
+        : (float)$item['product_price'];
 }
 
 echo json_encode([

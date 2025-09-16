@@ -1,6 +1,9 @@
-
-
-
+<?php
+// pages/checkout.php
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
+?>
 <div class="checkout-container">
   <!-- LEFT COLUMN -->
   <div>
@@ -9,18 +12,19 @@
       <h3>Contact Details</h3>
       <div class="name-row">
         <div>
-          <label for="">First Name</label>
-          <input type="text" value="Nico" readonly>
+          <label for="first-name">First Name</label>
+          <input type="text" id="first-name" readonly>
         </div>
         <div>
-          <label for="">Last Name</label>
-          <input type="text" value="Flores" readonly>
+          <label for="last-name">Last Name</label>
+          <input type="text" id="last-name" readonly>
         </div>
       </div>
-      <label for="">Contact Number</label>
+
+      <label for="phone">Phone Number</label>
       <div class="contact-row">
-        <input type="tel" value="+63 9123456789" readonly>
-        <button class="edit-btn">Edit</button>
+        <input type="tel" id="phone" readonly>
+        <button type="button" id="phone-edit-btn" class="edit-btn">Edit</button>
       </div>
     </div>
 
@@ -31,6 +35,7 @@
         <input type="radio" name="delivery" value="pickup" checked onchange="toggleDelivery()">
         <span>Pick-Up</span>
       </label>
+
       <div id="pickup-options" style="margin-left: 20px;">
         <label class="options">
           <input type="radio" name="pickup_location" value="store1" checked>
@@ -47,29 +52,33 @@
         <div class="address-grid">
           <div>
             <label for="street">Street Address</label>
-            <input type="text" id="street" value="Sample Street" readonly>
+            <input type="text" id="street" readonly>
+          </div>
+          <div>
+            <label for="barangay">Barangay</label>
+            <input type="text" id="barangay" readonly>
           </div>
           <div>
             <label for="city">City</label>
-            <input type="text" id="city" value="Sample City" readonly>
+            <input type="text" id="city" readonly>
           </div>
           <div>
             <label for="region">Region</label>
-            <input type="text" id="region" value="Sample Region" readonly>
+            <input type="text" id="region" readonly>
           </div>
           <div>
             <label for="postal">Postal Code</label>
-            <input type="text" id="postal" value="1234" readonly>
+            <input type="text" id="postal" readonly>
           </div>
           <div style="grid-column: span 2;">
             <label for="province">Province</label>
-            <input type="text" id="province" value="Sample Province" readonly>
+            <input type="text" id="province" readonly>
           </div>
         </div>
 
         <div style="margin-top: 10px;">
           <label for="note">Notes to Rider</label>
-          <textarea id="note" rows="2" readonly>Leave at the door</textarea>
+          <textarea id="note" rows="2" readonly></textarea>
         </div>
 
         <button type="button" class="edit-btn" style="margin-top: 10px;" onclick="toggleEdit()">Edit</button>
@@ -90,33 +99,29 @@
     </div>
   </div>
 
-  <!-- RIGHT COLUMN -->
-  <div class="card order-summary">
-    <h3>Order Summary</h3>
-    <div class="order-item">
-      <img src="https://via.placeholder.com/50" alt="Item">
-      <div>
-        <p>Salt Buoag Golden Chicken Curry Fillet with Extra Rice Meal</p>
-        <small>₱103.00</small>
-      </div>
-    </div>
-    <table>
-      <tr>
-        <td>Subtotal</td>
-        <td style="text-align:right;">₱103.00</td>
-      </tr>
-      <tr>
-        <td>Delivery Fee</td>
-        <td style="text-align:right;">₱10.00</td>
-      </tr>
-      <tr class="total">
-        <td>Total</td>
-        <td style="text-align:right;">₱113.00</td>
-      </tr>
-    </table>
-    <button class="place-btn">Place Order</button>
+<!-- RIGHT COLUMN -->
+<div class="card order-summary">
+  <h3>Order Summary</h3>
+  <div id="order-items">
+    <!-- Cart items will be injected here by JS -->
   </div>
+
+  <table>
+    <tr>
+      <td>Subtotal</td>
+      <td id="subtotal" style="text-align:right;">₱0.00</td>
+    </tr>
+    <tr>
+      <td>Delivery Fee</td>
+      <td id="delivery-fee" style="text-align:right;">₱0.00</td>
+    </tr>
+    <tr class="total">
+      <td>Total</td>
+      <td id="total" style="text-align:right;">₱0.00</td>
+    </tr>
+  </table>
+  <button class="place-btn">Place Order</button>
+</div>
 </div>
 
-<script src="../Scripts/pages/checkout-page.js"></script>
-
+<script src="../Scripts/pages/checkout-page.js" defer></script>

@@ -1,13 +1,11 @@
-
-
 <?php
-// load the component file ONCE at the top
 require_once "../components/product-card.php";
 require_once '../partials/intro-card.php';
-// require_once '../pages/cart.php';
-
-// include "../pages/cart.php"
+include "../components/modal.php"; 
+include "../components/buttonTemplate.php"; 
 ?>
+
+<?= createModal(); ?>
 
 
 
@@ -84,26 +82,26 @@ require_once '../partials/intro-card.php';
   </div>
 </div> -->
   <div class="info-section" style="display:flex; justify-content:center; padding:40px 20px;">
-  <div style="display:flex; align-items:center; width:90%; max-width:1200px; gap:72px;">
-    <h5 style="flex:1; margin:0; font-size:32px; line-height:1.35; text-align:left;">
-      Savor Every Bite & Sip at<br>Leilife Cafe and Resto!
-    </h5>
-    <p style="flex:1; margin:0; font-size:16px; line-height:1.7; text-align:left; max-width:65ch;">
-      At Leilife Cafe and Resto, we take pride in serving delicious meals
-      and perfectly brewed coffee. From freshly prepared dishes to expertly
-      crafted beverages, every bite and sip is made to give you a warm and
-      memorable dining experience.
-    </p>
+    <div style="display:flex; align-items:center; width:90%; max-width:1200px; gap:72px;">
+      <h5 style="flex:1; margin:0; font-size:32px; line-height:1.35; text-align:left;">
+        Savor Every Bite & Sip at<br>Leilife Cafe and Resto!
+      </h5>
+      <p style="flex:1; margin:0; font-size:16px; line-height:1.7; text-align:left; max-width:65ch;">
+        At Leilife Cafe and Resto, we take pride in serving delicious meals
+        and perfectly brewed coffee. From freshly prepared dishes to expertly
+        crafted beverages, every bite and sip is made to give you a warm and
+        memorable dining experience.
+      </p>
+    </div>
   </div>
-</div>
 
-<div class="info-cards" style="display: flex; flex-direction: row; justify-content: center; align-content: center;">
-  <?php
-  echo infoCard("🍽️", "Fresh & Flavorful Dishes", "We use only the freshest ingredients...");
-  echo infoCard("☕", "Perfectly Brewed Coffee", "Our skilled baristas ensure each cup...");
-  echo infoCard("❤️", "A Taste to Remember", "Enjoy hearty meals and comforting drinks...");
-  ?>
-</div>
+  <div class="info-cards" style="display: flex; flex-direction: row; justify-content: center; align-content: center;">
+    <?php
+    echo infoCard("🍽️", "Fresh & Flavorful Dishes", "We use only the freshest ingredients...");
+    echo infoCard("☕", "Perfectly Brewed Coffee", "Our skilled baristas ensure each cup...");
+    echo infoCard("❤️", "A Taste to Remember", "Enjoy hearty meals and comforting drinks...");
+    ?>
+  </div>
 
 
 
@@ -153,7 +151,7 @@ require_once '../partials/intro-card.php';
 
     <img src="../public/assests/about us.png"
       alt="photo"
-      style="width: 55%; margin-left:150px; position:relative; z-index: 2; left:10%; top:10%;"> 
+      style="width: 55%; margin-left:150px; position:relative; z-index: 2; left:10%; top:10%;">
   </div>
 
 </div>
@@ -166,8 +164,8 @@ require_once '../partials/intro-card.php';
 <div class="contact-wrapper">
   <!-- LEFT SIDE -->
   <div class="contact-info">
-    <div class="info-header" >
-      <h5 >Get In Touch</h5>
+    <div class="info-header">
+      <h5>Get In Touch</h5>
     </div>
     <p>
       If you want, I can also design this in the same style and color layout as the sample image so it matches your website’s aesthetic. I can make it visually similar but with Leilife Cafe and Resto branding.
@@ -187,7 +185,7 @@ require_once '../partials/intro-card.php';
       <i class="fas fa-phone"></i>
       <span>0912345678</span>
     </div>
-<br>
+    <br>
     <div class="info-item">
       <i class="fas fa-clock"></i>
       <span>
@@ -201,21 +199,48 @@ require_once '../partials/intro-card.php';
   <div class="contact-form">
     <h2>Your Details</h2>
     <p>Let us know how we get back to you</p>
-    <form method="POST" action="../backend/mail.php">
-    <div class="form-row">
-      <input class="contact-input" type="text" placeholder="Name" name="name" required>
-      <input class="contact-input" type="email" placeholder="Email Address" name="email" required>
-    </div>
+    <form id="contactForm">
+      <div class="form-row">
+        <input class="contact-input" type="text" placeholder="Name" name="name" required>
+        <input class="contact-input" type="email" placeholder="Email Address" name="email" required>
+      </div>
 
-    <input class="contact-input"  type="text" placeholder="Subject" class="form-control" name="subject">
+      <input class="contact-input" type="text" placeholder="Subject" class="form-control" name="subject">
 
-    <textarea style="width: max-width; height:100px" placeholder="Comments/Questions:" name="message" required></textarea>
+      <textarea style="width: max-width; height:100px" placeholder="Comments/Questions:" name="message" required></textarea>
 
-    <div style="display: flex; justify-content:flex-end; margin-top:10px">
-      <?php
-          echo createButton(40, 100, "Submit", "submitBtn",16,"submit");
-          ?>
-    </div>
+      <div style="display: flex; justify-content:flex-end; margin-top:10px">
+        <?php
+        echo createButton(40, 100, "Submit", "submitBtn", 16, "submit");
+        ?>
+      </div>
     </form>
   </div>
 </div>
+
+<script>
+const contactForm = document.getElementById("contactForm");
+
+contactForm.addEventListener("submit", function(e) {
+    e.preventDefault(); // prevent default form submission
+    const formData = new FormData(contactForm);
+
+    fetch("../backend/mail.php", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            showModal("Your message has been sent!", "success");
+            contactForm.reset();
+        } else {
+            showModal("Your message did not send!", "error");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showModal("Network error. Please try again.", "error");
+    });
+});
+</script>

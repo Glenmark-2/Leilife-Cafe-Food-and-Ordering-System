@@ -70,7 +70,7 @@ hr {
   align-items: center;
   gap: 20px;
 }
-/* Remove gray box behind profile photo */
+/* Wrapper for circular photo */
 .profile-photo-wrapper {
   background: none;
   border: none;
@@ -78,30 +78,44 @@ hr {
   cursor: pointer;
   position: relative;
   border-radius: 50%;
+  width: 80px;      /* ✅ fixed width */
+  height: 80px;     /* ✅ fixed height */
+  overflow: hidden;  /* ✅ crop image to circle */
+}
+
+/* Make the photo fill wrapper */
+.profile-photo-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;  /* ✅ keeps proportions, fills circle */
+  border-radius: 50%;
 }
 
 /* Hover overlay */
 .profile-photo-wrapper::after {
   content: "Change Photo";
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.4);
+  bottom: 0;          /* ✅ stick to bottom */
+  left: 0;
+  width: 100%;
+  height: 35%;        /* ✅ only cover bottom portion */
+  border-radius: 0 0 50% 50%; /* ✅ rounded bottom */
+  background: rgba(0,0,0,0.5);
   color: #fff;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.5rem;
+  font-weight: 300;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   transition: opacity 0.3s ease;
-  border: 1px solid #5e4f3e;
+  border-top: 1px solid #5e4f3e;
 }
 
 .profile-photo-wrapper:hover::after {
   opacity: 1;
 }
+
 
 .profile-info h2 {
   margin: 0;

@@ -43,20 +43,21 @@ $activeTab = $_GET['tab'] ?? 'personal';
                 <button type="button" id="profile-btn" class="profile-photo-wrapper" title="Change profile photo">
                     <?php if (!empty($userInfo['profile_picture'])): ?>
                         <?php if (isUrl($userInfo['profile_picture'])): ?>
-                            <img src="<?= htmlspecialchars(trim($userInfo['profile_picture'])) ?>" alt="profile-photo" />
+                            <img src="<?= htmlspecialchars(trim($userInfo['profile_picture'])) ?>" alt="profile-photo" class="profile-pic" />
                         <?php else: ?>
-                            <img src="../public/profile_photos/<?= htmlspecialchars($userInfo['profile_picture']) ?>" alt="profile-photo" />
+                            <img src="../public/profile_photos/<?= htmlspecialchars($userInfo['profile_picture']) ?>" alt="profile-photo" class="profile-pic" />
                         <?php endif; ?>
                     <?php else: ?>
-                        <img src="../public/assests/uploadImg.jpg" alt="profile-photo" />
+                        <img src="../public/assests/uploadImg.jpg" alt="profile-photo" class="profile-pic" />
                     <?php endif; ?>
                 </button>
                 <button type="submit" id="submit-photo" hidden>Upload</button>
             </form>
 
+
             <div class="profile-info">
-                <h2><?= htmlspecialchars($userInfo["first_name"] ?? 'Unknown') . ' ' . htmlspecialchars($userInfo["last_name"] ?? 'Unknown'); ?></h2>
-                <p class="role">Customer</p>
+                <h3><?= htmlspecialchars($userInfo["first_name"] ?? 'Unknown') . ' ' . htmlspecialchars($userInfo["last_name"] ?? 'Unknown'); ?></h3>
+                <p class="role" style="margin-bottom: 0;">Customer</p>
             </div>
         </div>
 
@@ -361,6 +362,60 @@ $activeTab = $_GET['tab'] ?? 'personal';
             });
         }
     });
+
+
+//     // -------------------------
+// // Profile Photo Upload
+// // -------------------------
+// const profileBtn = document.getElementById("profile-btn");
+// const profileInput = document.getElementById("profile-input");
+// const photoForm = document.getElementById("photo-form");
+
+// if (profileBtn && profileInput && photoForm) {
+//     // open file dialog on button click
+//     profileBtn.addEventListener("click", () => {
+//         profileInput.click();
+//     });
+
+//     // when file chosen, auto-submit via AJAX
+//     profileInput.addEventListener("change", async () => {
+//         if (profileInput.files.length === 0) return;
+
+//         const fd = new FormData(photoForm);
+
+//         try {
+//             const resp = await fetch(photoForm.action, {
+//                 method: "POST",
+//                 body: fd
+//             });
+//             const result = await resp.json();
+
+//             if (result.success) {
+//                 alert(result.message || "Profile photo updated!");
+//                 window.location.reload(); // reload to show new photo
+//             } else {
+//                 alert(result.error || "Photo upload failed");
+//             }
+//         } catch (err) {
+//             alert("Upload error: " + err.message);
+//         }
+//     });
+// }
+
+const profileBtn = document.getElementById("profile-btn");
+const profileInput = document.getElementById("profile-input");
+
+if (profileBtn && profileInput) {
+    profileBtn.addEventListener("click", () => {
+        profileInput.click();
+    });
+
+    profileInput.addEventListener("change", () => {
+        if (profileInput.files.length === 0) return;
+        document.getElementById("submit-photo").click(); // submit form
+    });
+}
+
 </script>
 
 

@@ -115,13 +115,21 @@ JOIN categories mc
             return $stmt->fetch(PDO::FETCH_ASSOC);
         }
 
-        function userHasPassword(int $userId): bool {
+        function userHasPassword(int $userId): bool
+        {
 
-        $stmt = $this->db->prepare("SELECT password_hash FROM users WHERE user_id = :id LIMIT 1");
-        $stmt->execute([':id' => $userId]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt = $this->db->prepare("SELECT password_hash FROM users WHERE user_id = :id LIMIT 1");
+            $stmt->execute([':id' => $userId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return ($row && !empty($row['password_hash']));
-    }
+            return ($row && !empty($row['password_hash']));
+        }
+
+        public function loadInbox()
+        {
+            $stmt = $this->db->prepare("SELECT * FROM inbox WHERE is_archived = 0 ORDER BY created_at DESC");
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC); 
+        }
     }
 }

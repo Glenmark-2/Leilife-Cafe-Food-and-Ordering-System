@@ -201,7 +201,7 @@ require_once '../partials/intro-card.php';
   <div class="contact-form">
     <h2>Your Details</h2>
     <p>Let us know how we get back to you</p>
-    <form method="POST" action="../backend/inbox.php">
+    <form method="POST" action="../backend/mail.php">
     <div class="form-row">
       <input class="contact-input" type="text" placeholder="Name" name="name" required>
       <input class="contact-input" type="email" placeholder="Email Address" name="email" required>

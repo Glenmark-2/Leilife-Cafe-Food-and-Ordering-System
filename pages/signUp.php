@@ -63,8 +63,7 @@
         <input type="checkbox" name="terms" id="terms" required>
         <label for="terms">
           By registering your details, you agree with our
-          <a href="/Leilife/public/index.php?page=terms" target="_blank" rel="noopener noreferrer">Terms & Conditions</a>.
-        </label>
+          <a href="#" id="openTerms">Terms & Conditions</a>.</label>
       </div>
 
       <center>
@@ -77,10 +76,58 @@
   </div>
 </div>
 
+<!-- Terms & Conditions Modal -->
+<div id="termsModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Terms & Conditions</h2>
+    <p>
+      Welcome to Leilife! Before creating your account, please read our terms:
+    </p>
+    <ul>
+      <li>You agree to provide accurate personal information.</li>
+      <li>Your account is personal and cannot be shared.</li>
+      <li>Orders are subject to our refund and cancellation policies.</li>
+      <li>We may update these terms from time to time.</li>
+    </ul>
+    <p>
+      By signing up, you acknowledge that you have read and agreed to these Terms & Conditions.
+    </p>
+  </div>
+</div>
+
+
 <style>
   /* Hide the error box if empty */
   #error-container:empty { display: none; }
 </style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("termsModal");
+    const openBtn = document.getElementById("openTerms");
+    const closeBtn = modal.querySelector(".close");
+
+    // Open modal
+    openBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      modal.style.display = "block";
+    });
+
+    // Close modal
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    // Close when clicking outside modal
+    window.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  });
+</script>
+
 
 <!-- Watchdog: set a flag; the JS must flip it to "ready" -->
 <script>

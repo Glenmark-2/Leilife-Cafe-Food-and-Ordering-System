@@ -1,3 +1,6 @@
+<?php 
+include "../components/buttonTemplate.php";
+?>
 <div class="menu">
   <!-- Main Category Buttons -->
   <div class="category-buttons">
@@ -7,8 +10,15 @@
       $mainCatName = $cat['main_category_name'] ?? '';
       if ($mainCatName && !in_array($mainCatName, $mainCategories)) {
         $mainCategories[] = $mainCatName;
-        $Text = $mainCatName;
-        include '../components/button.php';
+        echo createButton(
+          45,                
+          160,               
+          $mainCatName,      
+          strtolower(str_replace(' ', '-', $mainCatName)), // id (slugified)
+          15,               
+          "button",          
+          ["data-category" => $mainCatName] 
+        );
       }
     }
     ?>

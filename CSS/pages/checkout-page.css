@@ -1,160 +1,311 @@
-    /* Main Container */
-    .checkout-container {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 20px;
-      max-width: 1000px;
-      margin: auto;
-      margin-top:20px; 
-    }
+/* ===== General Layout ===== */
+.checkout-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 28px;
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 15px;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #22333c; /* dark base text */
+}
 
-    /* Card Styles */
-    .card {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      height: fit-content;
-      margin-bottom: 10px;
-    }
+/* ===== Card Styles ===== */
+.card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  padding: 22px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 20px;
+}
 
-    #order-items {
-      max-height: 420px; /* adjust height based on your design */
-      overflow-y: auto;
-      padding-right: 5px; /* prevents scrollbar overlap with content */
-    }
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.card h3 {
+  margin: 0 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #ddd8ba; /* softer divider */
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #5e4f3e; /* brown accent */
+}
+/* Two-column row for Name + Phone */
+.contact-row-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: end;
+}
+
+.contact-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5e4f3e;
+  margin-bottom: 6px;
+}
+
+/* Phone input + button inline */
+.phone-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.phone-wrapper input {
+  flex: 1;
+}
+
+/* ===== Form Inputs ===== */
+input[type="text"], 
+input[type="tel"], 
+textarea {
+  width: 100%;
+  max-width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #a8927c;
+  border-radius: 8px;
+  background: #fdfdfc;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+input:focus, 
+textarea:focus {
+  border-color: #5e4f3e;
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(94,79,62,0.1);
+}
+
+textarea {
+  resize: none;
+  min-height: 80px;
+}
+
+/* ===== Contact Row ===== */
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.contact-row input {
+  flex: 1;
+}
+
+/* ===== Buttons ===== */
+.edit-btn, .place-btn {
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #22333c, #5e4f3e);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.15s ease;
+}
+
+.edit-btn:hover, .place-btn:hover {
+  background: linear-gradient(135deg, #5e4f3e, #22333c);
+  transform: translateY(-1px);
+}
+
+.place-btn {
+  width: 100%;
+  margin-top: 18px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* ===== Delivery Options ===== */
+.options {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 8px 10px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.options:hover {
+  background: #f9f9f9;
+}
+
+.options input[type="radio"] {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  accent-color: #a8927c; /* warm tone */
+}
+
+.sub-option {
+  font-size: 0.9rem;
+  margin-left: 28px;
+  opacity: 0.85;
+}
+
+/* ===== Order Summary ===== */
+.order-summary {
+  max-width: 360px;
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.order-summary-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: #a8927c transparent;
+}
+.order-summary-items::-webkit-scrollbar {
+  width: 8px;
+}
+.order-summary-items::-webkit-scrollbar-thumb {
+  background: #a8927c;
+  border-radius: 6px;
+}
+
+/* Each product row */
+.order-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.order-item-img {
+  width: 55px;
+  height: 55px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.order-item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+.order-item-name {
+  font-weight: 600;
+  margin: 0;
+  color: #22333c;
+}
+.order-item-qty,
+.order-item-options {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.order-item-price {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #5e4f3e;
+  text-align: right;
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+/* Footer */
+.order-summary-footer {
+  background: #fff;
+  border-top: 2px solid #ddd8ba;
+  padding: 12px 12px 0;
+  flex-shrink: 0;
+  box-shadow: 0 -4px 8px rgba(0,0,0,0.03);
+}
+
+.order-summary-footer table {
+  width: 100%;
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+}
+
+.order-summary-footer td {
+  padding: 6px 0;
+}
+
+.order-summary-footer .total {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #22333c;
+}
+
+.order-summary-footer .place-btn {
+  width: 100%;
+  margin: 0;
+}
+
+/* ===== Address inputs shorter ===== */
+#home-options textarea#full-address {
+  min-height: 50px;
+  max-height: 60px;
+}
+#home-options textarea#note {
+  min-height: 40px;
+  max-height: 50px;
+}
+
+/* ===== Responsiveness ===== */
+@media (max-width: 900px) {
+  .checkout-container {
+    grid-template-columns: 1fr;
+  }
+  .order-summary {
+    max-width: 100%;
+    height: auto;
+    margin-left: 0;
+  }
+  .order-summary-items {
+    max-height: none;
+    overflow-y: visible;
+  }
+}
+
+@media (max-width: 600px) {
+  .card h3 {
+    font-size: 1.1rem;
+  }
+  input, textarea {
+    font-size: 0.9rem;
+    padding: 10px 12px;
+  }
+  .edit-btn, .place-btn {
+    font-size: 0.9rem;
+    padding: 10px 14px;
+  }
+}
 
 
-    .card h3 {
-      margin: 0 0 15px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #ddd;
-      font-size: 1.2rem;
-    }
-
-    /* Inputs */
-    input[type="text"], input[type="tel"], textarea {
-      width: 80%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      background: #f5f5f5;
-    }
-
-    textarea {
-      resize: none;
-    }
-
-    /* Name row */
-    .name-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .name-row div {
-      flex: 1;
-    }
-
-    /* Contact row */
-    .contact-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .contact-row input {
-      flex: 1;
-    }
-
-    /* Buttons */
-    .edit-btn, .place-btn {
-      padding: 10px 16px;
-      background: #2d3e40;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-
-    .place-btn {
-      width: 100%;
-      margin-top: 15px;
-    }
-
-    /* Delivery Options */
-    .options {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-      gap: 10px;
-      cursor: pointer;
-    }
-
-    .options input[type="radio"] {
-      margin: 0;
-    }
-
-    /* Order Summary */
-    .order-summary {
-      max-width: 320px; /* ✅ Keeps summary narrow on desktop */
-      margin-left: auto;
-    }
-
-    .order-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-
-    .order-item img {
-      width: 50px;
-      height: 50px;
-      border-radius: 6px;
-      object-fit: cover;
-    }
-
-    .order-summary table {
-      width: 100%;
-      margin-top: 10px;
-    }
-
-    .order-summary table td {
-      padding: 5px 0;
-    }
-
-    .total {
-      font-weight: bold;
-    }
-
-    /* Home delivery address grid */
-    .address-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    #home-options input, #home-options textarea {
-      background: #f5f5f5;
-    }
-
-    #home-options label {
-      font-size: 0.9rem;
-      margin-bottom: 3px;
-      display: block;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .checkout-container {
-        grid-template-columns: 1fr;
-      }
-
-      .order-summary {
-        max-width: 100%;
-        margin: 0;
-        order: 1;
-      }
-    }
+#full-name{
+  border: 1px solid #d1d0d0;
+}

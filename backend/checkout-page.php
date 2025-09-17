@@ -26,7 +26,7 @@ try {
         $stmt = $pdo->prepare("
             SELECT u.first_name, u.last_name, u.phone_number,
             a.street_address, a.barangay, a.city, a.region,
-            a.postal_code, a.province, a.note_to_rider
+             a.province, a.note_to_rider
             FROM users u
             LEFT JOIN addresses a ON a.user_id = u.user_id
             WHERE u.user_id = :id
@@ -62,7 +62,6 @@ try {
             $barangay = trim($input['barangay'] ?? '');
             $city     = trim($input['city'] ?? '');
             $region   = trim($input['region'] ?? '');
-            $postal   = trim($input['postal_code'] ?? '');
             $province = trim($input['province'] ?? '');
             $note     = trim($input['note_to_rider'] ?? '');
 
@@ -72,7 +71,6 @@ try {
                     barangay = :barangay,
                     city = :city,
                     region = :region,
-                    postal_code = :postal,
                     province = :province,
                     note_to_rider = :note
                 WHERE user_id = :id
@@ -82,7 +80,6 @@ try {
                 ':barangay' => $barangay,
                 ':city'     => $city,
                 ':region'   => $region,
-                ':postal'   => $postal,
                 ':province' => $province,
                 ':note'     => $note,
                 ':id'       => $user_id
@@ -90,7 +87,7 @@ try {
 
             if ($update->rowCount() === 0) {
                 $ins = $pdo->prepare("
-                    INSERT INTO addresses (user_id, street_address, barangay, city, region, postal_code, province, note_to_rider)
+                    INSERT INTO addresses (user_id, street_address, barangay, city, region, province, note_to_rider)
                     VALUES (:id, :street, :barangay, :city, :region, :postal, :province, :note)
                 ");
                 $ins->execute([
@@ -99,7 +96,6 @@ try {
                     ':barangay' => $barangay,
                     ':city'     => $city,
                     ':region'   => $region,
-                    ':postal'   => $postal,
                     ':province' => $province,
                     ':note'     => $note
                 ]);
@@ -109,7 +105,6 @@ try {
             $_SESSION['barangay']       = $barangay;
             $_SESSION['city']           = $city;
             $_SESSION['region']         = $region;
-            $_SESSION['postal_code']    = $postal;
             $_SESSION['province']       = $province;
             $_SESSION['note_to_rider']  = $note;
 
@@ -119,7 +114,7 @@ try {
         if ($action === 'update_phone') {
             $phone = trim($input['phone_number'] ?? '');
             // ✅ update in users table instead of addresses
-            $update = $pdo->prepare("UPDATE users SET phone_number = :phone WHERE id = :id");
+            $update = $pdo->prepare("UPDATE users SET phone_number = :phone WHERE user_id = :id");
             $update->execute([':phone' => $phone, ':id' => $user_id]);
 
             $_SESSION['phone_number'] = $phone;

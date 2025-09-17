@@ -29,6 +29,44 @@
   border-color: #6b5846;
   box-shadow: 0 0 5px rgba(139, 120, 99, 0.5);
 }
+.inputData[disabled],
+.pcategory[disabled] {
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #222;          /* keep text readable */
+  cursor: default;
+  pointer-events: none; /* stop focus/click */
+}
+.photo-wrapper {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
+
+.profile-photo {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.profile-photo.editable {
+  border: 1px solid #000000; /* green border to highlight */
+ 
+}
+
+
+.trash-icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    visibility: visible;
+}
+.trash-icon.hidden {
+    visibility: hidden; /* hidden but keeps its space */
+}
+
 
 #third-row {
   margin-top: 20px;
@@ -113,8 +151,7 @@
   padding: 6px 14px;
   border-radius: 20px;
   border: none;
-  font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   display: inline-block;
   margin: auto;
@@ -133,10 +170,11 @@
   background: #d1ccc7;
   color: #333;
   border: none;
-  padding: 6px 14px;
+font-size: 12px;
   border-radius: 8px;
-  font-weight: 500;
   cursor: pointer;
+  width: 70px;
+  height: 22px;
   transition: background 0.2s;
 }
 .editBtn:hover {

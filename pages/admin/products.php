@@ -18,16 +18,16 @@
     </div>
 
     <div id="second-row">
-        <button type="button" class="box-row clicked" data-category="All">All</button>
-        <?php foreach ($mainCategories as $cat): ?>
-            <button type="button" class="box-row" data-category="<?= htmlspecialchars($cat) ?>">
-                <?= htmlspecialchars($cat) ?>
-            </button>
-        <?php endforeach; ?>
-    </div>
-
+    <button type="button" class="box-row clicked" data-category="all">All</button>
+    <?php foreach ($mainCategories as $cat): ?>
+        <button type="button" 
+                class="box-row" 
+                data-category="<?= htmlspecialchars(strtolower($cat)) ?>">
+            <?= htmlspecialchars($cat) ?>
+        </button>
+    <?php endforeach; ?>
+</div>
     <hr>
-
     <div id="third-row">
    <div id="top">
     <form class="search-bar" role="search">
@@ -46,6 +46,7 @@
                     <th>Price</th>
                     <th>Category</th>
                     <th>Status</th>
+                    <th></th>
                     <th></th>
                 </tr>
             </thead>
@@ -101,12 +102,18 @@
         <?= $status ?>
     </button>
 </td>
-
-
-                    <!-- Edit -->
                     <td>
                         <button id="editBtn" class="editBtn" type="button">Edit</button>
+                        
                     </td>
+<td >
+    <img src="public/assests/trash-bin.png"
+         alt="Delete"
+         class="trash-icon"
+         onclick="deleteRow(<?= $product['product_id'] ?>, this)">
+</td>
+
+                    
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -172,25 +179,24 @@ const categoryButtons = document.querySelectorAll('.box-row');
 function filterProducts() {
     const search = searchInput.value.toLowerCase();
     const activeCategoryBtn = document.querySelector('.box-row.clicked');
-    const category = activeCategoryBtn ? activeCategoryBtn.dataset.category : 'All';
+    const category = activeCategoryBtn ? activeCategoryBtn.dataset.category.toLowerCase() : 'all';
 
     document.querySelectorAll('.product-row').forEach(row => {
         const name = row.querySelector('#pname').value.toLowerCase();
-        const prodCategory = row.querySelector('#pcategory option:checked').textContent;
-
+        const prodCategory = row.querySelector('#pcategory option:checked').value.toLowerCase();
         const matchesSearch = name.includes(search);
-        const matchesCategory = category === 'All' || prodCategory === category;
+        const matchesCategory = category === 'all' || prodCategory === category;
 
         row.style.display = matchesSearch && matchesCategory ? 'table-row' : 'none';
     });
 }
 
-searchInput.addEventListener('input', filterProducts);
+
 categoryButtons.forEach(btn => {
     btn.addEventListener('click', () => {
         categoryButtons.forEach(b => b.classList.remove('clicked'));
         btn.classList.add('clicked');
-        filterProducts();
+        filterProducts(); // ✅ re-run filter
     });
 });
 
@@ -208,14 +214,13 @@ function toggleEdit(btn) {
     const statusBtn = row.querySelector('#statusBtn');
     const photo = row.querySelector('.product-photo');
     const fileInput = row.querySelector('.edit-upload');
-
     const isEditing = !nameInput.disabled;
-
+    const trashIcon = row.querySelector('.trash-icon');
     if (!isEditing) {
         // Enable editing
         [nameInput, priceInput, categorySelect, statusBtn].forEach(el => el.disabled = false);
         row.classList.add('editing');
-
+        trashIcon.classList.add('visible');
         // Image click to upload
         photo.style.cursor = "pointer";
         photo.onclick = () => fileInput.click();
@@ -244,6 +249,7 @@ function toggleEdit(btn) {
         btn.style.color = "#036d2b";
         } else {
         // Compare with originals
+       
         const changed =
             row.dataset.originalName !== nameInput.value ||
             row.dataset.originalPrice !== priceInput.value ||
@@ -306,6 +312,7 @@ function disableRow(row, btn) {
     btn.textContent = "Edit";
     btn.style.backgroundColor = "#C6C3BD";
     btn.style.color = "#22333B";
+    
 }
 
 // --- Modal ---
@@ -411,6 +418,29 @@ function showModal(message, type = "success", autoClose = true, duration = 3000)
     modal.onclick = (e) => { if (e.target === modal) closeModal(); };
 
     if (autoClose) setTimeout(closeModal, duration);
+}
+function deleteRow(productId, icon) {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+
+    fetch(BASE_URL + "backend/admin/delete_product.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "product_id=" + encodeURIComponent(productId)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Remove the row from the UI
+            const row = icon.closest(".product-row");
+            row.remove();
+            showModal("Product deleted successfully!", "success");
+        } else {
+            showModal("Error: " + data.message, "error");
+        }
+    })
+    .catch(err => {
+        showModal("Delete failed: " + err.message, "error");
+    });
 }
 
     </script>

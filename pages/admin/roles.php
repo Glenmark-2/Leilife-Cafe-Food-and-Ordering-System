@@ -34,6 +34,8 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <th></th>
                     <th>Status</th>
                     <th></th>
+                    <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody id="staff-content">
@@ -42,20 +44,25 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td><input type="checkbox" class="checkbox"></td>
 
                     <!-- Name -->
-                    <td>
-                        <div class="name-cell">
-                            <img class="profile-photo"
-                                src="<?= !empty($staff['staff_image'])
-                                        ? "public/staffs/" . $staff['staff_image']
-                                        : "public/assests/about us.png" ?>"
-                                alt="profile-photo">
-                            <div>
-                                <input type="text" class="inputData"
-                                    value="<?= htmlspecialchars($staff['staff_name']) ?>" disabled>
-                                <p class="staff-id">#<?= htmlspecialchars($staff['staff_id']) ?></p>
-                            </div>
-                        </div>
-                    </td>
+                   <!-- Name -->
+<td>
+    <div class="name-cell">
+        <label class="photo-wrapper">
+            <img class="profile-photo"
+                src="<?= !empty($staff['staff_image'])
+                        ? "public/staffs/" . $staff['staff_image']
+                        : "public/assests/about us.png" ?>"
+                alt="profile-photo">
+            <input type="file" class="photoInput" accept="image/*" style="display:none;" disabled>
+        </label>
+        <div>
+            <input type="text" class="inputData"
+                value="<?= htmlspecialchars($staff['staff_name']) ?>" disabled>
+            <p class="staff-id">#<?= htmlspecialchars($staff['staff_id']) ?></p>
+        </div>
+    </div>
+</td>
+
 
                     <!-- Role -->
                     <td>
@@ -80,14 +87,18 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?= ucfirst($staff['status']) ?>
     </button>
 </td>
-
-
                     </td>
-
                     <!-- Edit -->
-                    <td>
-                        <button id="editBtn" class="editBtn" type="button">Edit</button>
-                    </td>
+                    <td class="actions-cell">
+    <button class="editBtn" type="button">Edit</button>
+</td>
+<td>
+    <img src="public/assests/trash-bin.png"
+         alt="Delete"
+         class="trash-icon hidden"
+         onclick="deleteRow(<?= $staff['staff_id'] ?>)">
+</td>
+
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -161,90 +172,67 @@ searchInput.addEventListener('input', () => {
 // ---- Edit & Save ----
 document.querySelectorAll('.editBtn').forEach(btn => {
     btn.addEventListener('click', () => {
-        const row = btn.closest('.staff-row'); // ✅ dati .product-row
-        const nameInput = row.querySelector('.name-cell .inputData'); // ✅ tama sa markup
-        const roleInput = row.querySelector('td:nth-child(3) .inputData'); // ✅ Role column
-        const shiftSelect = row.querySelector('.pcategory'); // ✅ Shift select
-        const statusBtn = row.querySelector('button'); // or add .statusBtn class sa button
+        const row = btn.closest('.staff-row');
+        const nameInput = row.querySelector('.name-cell .inputData');
+        const roleInput = row.querySelector('td:nth-child(3) .inputData');
+        const shiftSelect = row.querySelector('.pcategory');
+        const statusBtn = row.querySelector('.statusBtn');
+        const photo = row.querySelector('.profile-photo');
+        const photoInput = row.querySelector('.photoInput');
         const isEditing = !nameInput.disabled;
-
+const trashIcon = row.querySelector('.trash-icon');
         if (!isEditing) {
-            // Disable other edit buttons
-            document.querySelectorAll('.editBtn').forEach(otherBtn => {
-                if (otherBtn !== btn) {
-                    otherBtn.disabled = true;
-                    otherBtn.style.opacity = '0.5';
-                    otherBtn.style.cursor = 'not-allowed';
-                }
-            });
+            // --- ENTER EDIT MODE ---
+            [nameInput, roleInput, shiftSelect, statusBtn, photoInput].forEach(el => el.disabled = false);
+            photo.classList.add('editable');
 
-            // Enable current row fields
-            nameInput.disabled = roleInput.disabled = shiftSelect.disabled = statusBtn.disabled = false;
-
-            // Apply edit styles
-            [nameInput, roleInput, shiftSelect].forEach(el => {
-                el.style.padding = '5px 10px';
-                el.style.border = '1px solid black';
-                el.style.borderRadius = '10px';
-                el.style.backgroundColor = '#ffffff';
-            });
-
-            // Set initial status color
-            if (statusBtn.textContent.trim() === 'Available') {
-                statusBtn.classList.add('available');
-                statusBtn.classList.remove('unavailable');
-            } else {
-                statusBtn.classList.add('unavailable');
-                statusBtn.classList.remove('available');
-            }
-
-            // Change Edit button to Save
+            // Change edit button → save
             btn.textContent = 'Save';
             btn.style.backgroundColor = '#75c277';
             btn.style.color = '#036d2b';
+             trashIcon.classList.remove("hidden"); // show trash bin
 
-        } else {
-            // Disable fields again
-            nameInput.disabled = roleInput.disabled = shiftSelect.disabled = statusBtn.disabled = true;
-
-            // Reset field styles
-            [nameInput, roleInput, shiftSelect].forEach(el => {
-                el.style.padding = '0';
-                el.style.border = 'none';
-                el.style.borderRadius = '0';
-                el.style.backgroundColor = 'transparent';
+            // Preview photo when selected
+            photoInput.addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (file) {
+                    photo.src = URL.createObjectURL(file);
+                    photo.dataset.newFile = file.name; // mark as updated
+                }
             });
 
-            // Reset button look
+            // clicking the image triggers file input
+            photo.addEventListener('click', () => {
+                if (!photoInput.disabled) photoInput.click();
+            });
+
+        } else {
+            // --- SAVE MODE ---
+            [nameInput, roleInput, shiftSelect, statusBtn, photoInput].forEach(el => el.disabled = true);
+            photo.classList.remove('editable');
+
             btn.textContent = 'Edit';
             btn.style.backgroundColor = '#C6C3BD';
             btn.style.color = '#22333B';
-
-            // Enable other edit buttons
-            document.querySelectorAll('.editBtn').forEach(otherBtn => {
-                otherBtn.disabled = false;
-                otherBtn.style.opacity = '1';
-                otherBtn.style.cursor = 'pointer';
-            });
-
-            // Send update to backend
+               trashIcon.classList.add("hidden"); // hide trash bin
             const staffId = row.dataset.id;
-            const updatedData = {
-                id: staffId,
-                name: nameInput.value,
-                role: roleInput.value,
-                shift: shiftSelect.value,
-                status: statusBtn.textContent.trim()
-            };
+            const formData = new FormData();
+            formData.append("id", staffId);
+            formData.append("name", nameInput.value);
+            formData.append("role", roleInput.value);
+            formData.append("shift", shiftSelect.value);
+            formData.append("status", statusBtn.textContent.trim());
+
+            if (photoInput.files[0]) {
+                formData.append("photo", photoInput.files[0]);
+            }
 
             fetch(BASE_URL + "backend/admin/update_staff.php", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData)
+                body: formData
             })
             .then(res => res.json())
             .then(data => {
-                console.log("Response from server:", data);
                 if (data.success) {
                     showModal("Staff updated successfully!", "success");
                 } else {
@@ -357,6 +345,26 @@ document.getElementById("add").addEventListener("click", () => {
     })
     .catch(err => showModal("Fetch error: " + err.message, "error"));
 });
+function deleteRow(staffId) {
+    if (!confirm("Are you sure you want to delete this staff?")) return;
+
+    fetch(BASE_URL + "backend/admin/delete_staff.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "id=" + encodeURIComponent(staffId)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showModal("Staff deleted successfully!", "success");
+            document.querySelector(`tr[data-id="${staffId}"]`).remove();
+        } else {
+            showModal("Delete failed: " + data.message, "error");
+        }
+    })
+    .catch(err => showModal("Fetch error: " + err.message, "error"));
+}
+
 
 function loadStaffTable() {
     fetch(BASE_URL + "backend/admin/get_staff.php")

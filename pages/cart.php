@@ -61,6 +61,55 @@ $cart = $_SESSION['cart'] ?? [];
 </div>
 
 <script>
+    // ✅ Modal function (for deletion)
+    function showModal(message, type = "success", autoClose = true, duration = 2500) {
+        let modal = document.getElementById("notif-modal");
+        if (!modal) {
+            modal = document.createElement("div");
+            modal.id = "notif-modal";
+            modal.style.cssText = `
+                display:none; position:fixed; z-index:10000; left:0; top:0;
+                width:100%; height:100%; background:rgba(0,0,0,0.4);
+                justify-content:center; align-items:center;
+            `;
+            modal.innerHTML = `
+                <div class="notif-content" style="
+                    background:white; padding:20px 30px; border-radius:10px;
+                    text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3);
+                    min-width:250px; animation:popin .3s ease;
+                ">
+                    <p id="notif-message" style="margin-bottom:15px; font-size:16px;"></p>
+                    <button id="notif-close" style="
+                        padding:6px 16px; border:none; border-radius:6px;
+                        cursor:pointer; font-size:14px; color:white;
+                    ">OK</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const style = document.createElement("style");
+            style.innerHTML = `
+                @keyframes popin { from{transform:scale(0.8);opacity:0;} to{transform:scale(1);opacity:1;} }
+            `;
+            document.head.appendChild(style);
+        }
+
+        document.getElementById("notif-message").textContent = message;
+        const closeBtn = document.getElementById("notif-close");
+
+        if (type === "success") closeBtn.style.background = "#4caf50";
+        else if (type === "error") closeBtn.style.background = "#f44336";
+        else if (type === "warning") closeBtn.style.background = "#ff9800";
+
+        modal.style.display = "flex";
+
+        const closeModal = () => modal.style.display = "none";
+        closeBtn.onclick = closeModal;
+        modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+        if (autoClose) setTimeout(closeModal, duration);
+    }
+
     const changeBtn = document.getElementById("change");
     let mode = document.getElementById("mode");
     let motor = document.getElementById("motor");
@@ -143,9 +192,15 @@ $cart = $_SESSION['cart'] ?? [];
     }
 
     function removeItem(index) {
+        const removedItem = cart[index];
         cart.splice(index, 1);
         updateSession();
         renderCart();
+
+        // ✅ Show modal only when item is deleted
+        if (removedItem) {
+            showModal(`Removed "${removedItem.product_name}" from cart`, "success");
+        }
     }
 
     function updateTotals(totals) {
@@ -171,3 +226,4 @@ $cart = $_SESSION['cart'] ?? [];
 
     fetchCart();
 </script>
+

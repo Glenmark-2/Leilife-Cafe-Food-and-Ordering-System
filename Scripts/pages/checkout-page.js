@@ -29,20 +29,32 @@ async function fetchUserData() {
 }
 
 function populateFields(data) {
-  // Names / phone
-  document.getElementById('first-name').value = data.first_name ?? '';
-  document.getElementById('last-name').value = data.last_name ?? '';
+  // Full name
+  const fullName = [data.first_name, data.last_name].filter(Boolean).join(" ");
+  document.getElementById('full-name').value = fullName;
+
+  // Phone
   document.getElementById('phone').value = data.phone_number ?? '';
 
-  // Address fields
-  document.getElementById('street').value = data.street_address ?? '';
-  document.getElementById('barangay').value = data.barangay ?? '';
-  document.getElementById('city').value = data.city ?? '';
-  document.getElementById('region').value = data.region ?? '';
-  document.getElementById('postal').value = data.postal_code ?? '';
-  document.getElementById('province').value = data.province ?? '';
+  // ✅ Barangay + fixed city/province/region
+  const barangay = data.barangay ? `Barangay ${data.barangay}` : '';
+
+  const fullAddress = [
+    data.street_address,
+    barangay,
+    "Caloocan City",
+    "Metro Manila",
+    "NCR"
+  ].filter(Boolean).join(', ');
+
+  document.getElementById('full-address').value = fullAddress;
+
+  // Notes
   document.getElementById('note').value = data.note_to_rider ?? '';
 }
+
+
+
 
 // ============================
 // FETCH CART DATA
@@ -110,64 +122,76 @@ function renderCart(items) {
 // DELIVERY TOGGLE
 // ============================
 function toggleDelivery() {
+  const pickup = document.getElementById('pickup-options');
   const home = document.getElementById('home-options');
   const selected = document.querySelector('input[name="delivery"]:checked');
-  const isHome = selected && selected.value === 'home';
-  if (home) home.style.display = isHome ? 'block' : 'none';
-}
 
-// ============================
-// ADDRESS EDIT
-// ============================
-async function toggleEdit() {
-  const fields = document.querySelectorAll('#home-options input, #home-options textarea');
-  const editBtn = document.querySelector('#home-options .edit-btn');
-  if (!fields || fields.length === 0) return;
-
-  const isReadonly = fields[0].hasAttribute('readonly');
-
-  if (isReadonly) {
-    fields.forEach(field => {
-      field.removeAttribute('readonly');
-      field.style.background = '#fff';
-    });
-    editBtn.textContent = 'Save';
+  if (!selected) {
+    pickup.style.display = 'none';
+    home.style.display = 'none';
     return;
   }
 
-  const payload = {
-    action: 'update',
-    street_address: document.getElementById('street').value.trim(),
-    barangay: document.getElementById('barangay').value.trim(),
-    city: document.getElementById('city').value.trim(),
-    region: document.getElementById('region').value.trim(),
-    postal_code: document.getElementById('postal').value.trim(),
-    province: document.getElementById('province').value.trim(),
-    note_to_rider: document.getElementById('note').value.trim()
-  };
-
-  try {
-    const res = await fetch(USER_API, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (data.success) {
-      fields.forEach(field => {
-        field.setAttribute('readonly', true);
-        field.style.background = '#f5f5f5';
-      });
-      editBtn.textContent = 'Edit';
-      showTempMessage('Address updated successfully');
-    } else {
-      showTempMessage('Failed to update address: ' + (data.message || 'unknown'), true);
-    }
-  } catch (err) {
-    showTempMessage('Network error while updating address', true);
+  if (selected.value === 'pickup') {
+    pickup.style.display = 'block';
+    home.style.display = 'none';
+    const pickupRadio = pickup.querySelector('input[name="pickup_location"]');
+    if (pickupRadio) pickupRadio.checked = true;
+  } else {
+    pickup.style.display = 'none';
+    home.style.display = 'block';
   }
 }
+
+
+// // ============================
+// // ADDRESS EDIT
+// // ============================
+// async function toggleEdit() {
+//   const fields = document.querySelectorAll('#home-options textarea');
+//   const editBtn = document.querySelector('#home-options .edit-btn');
+//   if (!fields || fields.length === 0) return;
+
+//   const isReadonly = fields[0].hasAttribute('readonly');
+
+//   if (isReadonly) {
+//     fields.forEach(field => {
+//       field.removeAttribute('readonly');
+//       field.style.background = '#fff';
+//     });
+//     editBtn.textContent = 'Save';
+//     return;
+//   }
+
+//   const payload = {
+//     action: 'update_address',
+//     full_address: document.getElementById('full-address').value.trim(),
+//     note_to_rider: document.getElementById('note').value.trim()
+//   };
+
+//   try {
+//     const res = await fetch(USER_API, {
+//       method: 'POST',
+//       credentials: 'same-origin',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify(payload)
+//     });
+//     const data = await res.json();
+//     if (data.success) {
+//       fields.forEach(field => {
+//         field.setAttribute('readonly', true);
+//         field.style.background = '#f5f5f5';
+//       });
+//       editBtn.textContent = 'Edit';
+//       showTempMessage('Address updated successfully');
+//     } else {
+//       showTempMessage('Failed to update address: ' + (data.message || 'unknown'), true);
+//     }
+//   } catch (err) {
+//     showTempMessage('Network error while updating address', true);
+//   }
+// }
+
 
 // ============================
 // PHONE EDIT
@@ -220,3 +244,4 @@ function bindPhoneEdit() {
 function showTempMessage(msg, isError = false) {
   alert(msg); // Replace with custom toast/notification if you want
 }
+

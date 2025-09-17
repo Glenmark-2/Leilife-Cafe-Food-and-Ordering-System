@@ -16,7 +16,18 @@ include "../components/buttonTemplate.php";
   <div class="overlay-content">
     <h1>Welcome to Leilife Cafe</h1>
     <p>Your perfect spot for coffee and meals</p>
-    <a href="index.php?page=menu" class="btn">Order Now</a>
+    <a href="index.php?page=menu">
+      <?php
+      echo createButton(
+        45,              
+        180,             
+        "Order Now",  
+        "",
+        16,              
+        "button",       
+      );
+      ?>
+    </a>
   </div>
 </div>
 

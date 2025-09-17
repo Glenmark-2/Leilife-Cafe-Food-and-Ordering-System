@@ -327,7 +327,7 @@ document.getElementById("add").addEventListener("click", () => {
         document.getElementById("new-product-photo").src = "public/assests/about us.png";
 
         // 🔹 Append new row directly
-        const tbody = document.getElementById("staffTableBody");
+        const tbody = document.getElementById("staff-content");
         const newRow = document.createElement("tr");
         newRow.innerHTML = `
             <td>${data.inserted_id}</td>
@@ -337,7 +337,8 @@ document.getElementById("add").addEventListener("click", () => {
             <td>Available</td>
             <td><img src="public/staffs/${data.staff_image}" width="40"></td>
         `;
-        loadStaffTable();
+        setTimeout(() => location.reload());
+       
 
     } else {
         showModal("Error: " + data.message, "error");
@@ -363,32 +364,6 @@ function deleteRow(staffId) {
         }
     })
     .catch(err => showModal("Fetch error: " + err.message, "error"));
-}
-
-
-function loadStaffTable() {
-    fetch(BASE_URL + "backend/admin/get_staff.php")
-        .then(res => res.json())
-        .then(data => {
-            const tbody = document.getElementById("staffTableBody");
-            tbody.innerHTML = ""; // clear table
-
-            data.forEach(staff => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${staff.staff_id}</td>
-                    <td>${staff.staff_name}</td>
-                    <td>${staff.staff_role}</td>
-                    <td>${staff.shift}</td>
-                    <td>${staff.status}</td>
-                    <td><img src="public/staffs/${staff.staff_image}" width="40"></td>
-                `;
-                tbody.appendChild(row);
-            });
-        })
-        .catch(err => {
-            console.error("Error loading staff:", err);
-        });
 }
 
 function showModal(message, type = "success", autoClose = true, duration = 3000) {

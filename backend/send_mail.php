@@ -24,8 +24,8 @@ function sendResetLink(string $toEmail, string $token): bool {
         $mail->isSMTP();
         $mail->Host       = 'smtp.ethereal.email';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'briana.sporer@ethereal.email';
-        $mail->Password   = 'W139wm9DrnnPg4UTEz';
+        $mail->Username   = 'ansley.murphy@ethereal.email';
+        $mail->Password   = '9pK84uJTywYEJDhZsB';
         $mail->SMTPSecure = 'tls';
         $mail->Port       = 587;
 
@@ -61,8 +61,8 @@ function sendVerificationEmail(string $toEmail, string $token): bool {
         $mail->isSMTP();
         $mail->Host       = 'smtp.ethereal.email';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'briana.sporer@ethereal.email';
-        $mail->Password   = 'W139wm9DrnnPg4UTEz';
+        $mail->Username   = 'ansley.murphy@ethereal.email';
+        $mail->Password   = '9pK84uJTywYEJDhZsB';
         $mail->SMTPSecure = 'tls';
         $mail->Port       = 587;
 

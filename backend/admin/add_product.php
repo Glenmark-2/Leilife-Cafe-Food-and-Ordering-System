@@ -1,64 +1,60 @@
 <?php
-header('Content-Type: application/json');
 require_once __DIR__ . '/../db_script/db.php';
 
-$name     = $_POST['name']   ?? null;
-$price    = $_POST['price']  ?? null;
-$mainCat  = $_POST['category'] ?? null; // ito yung main_category_name (Meals/Drinks)
-$status   = $_POST['status'] ?? "Available";
-
-if (!$name || !$price || !$mainCat) {
-    echo json_encode(["success" => false, "message" => "Missing fields"]);
-    exit;
-}
-
-// Handle Image Upload
-$imageName = "image-43.png"; // default
-if (!empty($_FILES['photo']['name'])) {
-    $uploadDir = __DIR__ . '/../../public/products/';
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0777, true);
-    }
-    $imageName = time() . "_" . preg_replace("/[^A-Za-z0-9.\-_]/", "_", $_FILES['photo']['name']);
-    $targetFile = $uploadDir . $imageName;
-
-    if (!move_uploaded_file($_FILES['photo']['tmp_name'], $targetFile)) {
-        echo json_encode(["success" => false, "message" => "Image upload failed"]);
-        exit;
-    }
-}
+$response = ["success" => false, "message" => ""];
 
 try {
-    // Hanapin ang category_id base sa main_category_name
-    $stmt = $pdo->prepare("
-        SELECT c.category_id 
-        FROM categories c
-        JOIN categories mc ON c.main_category_id = mc.main_category_id
-        WHERE mc.main_category_name = ?
-        LIMIT 1
-    ");
-    $stmt->execute([$mainCat]);
-    $cat = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($_SERVER["REQUEST_METHOD"] === "POST") {
+        $productName  = $_POST["product_name"] ?? null;
+        $productPrice = $_POST["product_price"] ?? null;
+        $categoryId   = $_POST["category_id"] ?? null;
+        $status       = $_POST["status"] ?? "Available";
 
-    if (!$cat) {
-        echo json_encode(["success" => false, "message" => "No category found for main category: $mainCat"]);
-        exit;
+        // ✅ Validation
+        if (!$productName || !$productPrice || !$categoryId) {
+            throw new Exception("All fields are required.");
+        }
+
+        // ✅ Handle file upload
+        $productPicture = null;
+        if (isset($_FILES["photo"]) && $_FILES["photo"]["error"] === UPLOAD_ERR_OK) {
+            $uploadDir = __DIR__ . "/../../public/uploads/";
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $fileTmpPath = $_FILES["photo"]["tmp_name"];
+            $fileName = uniqid() . "_" . basename($_FILES["photo"]["name"]);
+            $destPath = $uploadDir . $fileName;
+
+            if (move_uploaded_file($fileTmpPath, $destPath)) {
+                $productPicture = "public/uploads/" . $fileName;
+            } else {
+                throw new Exception("File upload failed.");
+            }
+        }
+
+        // ✅ Insert to DB
+        $sql = "INSERT INTO products (product_name, product_price, category_id, status, product_picture) 
+                VALUES (:name, :price, :category_id, :status, :picture)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ":name"       => $productName,
+            ":price"      => $productPrice,
+            ":category_id"=> $categoryId,
+            ":status"     => $status,
+            ":picture"    => $productPicture
+        ]);
+
+        $response["success"] = true;
+        $response["message"] = "Product added successfully.";
+    } else {
+        throw new Exception("Invalid request method.");
     }
-
-    $categoryId = $cat['category_id'];
-
-    // Insert sa products gamit ang category_id
-    $stmt = $pdo->prepare("
-        INSERT INTO products (product_name, product_price, category_id, status, product_picture) 
-        VALUES (?, ?, ?, ?, ?)
-    ");
-    $stmt->execute([$name, $price, $categoryId, $status, $imageName]);
-
-    echo json_encode([
-        "success" => true,
-        "product_image" => $imageName,
-        "inserted_id" => $pdo->lastInsertId()
-    ]);
 } catch (Exception $e) {
-    echo json_encode(["success" => false, "message" => $e->getMessage()]);
+    $response["success"] = false;
+    $response["message"] = $e->getMessage();
 }
+
+header("Content-Type: application/json");
+echo json_encode($response);

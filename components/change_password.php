@@ -1,16 +1,18 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+  session_start();
 }
 if (!isset($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+  $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
+
+include "buttonTemplate.php";
 ?>
 
 <div class="modal" id="password-modal">
   <div class="modal-dialog">
     <div class="modal-content">
-      
+
       <div class="modal-header">
         <h5 class="modal-title">
           <?php echo $hasPassword ? "Change Password" : "Set Password"; ?>
@@ -42,10 +44,21 @@ if (!isset($_SESSION['csrf_token'])) {
             <div id="change-password-error" class="text-danger small mb-2"></div>
             <div id="change-password-success" class="text-success small mb-2"></div>
 
-            <button type="submit" class="btn btn-primary w-100">Update Password</button>
+            <!-- <button type="submit" class="btn btn-primary w-100">Update Password</button> -->
+            <?php
+            echo createButton(
+              45,               
+              400,              
+              "Update Password",  
+              "btn btn-primary w-100",   
+              15,              
+              "submit",        
+              ["class" => "btn btn-primary w-100", "name" => "btn btn-primary w-100"] 
+            );
+            ?>
           </form>
         <?php else: ?>
-          
+
           <!-- 🆕 Set Password Form -->
           <form id="set-password-form" method="POST" action="backend/set_password.php" novalidate>
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
@@ -63,7 +76,18 @@ if (!isset($_SESSION['csrf_token'])) {
             <div id="set-password-error" class="text-danger small mb-2"></div>
             <div id="set-password-success" class="text-success small mb-2"></div>
 
-            <button type="submit" class="btn btn-submit">Set Password</button>
+            <!-- <button type="submit" class="btn btn-submit">Set Password</button> -->
+            <?php
+            echo createButton(
+              45,
+              400,
+              "Set Password",
+              "set-password",
+              15,
+              "submit",
+              ["class" => "btn btn-submit", "name" => "set_password"]
+            );
+            ?>
           </form>
         <?php endif; ?>
       </div>

@@ -12,7 +12,7 @@ return [
         '../CSS/partials/menu-card.css'
     ],
     'cart'            => ['../CSS/pages/cart.css'],
-    'checkout-page'   => ['../CSS/pages/checkout-page.css'],
+    'checkout-page'   => ['../CSS/pages/checkout-page.css','../CSS/admin/components/set-address-modal.css'],
     'signUp'          => ['../CSS/pages/signUp.css'],
     'login'           => ['../CSS/pages/login.css'],
     'solo-product'    => ['../CSS/pages/solo-product.css'],

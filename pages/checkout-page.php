@@ -3,6 +3,7 @@
 if (session_status() === PHP_SESSION_NONE) {
   session_start();
 }
+include "../components/buttonTemplate.php";
 ?>
 <div class="checkout-container">
   <!-- LEFT COLUMN -->
@@ -10,35 +11,49 @@ if (session_status() === PHP_SESSION_NONE) {
     <!-- Contact Details -->
     <div class="card">
       <h3>Contact Details</h3>
-      <div class="name-row">
-        <div>
-          <label for="first-name">First Name</label>
-          <input type="text" id="first-name" readonly>
-        </div>
-        <div>
-          <label for="last-name">Last Name</label>
-          <input type="text" id="last-name" readonly>
-        </div>
-      </div>
 
-      <label for="phone">Phone Number</label>
-      <div class="contact-row">
-        <input type="tel" id="phone" readonly>
-        <button type="button" id="phone-edit-btn" class="edit-btn">Edit</button>
+      <div class="contact-row-two">
+        <!-- Full Name -->
+        <div class="contact-field">
+          <label for="full-name">Full Name</label>
+          <input type="text" id="full-name" readonly>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="contact-field">
+          <label for="phone">Phone Number</label>
+          <div class="phone-wrapper">
+            <input type="tel" id="phone" readonly>
+            <!-- <button type="button" id="phone-edit-btn" class="edit-btn">Edit</button> -->
+            <?php
+            echo createButton(
+              30,
+              70,
+              "Edit",
+              "phone-edit-btn",
+              16,
+              "button",
+              ['data-state' => 'edit']
+            );
+            ?>
+          </div>
+        </div>
       </div>
     </div>
+
 
     <!-- Delivery Options -->
     <div class="card">
       <h3>Delivery Options</h3>
+
       <label class="options">
-        <input type="radio" name="delivery" value="pickup" checked onchange="toggleDelivery()">
+        <input type="radio" name="delivery" value="pickup" onchange="toggleDelivery()">
         <span>Pick-Up</span>
       </label>
 
-      <div id="pickup-options" style="margin-left: 20px;">
-        <label class="options">
-          <input type="radio" name="pickup_location" value="store1" checked>
+      <div id="pickup-options" style="display: none; margin-left: 20px; margin-top: 10px;">
+        <label class="options sub-option">
+          <input type="radio" name="pickup_location" value="store1">
           <span>Lunduyan Langaray Village, Barangay 14 Caloocan City</span>
         </label>
       </div>
@@ -49,31 +64,9 @@ if (session_status() === PHP_SESSION_NONE) {
       </label>
 
       <div id="home-options" style="display: none; margin-left: 20px; margin-top: 10px;">
-        <div class="address-grid">
-          <div>
-            <label for="street">Street Address</label>
-            <input type="text" id="street" readonly>
-          </div>
-          <div>
-            <label for="barangay">Barangay</label>
-            <input type="text" id="barangay" readonly>
-          </div>
-          <div>
-            <label for="city">City</label>
-            <input type="text" id="city" readonly>
-          </div>
-          <div>
-            <label for="region">Region</label>
-            <input type="text" id="region" readonly>
-          </div>
-          <div>
-            <label for="postal">Postal Code</label>
-            <input type="text" id="postal" readonly>
-          </div>
-          <div style="grid-column: span 2;">
-            <label for="province">Province</label>
-            <input type="text" id="province" readonly>
-          </div>
+        <div>
+          <label for="full-address">Full Address</label>
+          <textarea id="full-address" rows="2" readonly></textarea>
         </div>
 
         <div style="margin-top: 10px;">
@@ -81,9 +74,27 @@ if (session_status() === PHP_SESSION_NONE) {
           <textarea id="note" rows="2" readonly></textarea>
         </div>
 
-        <button type="button" class="edit-btn" style="margin-top: 10px;" onclick="toggleEdit()">Edit</button>
+        <div style="display: flex; justify-content:flex-end;">
+          <?php
+          echo createButton(
+            30,
+            70,
+            "Edit",
+            "edit-address",
+            16,
+            "button",
+            ['data-state' => 'edit', 'name' => 'update_address']
+          );
+
+          ?>
+
+
+        </div>
       </div>
+
     </div>
+
+
 
     <!-- Payment Method -->
     <div class="card">
@@ -99,29 +110,93 @@ if (session_status() === PHP_SESSION_NONE) {
     </div>
   </div>
 
-<!-- RIGHT COLUMN -->
-<div class="card order-summary">
-  <h3>Order Summary</h3>
-  <div id="order-items">
-    <!-- Cart items will be injected here by JS -->
+  <!-- RIGHT COLUMN -->
+  <div class="card order-summary">
+    <h3>Order Summary</h3>
+
+    <!-- Scrollable product list -->
+    <div class="order-summary-items">
+      <div id="order-items"></div>
+    </div>
+
+    <!-- Fixed totals + button -->
+    <div class="order-summary-footer">
+      <table>
+        <tr>
+          <td>Subtotal</td>
+          <td id="subtotal" style="text-align:right;">₱0.00</td>
+        </tr>
+        <tr>
+          <td>Delivery Fee</td>
+          <td id="delivery-fee" style="text-align:right;">₱0.00</td>
+        </tr>
+        <tr class="total">
+          <td>Total</td>
+          <td id="total" style="text-align:right;">₱0.00</td>
+        </tr>
+      </table>
+      <?php 
+       echo createButton(
+              40,
+              300,
+              "Place Order",
+              "place-order-bt",
+              16,
+              "button",
+              ['data-state' => 'edit']
+            );
+      ?>
+    </div>
   </div>
 
-  <table>
-    <tr>
-      <td>Subtotal</td>
-      <td id="subtotal" style="text-align:right;">₱0.00</td>
-    </tr>
-    <tr>
-      <td>Delivery Fee</td>
-      <td id="delivery-fee" style="text-align:right;">₱0.00</td>
-    </tr>
-    <tr class="total">
-      <td>Total</td>
-      <td id="total" style="text-align:right;">₱0.00</td>
-    </tr>
-  </table>
-  <button class="place-btn">Place Order</button>
 </div>
-</div>
+
+<?php include "../components/admin/set-address-modal.php"; ?>
+
+<script>
+  // -------------------------
+  // Address Edit (Open Modal)
+  // -------------------------
+  const addressBtn = document.getElementById("edit-address");
+  const modalOverlay = document.getElementById("modalOverlay");
+  const addressModalForm = modalOverlay?.querySelector("form");
+
+  if (addressBtn && modalOverlay) {
+    addressBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      modalOverlay.style.display = "flex";
+    });
+  }
+
+  // -------------------------
+  // Address Modal Submit via AJAX
+  // -------------------------
+  if (addressModalForm) {
+    addressModalForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fd = new FormData(addressModalForm);
+
+      try {
+        const resp = await fetch(addressModalForm.action, {
+          method: "POST",
+          body: fd
+        });
+        const result = await resp.json();
+
+        if (result.success) {
+          alert(result.message || "Address updated!");
+          modalOverlay.style.display = "none";
+          console.log("Opening modal...");
+          window.location.href = "index.php?page=checkout-page";
+        } else {
+          alert(result.error || "Save failed");
+        }
+      } catch (err) {
+        alert("Request error: " + err.message);
+      }
+    });
+  }
+</script>
+
 
 <script src="../Scripts/pages/checkout-page.js" defer></script>

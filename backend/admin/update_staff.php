@@ -50,7 +50,7 @@ try {
         $response["success"] = true;
         $response["message"] = "Staff updated successfully!";
     } else {
-        // ✅ No rows affected (means no changes were made)
+        //  No rows affected (means no changes were made)
         $response["success"] = false;
         $response["message"] = "No changes were made.";
     }

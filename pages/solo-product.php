@@ -249,12 +249,14 @@ $isDrink = in_array($product['category_id'], [7, 8, 9, 10, 11, 12, 13]);
             })
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
-                    if (typeof fetchCart === "function") fetchCart();
-                    showModal("Item added to cart!", "success");
-                } else {
-                    showModal(data.message || "Failed to add item", "error");
-                }
+            if (data.success) {
+            if (typeof fetchCart === "function") fetchCart();
+            showModal("Item added to cart!", "success");
+            window.location.href = '/Leilife/public/index.php?page=menu';
+        } else {
+            showModal(data.message || "Failed to add item", "error");
+        }
+
             })
             .catch(err => showModal("Error adding item: " + err.message, "error"));
         });

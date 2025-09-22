@@ -23,7 +23,7 @@
     max-width: 1000px;   /* enough space for 5 cards (250px each + gaps) */
     margin: 50px auto;   /* center the whole section */
     padding: 0 20px;
-    text-align: center;
+    text-align: left;
 }
 
 .menu-cards {

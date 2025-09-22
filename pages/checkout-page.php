@@ -192,7 +192,7 @@ include "../components/buttonTemplate.php";
           alert(result.error || "Save failed");
         }
       } catch (err) {
-        alert("Request error: " + err.message);
+        // alert("Request error: " + err.message);
       }
     });
   }

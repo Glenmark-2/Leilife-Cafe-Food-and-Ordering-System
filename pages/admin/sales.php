@@ -10,7 +10,6 @@ $transactions = [
     ["id" => "TXN004", "name" => "John Doe", "date" => "2025-09-04", "amount" => 420, "status" => "Cancelled"],
     ["id" => "TXN005", "name" => "Maria Santos", "date" => "2025-09-05", "amount" => 500, "status" => "Delivered"],
 ];
-$salesData = [50, 70, 65, 90, 80, 100, 110, 95, 105, 120, 130, 140];
 $heatmap = [
     "Mon" => [10, 20, 30, 40, 50, 60, 70],
     "Tue" => [15, 25, 35, 45, 55, 65, 75],
@@ -50,112 +49,162 @@ $heatmap = [
     </div>
 
     <!-- Top Selling -->
-    <!-- Top Selling -->
-<div class="panel top-selling">
-  <h4>Top Selling</h4>
-  <div class="top-selling-item">
-    <div class="thumb">
-      <img src="" alt="Top Selling Item" />
+    <div class="panel top-selling">
+      <h4>Top Selling</h4>
+      <div class="top-selling-item">
+        <div class="thumb">
+          <img src="" alt="Top Selling Item" />
+        </div>
+        <div class="info">
+          <p><strong><?= $topSelling['name'] ?></strong><br><?= $topSelling['orders'] ?> Total Orders</p>
+        </div>
+      </div>
     </div>
-    <div class="info">
-      <p><strong><?= $topSelling['name'] ?></strong><br><?= $topSelling['orders'] ?> Total Orders</p>
-    </div>
-  </div>
-</div>
-
 
     <!-- Transactions -->
-<!-- Transactions -->
-<div class="panel transactions">
-  <div class="transactions-header">
-    <h4>Transactions</h4>
-    <div class="filter-buttons">
-      <button onclick="filterTransactions('newest')" class="active">Newest</button>
-      <button onclick="filterTransactions('oldest')">Oldest</button>
-    </div>
-  </div>
-  <div id="transaction-list">
-    <?php foreach ($transactions as $index => $t): ?>
-      <div class="item" data-index="<?= $index ?>" data-date="<?= $t['date'] ?>">
-        <div class="avatar"><?= strtoupper($t['name'][0]) ?></div>
-        <div class="details">
-          <div class="main-line">
-            <strong class="transaction-name"><?= $t['name'] ?></strong>
-            <span class="transaction-id"><?= $t['id'] ?></span>
-            <span class="transaction-date"><?= $t['date'] ?></span>
-            <span class="transaction-amount">₱<?= number_format($t['amount'], 2) ?></span>
-          </div>
-          <div class="subtext">Deliver</div>
+    <div class="panel transactions">
+      <div class="transactions-header">
+        <h4>Transactions</h4>
+        <div class="filter-buttons">
+          <button onclick="filterTransactions('newest')" class="active">Newest</button>
+          <button onclick="filterTransactions('oldest')">Oldest</button>
         </div>
-        <span class="status <?= $t['status'] ?>"><?= $t['status'] ?></span>
-        <!-- Ellipsis for mobile -->
-        <span class="ellipsis" onclick="openTransactionModal(<?= $index ?>)">&#8942;</span>
       </div>
-    <?php endforeach; ?>
-  </div>
-</div>
-<div class="panel heatmap"> <h4>Weekly Sales Heatmap</h4> <div class="heatmap-grid"> <div></div> <?php foreach (array_keys($heatmap['Mon']) as $i): ?> <div><?= $i+1 ?></div> <?php endforeach; ?> <?php foreach ($heatmap as $day => $values): ?> <div><?= $day ?></div> <?php foreach ($values as $v): $green = max(50, 255 - $v); ?> <div class="heatmap-cell" style="background: rgb(0,<?= $green ?>,0);"></div> <?php endforeach; ?> <?php endforeach; ?> </div> </div>
-    <!-- Chart -->
+      <div id="transaction-list">
+        <?php foreach ($transactions as $index => $t): ?>
+          <div class="item" data-index="<?= $index ?>" data-date="<?= $t['date'] ?>">
+            <div class="avatar"><?= strtoupper($t['name'][0]) ?></div>
+            <div class="details">
+              <div class="main-line">
+                <strong class="transaction-name"><?= $t['name'] ?></strong>
+                <span class="transaction-id"><?= $t['id'] ?></span>
+                <span class="transaction-date"><?= $t['date'] ?></span>
+                <span class="transaction-amount">₱<?= number_format($t['amount'], 2) ?></span>
+              </div>
+              <div class="subtext">Deliver</div>
+            </div>
+            <span class="status <?= $t['status'] ?>"><?= $t['status'] ?></span>
+            <span class="ellipsis" onclick="openTransactionModal(<?= $index ?>)">&#8942;</span>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+
+    <!-- Heatmap -->
+    <div class="panel heatmap">
+      <h4>Weekly Sales Heatmap</h4>
+      <div class="heatmap-grid">
+        <div></div>
+        <?php foreach (array_keys($heatmap['Mon']) as $i): ?>
+          <div><?= $i+1 ?></div>
+        <?php endforeach; ?>
+        <?php foreach ($heatmap as $day => $values): ?>
+          <div><?= $day ?></div>
+          <?php foreach ($values as $v): $green = max(50, 255 - $v); ?>
+            <div class="heatmap-cell" style="background: rgb(0,<?= $green ?>,0);"></div>
+          <?php endforeach; ?>
+        <?php endforeach; ?>
+      </div>
+    </div>
+
+    <!-- Pie Chart -->
     <div class="panel chart">
-      <canvas id="salesChart"></canvas>
+      <canvas id="sentimentPieChart" width="300" height="300"></canvas>
     </div>
   </div>
 
-  <script>
-    const ctx = document.getElementById('salesChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-        datasets: [{
-          label: 'Monthly Sales',
-          data: <?= json_encode($salesData) ?>,
-          borderColor: 'green',
-          borderWidth: 2,
-          pointRadius: 3,
-          fill: false
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: { y: { beginAtZero: true } }
-      }
-    });
+<script>
+document.addEventListener("DOMContentLoaded", async function() {
 
-    // Sorting
-    function filterTransactions(order) {
-      const list = document.getElementById("transaction-list");
-      const items = Array.from(list.children);
+    const canvas = document.getElementById('sentimentPieChart');
+    if (!canvas) {
+        console.error('Canvas element #sentimentPieChart not found!');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
 
-      items.sort((a, b) => {
-        const dateA = new Date(a.dataset.date);
-        const dateB = new Date(b.dataset.date);
-        return order === "oldest" ? dateA - dateB : dateB - dateA;
-      });
+    try {
+        // Fetch sentiment data from backend
+        const res = await fetch('/Leilife/backend/pie_chart.php'); // use absolute path from localhost root
+        if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+        const data = await res.json();
+        console.log('Fetched sentiment data:', data);
 
-      list.innerHTML = "";
-      items.forEach(item => list.appendChild(item));
+        // Ensure numeric values
+        const positive = Number(data.positive) || 0;
+        const negative = Number(data.negative) || 0;
+        const neutral  = Number(data.neutral)  || 0;
 
-      document.querySelectorAll(".filter-buttons button").forEach(btn => btn.classList.remove("active"));
-      document.querySelector(`.filter-buttons button[onclick="filterTransactions('${order}')"]`).classList.add("active");
+        // Create pie chart
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Happy (Positive)', 'Sad (Negative)', 'Neutral'],
+                datasets: [{
+                    label: 'User Sentiment',
+                    data: [positive, negative, neutral],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(201, 203, 207, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(201, 203, 207, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { enabled: true }
+                }
+            }
+        });
+
+    } catch (err) {
+        console.error('Error fetching or rendering sentiment data:', err);
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "red";
+        ctx.fillText("Failed to load sentiment chart", 10, 50);
     }
 
-    // Default sort = newest
+    // ---------- Transaction Sorting ----------
+    function filterTransactions(order) {
+        const list = document.getElementById("transaction-list");
+        const items = Array.from(list.children);
+        items.sort((a, b) => {
+            const dateA = new Date(a.dataset.date);
+            const dateB = new Date(b.dataset.date);
+            return order === "oldest" ? dateA - dateB : dateB - dateA;
+        });
+        list.innerHTML = "";
+        items.forEach(item => list.appendChild(item));
+        document.querySelectorAll(".filter-buttons button").forEach(btn => btn.classList.remove("active"));
+        document.querySelector(`.filter-buttons button[onclick="filterTransactions('${order}')"]`).classList.add("active");
+    }
     filterTransactions("newest");
-     function openTransactionModal(index) {
-    // Assuming the modal component is a PHP file that you include dynamically
-    const modalUrl = `transaction_modal.php?index=${index}`;
-    fetch(modalUrl)
-      .then(response => response.text())
-      .then(html => {
-        const modalContainer = document.createElement('div');
-        modalContainer.innerHTML = html;
-        document.body.appendChild(modalContainer);
-      })
-      .catch(err => console.error(err));
-  }
 
-  </script>
+    function openTransactionModal(index) {
+        const modalUrl = `transaction_modal.php?index=${index}`;
+        fetch(modalUrl)
+            .then(response => response.text())
+            .then(html => {
+                const modalContainer = document.createElement('div');
+                modalContainer.innerHTML = html;
+                document.body.appendChild(modalContainer);
+            })
+            .catch(err => console.error(err));
+    }
+
+    window.filterTransactions = filterTransactions;
+    window.openTransactionModal = openTransactionModal;
+
+});
+</script>
+
 </body>
 </html>

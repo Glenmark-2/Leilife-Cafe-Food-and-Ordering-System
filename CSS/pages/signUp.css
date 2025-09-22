@@ -135,7 +135,9 @@ legend {
   border-radius: 20px;
   max-width: 600px;
   width: 90%;
-  margin: 0 20px; /* default margin for breathing room */
+  margin: auto;
+  margin-top: 30vh;
+  /* margin: 0 20px; default margin for breathing room */
   box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   animation: fadeIn 0.3s ease-in-out;
 }

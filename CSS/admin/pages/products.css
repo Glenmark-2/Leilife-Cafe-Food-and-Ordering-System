@@ -208,7 +208,205 @@ select:disabled {
   background: #75c277;
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 8px;/* --- Global --- */
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #fafafa;
+  color: #222;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+/* --- Search + Add --- */
+#top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap; /* stack on mobile */
+}
+
+/* Search bar adjusts */
+.search-bar {
+  flex: 1;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+/* --- Product Table --- */
+#table-container {
+  width: 100%;
+  overflow-x: auto; /* mobile scroll */
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.product-table {
+  width: 100%;
+  min-width: 650px; /* force scroll on small screens */
+  border-collapse: collapse;
+}
+
+.product-table th,
+.product-table td {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.product-table thead th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+/* --- Product Rows --- */
+.product-row {
+  transition: background 0.2s;
+}
+
+.product-row:hover:not(.editing) {
+  background: #fafafa;
+}
+
+.product-row.editing {
+  background: #f0f8ff;
+  border-left: 3px solid #75c277;
+}
+
+/* --- Status Buttons --- */
+.statusBtn {
+  padding: 6px 10px;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.statusBtn.Available { background: #4caf50; color: #fff; }
+.statusBtn.Unavailable { background: #f44336; color: #fff; }
+
+/* --- Edit Buttons --- */
+.editBtn {
+  background: #c6c3bd;
+  color: #22333B;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.editBtn:hover {
+  background: #959390;
+  color: #fff;
+}
+
+/* --- Modal --- */
+#modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 15px;
+}
+
+#new-product-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 25px;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  width: 650px;
+  max-width: 95%;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+  animation: popIn 0.3s ease;
+}
+
+#new-product-modal #left {
+  flex: 1;
+  text-align: center;
+}
+#new-product-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 1024px) {
+  .product-table th,
+  .product-table td {
+    font-size: 0.85rem;
+    padding: 8px 10px;
+  }
+  .statusBtn { font-size: 0.7rem; }
+}
+
+@media (max-width: 768px) {
+  #top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-bar { max-width: 100%; }
+  #add-product {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modal collapses into column */
+  #new-product-modal {
+    flex-direction: column;
+    width: 100%;
+    max-width: 500px;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Table → Card View */
+  .product-table,
+  .product-table thead,
+  .product-table tbody,
+  .product-table th,
+  .product-table td,
+  .product-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .product-table thead { display: none; }
+  .product-row {
+    margin-bottom: 15px;
+    background: #fff;
+    padding: 12px;
+    border-radius: 10px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+  }
+  .product-row td {
+    padding: 8px 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+  }
+  .product-row td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    flex: 1;
+    max-width: 120px;
+    color: #555;
+  }
+}
+
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;

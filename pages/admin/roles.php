@@ -153,22 +153,19 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <script>
-// ---- Live search ----
 const BASE_URL = "http://localhost/Leilife/";
-// live search staff
+
+// ---- Live search ----
 const searchInput = document.getElementById('search-input');
 const staffRows = document.querySelectorAll('.staff-row');
-
 searchInput.addEventListener('input', () => {
     const search = searchInput.value.toLowerCase();
     staffRows.forEach(row => {
         const name = row.querySelector('.name-cell .inputData').value.toLowerCase();
-        row.style.display = name.includes(search) ? 'table-row' : 'none'; // 🔑 table-row instead of flex
+        row.style.display = name.includes(search) ? 'table-row' : 'none';
     });
 });
 
-
-// ---- Edit & Save ----
 // ---- Edit & Save ----
 document.querySelectorAll('.editBtn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -179,29 +176,40 @@ document.querySelectorAll('.editBtn').forEach(btn => {
         const statusBtn = row.querySelector('.statusBtn');
         const photo = row.querySelector('.profile-photo');
         const photoInput = row.querySelector('.photoInput');
+        const trashIcon = row.querySelector('.trash-icon');
         const isEditing = !nameInput.disabled;
-const trashIcon = row.querySelector('.trash-icon');
+
         if (!isEditing) {
             // --- ENTER EDIT MODE ---
             [nameInput, roleInput, shiftSelect, statusBtn, photoInput].forEach(el => el.disabled = false);
             photo.classList.add('editable');
+            trashIcon.classList.remove("hidden");
 
-            // Change edit button → save
             btn.textContent = 'Save';
             btn.style.backgroundColor = '#75c277';
             btn.style.color = '#036d2b';
-             trashIcon.classList.remove("hidden"); // show trash bin
+
+            // 🚫 disable all other edit buttons + add-member
+            document.querySelectorAll('.editBtn').forEach(b => {
+                if (b !== btn) {
+                    b.disabled = true;
+                    b.style.opacity = "0.5";
+                    b.style.cursor = "not-allowed";
+                }
+            });
+            document.getElementById("add-member").disabled = true;
+            document.getElementById("add-member").style.opacity = "0.5";
 
             // Preview photo when selected
             photoInput.addEventListener('change', e => {
                 const file = e.target.files[0];
                 if (file) {
                     photo.src = URL.createObjectURL(file);
-                    photo.dataset.newFile = file.name; // mark as updated
+                    photo.dataset.newFile = file.name;
                 }
             });
 
-            // clicking the image triggers file input
+            // Clicking image opens file picker
             photo.addEventListener('click', () => {
                 if (!photoInput.disabled) photoInput.click();
             });
@@ -210,11 +218,22 @@ const trashIcon = row.querySelector('.trash-icon');
             // --- SAVE MODE ---
             [nameInput, roleInput, shiftSelect, statusBtn, photoInput].forEach(el => el.disabled = true);
             photo.classList.remove('editable');
+            trashIcon.classList.add("hidden");
 
             btn.textContent = 'Edit';
             btn.style.backgroundColor = '#C6C3BD';
             btn.style.color = '#22333B';
-               trashIcon.classList.add("hidden"); // hide trash bin
+
+            // ✅ re-enable all buttons
+            document.querySelectorAll('.editBtn').forEach(b => {
+                b.disabled = false;
+                b.style.opacity = "1";
+                b.style.cursor = "pointer";
+            });
+            document.getElementById("add-member").disabled = false;
+            document.getElementById("add-member").style.opacity = "1";
+
+            // Save to backend
             const staffId = row.dataset.id;
             const formData = new FormData();
             formData.append("id", staffId);
@@ -222,10 +241,7 @@ const trashIcon = row.querySelector('.trash-icon');
             formData.append("role", roleInput.value);
             formData.append("shift", shiftSelect.value);
             formData.append("status", statusBtn.textContent.trim());
-
-            if (photoInput.files[0]) {
-                formData.append("photo", photoInput.files[0]);
-            }
+            if (photoInput.files[0]) formData.append("photo", photoInput.files[0]);
 
             fetch(BASE_URL + "backend/admin/update_staff.php", {
                 method: 'POST',
@@ -244,8 +260,6 @@ const trashIcon = row.querySelector('.trash-icon');
     });
 });
 
-
-// ---- Status toggle ----
 // ---- Status toggle ----
 document.querySelectorAll('.statusBtn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -263,8 +277,7 @@ document.querySelectorAll('.statusBtn').forEach(btn => {
     });
 });
 
-
-// ---- Modal ----
+// ---- Modal (Add new member) ----
 const addMember = document.getElementById("add-member");
 const modal = document.getElementById("modal");
 const cancel = document.getElementById("cancel");
@@ -272,14 +285,10 @@ const cancel = document.getElementById("cancel");
 addMember.addEventListener('click', () => modal.style.display = "flex");
 cancel.addEventListener('click', () => modal.style.display = "none");
 
-
-
-// open file picker
+// File upload preview inside modal
 document.getElementById("uploadBtn").addEventListener("click", () => {
     document.getElementById("uploadInput").click();
 });
-
-// preview image sa modal
 document.getElementById("uploadInput").addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -287,7 +296,7 @@ document.getElementById("uploadInput").addEventListener("change", (e) => {
     }
 });
 
-// ADD STAFF
+// ---- Add staff ----
 document.getElementById("add").addEventListener("click", () => {
     const name   = document.getElementById("name").value.trim();
     const role   = document.getElementById("role").value.trim();
@@ -314,41 +323,19 @@ document.getElementById("add").addEventListener("click", () => {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-        showModal("Staff added successfully!", "success");
-
-        // close modal
-        document.getElementById("modal").style.display = "none";
-
-        // clear fields
-        document.getElementById("name").value = "";
-        document.getElementById("role").value = "";
-        document.getElementById("category").value = "";
-        document.getElementById("uploadInput").value = "";
-        document.getElementById("new-product-photo").src = "public/assests/about us.png";
-
-        // 🔹 Append new row directly
-        const tbody = document.getElementById("staff-content");
-        const newRow = document.createElement("tr");
-        newRow.innerHTML = `
-            <td>${data.inserted_id}</td>
-            <td>${document.getElementById("name").value}</td>
-            <td>${document.getElementById("role").value}</td>
-            <td>${document.getElementById("category").value}</td>
-            <td>Available</td>
-            <td><img src="public/staffs/${data.staff_image}" width="40"></td>
-        `;
-        setTimeout(() => location.reload());
-       
-
-    } else {
-        showModal("Error: " + data.message, "error");
-    }
+            showModal("Staff added successfully!", "success");
+            modal.style.display = "none";
+            setTimeout(() => location.reload(), 1000); // refresh after add
+        } else {
+            showModal("Error: " + data.message, "error");
+        }
     })
     .catch(err => showModal("Fetch error: " + err.message, "error"));
 });
+
+// ---- Delete staff ----
 function deleteRow(staffId) {
     if (!confirm("Are you sure you want to delete this staff?")) return;
-
     fetch(BASE_URL + "backend/admin/delete_staff.php", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -366,8 +353,8 @@ function deleteRow(staffId) {
     .catch(err => showModal("Fetch error: " + err.message, "error"));
 }
 
+// ---- Notification modal ----
 function showModal(message, type = "success", autoClose = true, duration = 3000) {
-  // check if modal already exists
   let modal = document.getElementById("notif-modal");
   if (!modal) {
     modal = document.createElement("div");
@@ -380,81 +367,27 @@ function showModal(message, type = "success", autoClose = true, duration = 3000)
       </div>
     `;
     document.body.appendChild(modal);
-
-    // basic styles
     const style = document.createElement("style");
     style.innerHTML = `
-      .notif-modal {
-        display: none;
-        position: fixed;
-        z-index: 10000;
-        left: 0; top: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.4);
-        justify-content: center;
-        align-items: center;
-      }
-      .notif-content {
-        background: white;
-        padding: 20px 30px;
-        border-radius: 10px;
-        text-align: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        min-width: 250px;
-        animation: popin 0.3s ease;
-      }
-      .notif-content p { margin-bottom: 15px; font-size: 16px; }
-      .notif-content button {
-        padding: 6px 16px; border: none; border-radius: 6px;
-        cursor: pointer; font-size: 14px; color: white;
-      }
-      .notif-content button.success { background: #4caf50; }
-      .notif-content button.error { background: #f44336; }
-      @keyframes popin {
-        from { transform: scale(0.8); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-      }
+      .notif-modal { display:none; position:fixed; z-index:10000; left:0; top:0;
+        width:100%; height:100%; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; }
+      .notif-content { background:white; padding:20px 30px; border-radius:10px; text-align:center;
+        box-shadow:0 4px 10px rgba(0,0,0,0.3); min-width:250px; animation:popin 0.3s ease; }
+      .notif-content p { margin-bottom:15px; font-size:16px; }
+      .notif-content button { padding:6px 16px; border:none; border-radius:6px; cursor:pointer; font-size:14px; color:white; }
+      .notif-content button.success { background:#4caf50; }
+      .notif-content button.error { background:#f44336; }
+      @keyframes popin { from { transform:scale(0.8); opacity:0; } to { transform:scale(1); opacity:1; } }
     `;
     document.head.appendChild(style);
   }
-
-  // set message
   document.getElementById("notif-message").textContent = message;
-
-  // set button color based on type
   const closeBtn = document.getElementById("notif-close");
   closeBtn.className = type === "success" ? "success" : "error";
-
-  // show modal
   modal.style.display = "flex";
-
-  // close handlers
   const closeModal = () => modal.style.display = "none";
   closeBtn.onclick = closeModal;
   modal.onclick = (e) => { if (e.target === modal) closeModal(); };
-
-  // auto close after duration
-  if (autoClose) {
-    setTimeout(() => {
-      closeModal();
-    }, duration);
-  }
+  if (autoClose) setTimeout(closeModal, duration);
 }
-// Open modal
-addMember.addEventListener('click', () => {
-  modal.style.display = "flex";
-});
-
-// Close modal
-cancel.addEventListener('click', () => {
-  modal.style.display = "none";
-});
-
-// Optional: close when clicking outside modal content
-window.addEventListener("click", (e) => {
-  if (e.target === modal) {
-    modal.style.display = "none";
-  }
-});
-
 </script>

@@ -1,60 +1,86 @@
 <?php
 require_once __DIR__ . '/../db_script/db.php';
 
+header("Content-Type: application/json");
 $response = ["success" => false, "message" => ""];
 
 try {
-    if ($_SERVER["REQUEST_METHOD"] === "POST") {
-        $productName  = $_POST["product_name"] ?? null;
-        $productPrice = $_POST["product_price"] ?? null;
-        $categoryId   = $_POST["category_id"] ?? null;
-        $status       = $_POST["status"] ?? "Available";
-
-        // ✅ Validation
-        if (!$productName || !$productPrice || !$categoryId) {
-            throw new Exception("All fields are required.");
-        }
-
-        // ✅ Handle file upload
-        $productPicture = null;
-        if (isset($_FILES["photo"]) && $_FILES["photo"]["error"] === UPLOAD_ERR_OK) {
-            $uploadDir = __DIR__ . "/../../public/uploads/";
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
-
-            $fileTmpPath = $_FILES["photo"]["tmp_name"];
-            $fileName = uniqid() . "_" . basename($_FILES["photo"]["name"]);
-            $destPath = $uploadDir . $fileName;
-
-            if (move_uploaded_file($fileTmpPath, $destPath)) {
-                $productPicture = "public/uploads/" . $fileName;
-            } else {
-                throw new Exception("File upload failed.");
-            }
-        }
-
-        // ✅ Insert to DB
-        $sql = "INSERT INTO products (product_name, product_price, category_id, status, product_picture) 
-                VALUES (:name, :price, :category_id, :status, :picture)";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            ":name"       => $productName,
-            ":price"      => $productPrice,
-            ":category_id"=> $categoryId,
-            ":status"     => $status,
-            ":picture"    => $productPicture
-        ]);
-
-        $response["success"] = true;
-        $response["message"] = "Product added successfully.";
-    } else {
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
         throw new Exception("Invalid request method.");
     }
+
+    // Raw inputs and trimming
+    $rawName      = $_POST["product_name"] ?? null;
+    $rawPrice     = $_POST["product_price"] ?? null;
+    $rawCategory  = $_POST["category_id"] ?? null;
+    $rawStatus    = $_POST["status"] ?? "Available";
+
+    // Trim & normalize
+    $productName  = $rawName ? ucwords(strtolower(trim($rawName))) : null; // Title Case + trimmed
+    $productPrice = $rawPrice !== null ? trim($rawPrice) : null;
+    $categoryId   = $rawCategory !== null ? trim($rawCategory) : null;
+    $status       = $rawStatus !== null ? trim($rawStatus) : "Available";
+
+    // Validation
+    if (!$productName || !$productPrice || !$categoryId) {
+        throw new Exception("All fields are required.");
+    }
+
+    // Handle file upload (trim filename, sanitize, unique)
+    $productPicture = null;
+    if (isset($_FILES["photo"]) && $_FILES["photo"]["error"] === UPLOAD_ERR_OK && !empty($_FILES["photo"]["name"])) {
+        $uploadDir = __DIR__ . "/../../public/uploads/";
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $originalFileName = trim($_FILES["photo"]["name"]);                          // trim whitespace
+        $cleanFileName    = preg_replace("/[^A-Za-z0-9.\-_]/", "_", $originalFileName); // sanitize
+        $fileName         = uniqid() . "_" . $cleanFileName;
+        $destPath         = $uploadDir . $fileName;
+
+        if (!move_uploaded_file($_FILES["photo"]["tmp_name"], $destPath)) {
+            throw new Exception("File upload failed.");
+        }
+
+        $productPicture = "public/uploads/" . $fileName;
+    }
+
+    // Case-insensitive & trimmed duplicate name check
+    $checkName = $pdo->prepare("SELECT COUNT(*) FROM products WHERE LOWER(TRIM(product_name)) = LOWER(TRIM(:name))");
+    $checkName->execute([":name" => $productName]);
+    if ($checkName->fetchColumn() > 0) {
+        throw new Exception("A product with this name already exists.");
+    }
+
+    // Case-insensitive & trimmed duplicate picture check (only if picture uploaded)
+    if ($productPicture) {
+        $checkPic = $pdo->prepare("SELECT COUNT(*) FROM products WHERE LOWER(TRIM(product_picture)) = LOWER(TRIM(:pic))");
+        $checkPic->execute([":pic" => trim($productPicture)]);
+        if ($checkPic->fetchColumn() > 0) {
+            throw new Exception("A product with this picture already exists.");
+        }
+    }
+
+    // Insert using normalized (trimmed & title-cased) name
+    $sql = "INSERT INTO products (product_name, product_price, category_id, status, product_picture) 
+            VALUES (:name, :price, :category_id, :status, :picture)";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        ":name"       => $productName,
+        ":price"      => $productPrice,
+        ":category_id"=> $categoryId,
+        ":status"     => $status,
+        ":picture"    => $productPicture
+    ]);
+
+    $response["success"] = true;
+    $response["message"] = "Product added successfully.";
+    $response["product_name"] = $productName; // return normalized name for confirmation
+    $response["product_picture"] = $productPicture;
 } catch (Exception $e) {
     $response["success"] = false;
     $response["message"] = $e->getMessage();
 }
 
-header("Content-Type: application/json");
 echo json_encode($response);

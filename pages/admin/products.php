@@ -201,7 +201,6 @@ searchInput.addEventListener("input", filterProducts);
 document.querySelectorAll('.editBtn').forEach(btn => {
     btn.addEventListener('click', () => toggleEdit(btn));
 });
-
 function toggleEdit(btn) {
     const row = btn.closest('.product-row');
     const productId = row.dataset.id;
@@ -215,6 +214,7 @@ function toggleEdit(btn) {
     const trashIcon = row.querySelector('.trash-icon');
 
     if (!isEditing) {
+        // ✅ Enable edit mode
         [nameInput, priceInput, categorySelect, statusBtn].forEach(el => el.disabled = false);
         row.classList.add('editing');
         trashIcon.classList.add('visible');
@@ -233,6 +233,7 @@ function toggleEdit(btn) {
             statusBtn.classList.add(newStatus);
         };
 
+        // Store original values
         row.dataset.originalName = nameInput.value;
         row.dataset.originalPrice = priceInput.value;
         row.dataset.originalCategory = categorySelect.value;
@@ -241,7 +242,20 @@ function toggleEdit(btn) {
         btn.textContent = "Save";
         btn.style.backgroundColor = "#75c277";
         btn.style.color = "#036d2b";
+
+        // 🚫 Disable other edit buttons + Add Product
+        document.querySelectorAll('.editBtn').forEach(b => {
+            if (b !== btn) {
+                b.disabled = true;
+                b.style.opacity = "0.5";
+                b.style.cursor = "not-allowed";
+            }
+        });
+        document.getElementById("add-product").disabled = true;
+        document.getElementById("add-product").style.opacity = "0.5";
+
     } else {
+        // ✅ Save logic (unchanged)
         const changed =
             row.dataset.originalName !== nameInput.value ||
             row.dataset.originalPrice !== priceInput.value ||
@@ -251,6 +265,7 @@ function toggleEdit(btn) {
 
         if (!changed) {
             disableRow(row, btn);
+            trashIcon.classList.remove('visible');
             showModal("No changes made.", "warning");
             return;
         }
@@ -289,7 +304,6 @@ function toggleEdit(btn) {
             }
         })
         .catch(() => showModal("Error saving product.", "error"));
-        
     }
 }
 
@@ -301,7 +315,17 @@ function disableRow(row, btn) {
     btn.textContent = "Edit";
     btn.style.backgroundColor = "#C6C3BD";
     btn.style.color = "#22333B";
+
+    // ✅ Re-enable other buttons + Add Product
+    document.querySelectorAll('.editBtn').forEach(b => {
+        b.disabled = false;
+        b.style.opacity = "1";
+        b.style.cursor = "pointer";
+    });
+    document.getElementById("add-product").disabled = false;
+    document.getElementById("add-product").style.opacity = "1";
 }
+
 
 // --- Modal Add Product ---
 document.getElementById("add-product").addEventListener("click", () => {

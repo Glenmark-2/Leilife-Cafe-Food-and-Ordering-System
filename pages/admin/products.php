@@ -1,28 +1,40 @@
 <?php
+session_start();
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
-$appData = new AppData($pdo);
-$appData->loadCategories();
-$appData->adminloadProducts();
+if (!isset($_SESSION['admin_id'])) {
+    header('Location: /leilife/pages/admin/login-x9P2kL7zQ.php');
+    exit;
+}
 
-// Extract unique main categories (Meals, Drinks)
-$mainCategories = array_unique(
-    array_map(fn($c) => $c['main_category_name'] ?? '', $appData->categories)
+$appData = new AppData($pdo);
+$archived = $_GET['archived'] ?? 0;
+$btnText = $archived === '1' ? 'View Products' : 'View Archive';
+$appData->adminloadProducts($archived);
+$appData->loadCategories();
+
+
+$subCategories = array_unique(
+    array_map(fn($c) => $c['category_name'] ?? '', $appData->categories)
 );
-$mainCategories = array_values($mainCategories);
+$subCategories = array_values($subCategories);
+
+
 ?>
 <div id="first-row">
     <h2>Products</h2>
+    <button type="button" id="view-archive"><span><?= $btnText ?></span></button>
 </div>
+
 
 <div id="second-row">
     <button type="button" class="box-row clicked" data-category="all">All</button>
-    <?php foreach ($mainCategories as $cat): ?>
+    <?php foreach ($subCategories as $sub): ?>
         <button type="button" 
                 class="box-row" 
-                data-category="<?= htmlspecialchars(strtolower($cat)) ?>">
-            <?= htmlspecialchars($cat) ?>
+                data-category="<?= htmlspecialchars(strtolower($sub)) ?>">
+            <?= htmlspecialchars($sub) ?>
         </button>
     <?php endforeach; ?>
 </div>
@@ -39,21 +51,20 @@ $mainCategories = array_values($mainCategories);
         <table class="product-table">
             <thead>
                 <tr>
-                    <th><input type="checkbox" class="checkbox"></th>
+                    <!-- <th><input type="checkbox" class="checkbox"></th> -->
                     <th>Name</th>
                     <th>Price</th>
                     <th>Category</th>
                     <th>Status</th>
-                    <th></th>
-                    <th></th>
+                    <th style="text-align: center;">Actions</th>
                 </tr>
             </thead>
             <tbody id="products-content">
                 <?php foreach ($appData->products as $product): ?>
                 <tr class="product-row" 
                     data-id="<?= $product['product_id'] ?>"
-                    data-main="<?= htmlspecialchars(strtolower($product['main_category_name'])) ?>">
-                    <td><input type="checkbox" class="checkbox"></td>
+                    data-sub="<?= htmlspecialchars(strtolower($product['category_name'])) ?>">
+                    <!-- <td><input type="checkbox" class="checkbox"></td> -->
                     
                     <!-- Name -->
                     <td>
@@ -101,15 +112,21 @@ $mainCategories = array_values($mainCategories);
                             <?= $status ?>
                         </button>
                     </td>
-                    <td>
-                        <button id="editBtn" class="editBtn" type="button">Edit</button>
+                    
+                    <td class="actions-cell" style="display: flex; justify-content: center; align-items: center;">
+                            <button id="editBtn" class="editBtn" type="button">Edit</button>
+                            <img src="public/assests/archive.png" alt="Archive" class="archive-icon">
                     </td>
-                    <td>
+
+                    <!-- <td>
+                        <button id="editBtn" class="editBtn" type="button">Edit</button>
+                    </td> -->
+                    <!-- <td>
                         <img src="public/assests/trash-bin.png"
                             alt="Delete"
                             class="trash-icon"
                             onclick="deleteRow(<?= $product['product_id'] ?>, this)">
-                    </td>
+                    </td> -->
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -178,15 +195,13 @@ function filterProducts() {
 
     document.querySelectorAll('.product-row').forEach(row => {
         const name = row.querySelector('#pname').value.toLowerCase();
-        const prodMain = row.dataset.main ? row.dataset.main.toLowerCase() : '';
+        const prodSub = row.dataset.sub ? row.dataset.sub.toLowerCase() : '';
         const matchesSearch = name.includes(search);
-        const matchesCategory = category === 'all' || prodMain === category;
-
+        const matchesCategory = category === 'all' || prodSub === category;
         row.style.display = (matchesSearch && matchesCategory) ? 'table-row' : 'none';
     });
 }
 
-// Category buttons
 categoryButtons.forEach(btn => {
     btn.addEventListener('click', () => {
         categoryButtons.forEach(b => b.classList.remove('clicked'));
@@ -198,9 +213,8 @@ categoryButtons.forEach(btn => {
 searchInput.addEventListener("input", filterProducts);
 
 // --- Edit & Save ---
-document.querySelectorAll('.editBtn').forEach(btn => {
-    btn.addEventListener('click', () => toggleEdit(btn));
-});
+document.querySelectorAll('.editBtn').forEach(btn => btn.addEventListener('click', () => toggleEdit(btn)));
+
 function toggleEdit(btn) {
     const row = btn.closest('.product-row');
     const productId = row.dataset.id;
@@ -211,27 +225,14 @@ function toggleEdit(btn) {
     const photo = row.querySelector('.product-photo');
     const fileInput = row.querySelector('.edit-upload');
     const isEditing = !nameInput.disabled;
-    const trashIcon = row.querySelector('.trash-icon');
 
     if (!isEditing) {
-        // ✅ Enable edit mode
+        // Enable edit mode
         [nameInput, priceInput, categorySelect, statusBtn].forEach(el => el.disabled = false);
         row.classList.add('editing');
-        trashIcon.classList.add('visible');
-
-        photo.style.cursor = "pointer";
-        photo.onclick = () => fileInput.click();
-        fileInput.onchange = e => {
-            const file = e.target.files[0];
-            if (file) photo.src = URL.createObjectURL(file);
-        };
-
-        statusBtn.onclick = () => {
-            const newStatus = statusBtn.textContent === "Available" ? "Unavailable" : "Available";
-            statusBtn.innerText = newStatus;
-            statusBtn.classList.remove("Available", "Unavailable");
-            statusBtn.classList.add(newStatus);
-        };
+        btn.textContent = "Save";
+        btn.style.backgroundColor = "#75c277";
+        btn.style.color = "#036d2b";
 
         // Store original values
         row.dataset.originalName = nameInput.value;
@@ -239,11 +240,23 @@ function toggleEdit(btn) {
         row.dataset.originalCategory = categorySelect.value;
         row.dataset.originalStatus = statusBtn.textContent;
 
-        btn.textContent = "Save";
-        btn.style.backgroundColor = "#75c277";
-        btn.style.color = "#036d2b";
+        // Photo upload
+        photo.style.cursor = "pointer";
+        photo.onclick = () => fileInput.click();
+        fileInput.onchange = e => {
+            const file = e.target.files[0];
+            if (file) photo.src = URL.createObjectURL(file);
+        };
 
-        // 🚫 Disable other edit buttons + Add Product
+        // Status toggle
+        statusBtn.onclick = () => {
+            const newStatus = statusBtn.textContent === "Available" ? "Unavailable" : "Available";
+            statusBtn.textContent = newStatus;
+            statusBtn.classList.remove("Available", "Unavailable");
+            statusBtn.classList.add(newStatus);
+        };
+
+        // Disable other edit buttons
         document.querySelectorAll('.editBtn').forEach(b => {
             if (b !== btn) {
                 b.disabled = true;
@@ -251,11 +264,12 @@ function toggleEdit(btn) {
                 b.style.cursor = "not-allowed";
             }
         });
-        document.getElementById("add-product").disabled = true;
-        document.getElementById("add-product").style.opacity = "0.5";
+        const addBtn = document.getElementById("add-product");
+        addBtn.disabled = true;
+        addBtn.style.opacity = "0.5";
 
     } else {
-        // ✅ Save logic (unchanged)
+        // Save changes
         const changed =
             row.dataset.originalName !== nameInput.value ||
             row.dataset.originalPrice !== priceInput.value ||
@@ -265,7 +279,6 @@ function toggleEdit(btn) {
 
         if (!changed) {
             disableRow(row, btn);
-            trashIcon.classList.remove('visible');
             showModal("No changes made.", "warning");
             return;
         }
@@ -286,10 +299,10 @@ function toggleEdit(btn) {
         .then(data => {
             if (data.success) {
                 const updated = data.product;
-                const capStatus = updated.status.charAt(0).toUpperCase() + updated.status.slice(1).toLowerCase();
-                statusBtn.textContent = capStatus;
+                const statusText = updated.status === "Unavailable" ? "Unavailable" : "Available";
+                statusBtn.textContent = statusText;
                 statusBtn.classList.remove("Available", "Unavailable");
-                statusBtn.classList.add(capStatus === "Unavailable" ? "Unavailable" : "Available");
+                statusBtn.classList.add(statusText);
 
                 if (updated.product_picture) {
                     row.querySelector(".product-photo").src = BASE_URL + "public/products/" + updated.product_picture;
@@ -308,22 +321,23 @@ function toggleEdit(btn) {
 }
 
 function disableRow(row, btn) {
-    row.querySelectorAll('#pname, #pprice, .pcategory, #statusBtn')
-        .forEach(el => { el.disabled = true; el.onclick = null; });
-
+    row.querySelectorAll('#pname, #pprice, .pcategory, #statusBtn').forEach(el => {
+        el.disabled = true;
+        el.onclick = null;
+    });
     row.classList.remove('editing');
     btn.textContent = "Edit";
     btn.style.backgroundColor = "#C6C3BD";
     btn.style.color = "#22333B";
 
-    // ✅ Re-enable other buttons + Add Product
     document.querySelectorAll('.editBtn').forEach(b => {
         b.disabled = false;
         b.style.opacity = "1";
         b.style.cursor = "pointer";
     });
-    document.getElementById("add-product").disabled = false;
-    document.getElementById("add-product").style.opacity = "1";
+    const addBtn = document.getElementById("add-product");
+    addBtn.disabled = false;
+    addBtn.style.opacity = "1";
 }
 
 
@@ -430,24 +444,24 @@ function showModal(message, type = "success", autoClose = true, duration = 3000)
     if (autoClose) setTimeout(closeModal, duration);
 }
 
-function deleteRow(productId, icon) {
-    if (!confirm("Are you sure you want to delete this product?")) return;
-    fetch(BASE_URL + "backend/admin/delete_product.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: "product_id=" + encodeURIComponent(productId)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            icon.closest(".product-row").remove();
-            showModal("Product deleted successfully!", "success");
-        } else {
-            showModal("Error: " + data.message, "error");
-        }
-    })
-    .catch(err => showModal("Delete failed: " + err.message, "error"));
-}
+// function deleteRow(productId, icon) {
+//     if (!confirm("Are you sure you want to delete this product?")) return;
+//     fetch(BASE_URL + "backend/admin/delete_product.php", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/x-www-form-urlencoded" },
+//         body: "product_id=" + encodeURIComponent(productId)
+//     })
+//     .then(res => res.json())
+//     .then(data => {
+//         if (data.success) {
+//             icon.closest(".product-row").remove();
+//             showModal("Product deleted successfully!", "success");
+//         } else {
+//             showModal("Error: " + data.message, "error");
+//         }
+//     })
+//     .catch(err => showModal("Delete failed: " + err.message, "error"));
+// }
 function formatCategoryName(str) {
     if (!str) return "";
     return str
@@ -466,4 +480,131 @@ document.querySelectorAll(".pcategory option").forEach(opt => {
 });document.querySelectorAll("#add-category option").forEach(opt => {
     opt.textContent = formatCategoryName(opt.textContent);
 });
+
+const viewArchiveBtn = document.getElementById('view-archive');
+
+viewArchiveBtn.addEventListener('click', () => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('archived') === '1') {
+        url.searchParams.set('archived', '0');
+    } else {
+        url.searchParams.set('archived', '1');
+    }
+    window.location.href = url.toString();
+});
+
+document.querySelectorAll('.archive-icon').forEach(icon => {
+    icon.addEventListener('click', () => {
+        const row = icon.closest('.product-row');
+        const productId = row.dataset.id;
+        const isArchive = 1; 
+
+        const formData = new FormData();
+        formData.append('product_id', productId);
+        formData.append('is_archive', isArchive);
+
+        fetch(BASE_URL + "backend/admin/archive_product.php", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showModal("Product archived!", "success");
+                row.remove(); // remove from active table
+            } else {
+                showModal("Error: " + data.message, "error");
+            }
+        })
+        .catch(err => showModal("Fetch error: " + err.message, "error"));
+    });
+});
+
+// Allowed image types
+const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
+const uploadInput = document.getElementById("uploadInput");
+const newProductPhoto = document.getElementById("new-product-photo");
+
+// File type validation modal
+const fileErrorModal = document.createElement("div");
+fileErrorModal.id = "file-error-modal";
+fileErrorModal.className = "notif-modal";
+fileErrorModal.innerHTML = `
+  <div class="notif-content">
+    <p id="file-error-message"></p>
+    <button id="file-error-close">OK</button>
+  </div>
+`;
+document.body.appendChild(fileErrorModal);
+
+document.getElementById("file-error-close").onclick = () => {
+    fileErrorModal.style.display = "none";
+    uploadInput.value = ""; // Clear invalid file
+};
+
+// Validate file type on selection
+uploadInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        if (!allowedTypes.includes(file.type)) {
+            document.getElementById("file-error-message").textContent = 
+                "Invalid file type. Allowed types: PNG, JPG, JPEG, WEBP.";
+            fileErrorModal.style.display = "flex";
+            return;
+        }
+        // Valid file → show preview
+        newProductPhoto.src = URL.createObjectURL(file);
+    }
+});
+
+// Add product click
+document.getElementById("add").addEventListener("click", () => {
+    const name = document.getElementById("name").value.trim();
+    const price = document.getElementById("price").value.trim();
+    const category = document.getElementById("add-category").value;
+    const status = "Available";
+    const file = uploadInput.files[0];
+
+    if (!name || !price || !category) {
+        showModal("Please fill all fields", "error");
+        return;
+    }
+
+    if (file && !allowedTypes.includes(file.type)) {
+        document.getElementById("file-error-message").textContent = 
+            "Invalid file type. Allowed types: PNG, JPG, JPEG, WEBP.";
+        fileErrorModal.style.display = "flex";
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("product_name", name);
+    formData.append("product_price", price);
+    formData.append("category_id", category);
+    formData.append("status", status);
+    if (file) formData.append("photo", file);
+
+    fetch(BASE_URL + "backend/admin/add_product.php", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showModal("Product added successfully!", "success");
+            document.getElementById("modal").style.display = "none";
+            document.getElementById("name").value = "";
+            document.getElementById("price").value = "";
+            document.getElementById("add-category").value = "";
+            uploadInput.value = "";
+            newProductPhoto.src = "public/assests/image-43.png";
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showModal("Error: " + data.message, "error");
+        }
+    })
+    .catch(err => showModal("Fetch error: " + err.message, "error"));
+});
+
+
 </script>

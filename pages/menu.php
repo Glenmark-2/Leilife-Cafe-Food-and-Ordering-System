@@ -1,6 +1,11 @@
 <?php 
 include "../components/buttonTemplate.php";
+
+// --- Load categories and only active products ---
+$appData->loadCategories();
+$appData->adminloadProducts(false); // false = only active products
 ?>
+
 <div class="menu">
   <!-- Main Category Buttons -->
   <div class="category-buttons">
@@ -37,11 +42,8 @@ include "../components/buttonTemplate.php";
 
       <div class="menu-cards">
         <?php foreach ($appData->products as $product): ?>
-          <?php if (($product['category_name'] ?? '') == $categoryName): ?>
+          <?php if (($product['category_name'] ?? '') === $categoryName): ?>
             <?php
-            // Debug in HTML comments (check in View Source)
-            echo "\n<!-- DEBUG PRODUCT DATA:\n" . print_r($product, true) . "\n-->\n";
-
             $name  = $product['product_name'] ?? '';
             $price = $product['product_price'] ?? 0;
             $image = !empty($product['product_picture'] ?? '')
@@ -59,10 +61,10 @@ include "../components/buttonTemplate.php";
 
 <!-- JS for filtering subcategories by main category -->
 <script>
-  const buttons = document.querySelectorAll('.category-buttons button'); // adjust if your button.php uses <button>
+  const buttons = document.querySelectorAll('.category-buttons button');
   const sections = document.querySelectorAll('.category-section');
 
-  const defaultMainCategory = 'Meal'; // <-- change this to your default main category
+  const defaultMainCategory = 'Meal'; // change this to your default main category
 
   function showCategory(mainCat) {
     sections.forEach(section => {

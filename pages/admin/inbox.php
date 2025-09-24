@@ -1,33 +1,39 @@
 <?php
+session_start();
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
+if (!isset($_SESSION['admin_id'])) {
+  header('Location: /leilife/pages/admin/login-x9P2kL7zQ.php');
+  exit;
+}
+
 $appData = new AppData($pdo);
-$messages = $appData->loadInbox();
-
-
+$archived = $_GET['archived'] ?? 0;
+$messages = $appData->loadInbox($archived);
 ?>
 
+<!-- === First Row (Title + Archive Button) === -->
 <div id="first-row">
   <h2>Inbox</h2>
+  <button id="view-archive"><?= $archived ? "View Inbox" : "View Archive" ?></button>
 </div>
 
-
-
-<div id="box">
-  <!-- Search bar -->
-  <div class="search-container">
+<!-- === Search + Sort Controls === -->
+<div id="search_add">
+  <div class="search-bar">
     <input type="text" id="searchInbox" placeholder="Search messages...">
-    <select id="sortInbox">
-      <option value="unread">Unread</option>
-      <option value="date">Newest</option>
-      <option value="type">By Type</option>
-    </select>
-
   </div>
+  <select id="sortInbox">
+    <option value="unread">Unread</option>
+    <option value="date">Newest</option>
+    <option value="type">By Type</option>
+  </select>
+</div>
 
-  <!-- Inbox Table -->
-  <table class="inbox-table">
+<!-- === Table Container === -->
+<div id="table-container">
+  <table class="staff-table">
     <thead>
       <tr>
         <th>Name</th>
@@ -35,7 +41,7 @@ $messages = $appData->loadInbox();
         <th>Subject</th>
         <th>Type</th>
         <th>Date</th>
-        <th></th>
+        <th style="text-align:center;">Actions</th>
       </tr>
     </thead>
     <tbody id="inboxTableBody">
@@ -47,22 +53,24 @@ $messages = $appData->loadInbox();
             <td><?= htmlspecialchars($msg['subject'] ?? '(No Subject)') ?></td>
             <td><?= ucfirst(htmlspecialchars($msg['type'])) ?></td>
             <td><?= date('Y-m-d H:i', strtotime($msg['created_at'])) ?></td>
-            <td>
+            <td class="actions">
               <button
                 type="button"
-                class="view-btn"
+                class="editBtn"
                 data-message="<?= htmlspecialchars($msg['message']) ?>"
                 data-id="<?= $msg['sender_id'] ?>"
                 onclick="viewMessage(this)">
                 View
               </button>
 
-              <form method="POST" action="/leilife/backend/inbox.php" style="display:inline;">
-                <input type="hidden" name="delete" value="<?= $msg['sender_id'] ?>">
-                <button type="submit" class="delete-btn">Delete</button>
-              </form>
-
+              <button
+                type="button"
+                class="archiveBtn"
+                data-id="<?= $msg['sender_id'] ?>">
+                <img src="public/assests/archive.png" alt="Archive" style="width:24px; height:24px;">
+              </button>
             </td>
+
           </tr>
         <?php endforeach; ?>
       <?php else: ?>
@@ -71,13 +79,10 @@ $messages = $appData->loadInbox();
         </tr>
       <?php endif; ?>
     </tbody>
-
-
-
   </table>
 </div>
 
-<!-- Modal for viewing message -->
+<!-- === Modal for Viewing Message === -->
 <div id="messageModal" class="modal">
   <div class="modal-content">
     <span class="close-btn">&times;</span>
@@ -86,7 +91,15 @@ $messages = $appData->loadInbox();
   </div>
 </div>
 
+
 <script>
+  const BASE_URL = "<?= rtrim((isset($_SERVER['HTTPS']) ? "https" : "http")
+                      . "://$_SERVER[HTTP_HOST]/leilife/", "/") ?>/";
+  console.log("BASE_URL = ", BASE_URL);
+
+
+  // const BASE_URL = "http://localhost/Leilife/";
+
   const modal = document.getElementById("messageModal");
   const closeBtn = document.querySelector(".close-btn");
   const modalMsg = document.getElementById("modalMessage");
@@ -98,30 +111,26 @@ $messages = $appData->loadInbox();
     modalMsg.textContent = msg;
     modal.style.display = "flex";
 
-    // Send AJAX request to mark message as read
-    fetch("/leilife/backend/inbox.php", {
+    fetch(BASE_URL + "backend/admin/archive_message.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
         },
-        body: `mark_read=1&id=${id}` //value that are beeing pass 
+        body: `mark_read=1&id=${id}`
       })
       .then(res => res.text())
-      .then(data => {
-        console.log("Server response:", data);
-        // Update row visually: remove "unread" class
+      .then(() => {
         document.querySelector(`#row-${id}`)?.classList.remove("unread");
       })
       .catch(err => console.error("Fetch error:", err));
   }
 
-
   closeBtn.onclick = () => modal.style.display = "none";
   window.onclick = (e) => {
     if (e.target == modal) modal.style.display = "none";
-  }
+  };
 
-  // Search filter
+  // Search
   document.getElementById("searchInbox").addEventListener("input", function() {
     const filter = this.value.toLowerCase();
     document.querySelectorAll("#inboxTableBody tr").forEach(row => {
@@ -129,7 +138,7 @@ $messages = $appData->loadInbox();
     });
   });
 
-  // Sorting function
+  // Sort
   document.getElementById("sortInbox").addEventListener("change", function() {
     const sortBy = this.value;
     const tbody = document.getElementById("inboxTableBody");
@@ -137,23 +146,45 @@ $messages = $appData->loadInbox();
 
     rows.sort((a, b) => {
       if (sortBy === "unread") {
-        // unread messages (class="unread") go first
         return b.classList.contains("unread") - a.classList.contains("unread");
       }
       if (sortBy === "date") {
-        // compare dates (5th column = created_at)
-        const dateA = new Date(a.cells[4].textContent.trim());
-        const dateB = new Date(b.cells[4].textContent.trim());
-        return dateB - dateA; // newest first
+        return new Date(b.cells[4].textContent) - new Date(a.cells[4].textContent);
       }
       if (sortBy === "type") {
-        // sort alphabetically by type column (4th column)
         return a.cells[3].textContent.localeCompare(b.cells[3].textContent);
       }
       return 0;
     });
 
-    // Re-append rows in new order
     rows.forEach(row => tbody.appendChild(row));
   });
+
+  // View Archive toggle
+  document.getElementById("view-archive").addEventListener("click", () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("archived", <?= $archived ? '0' : '1' ?>);
+    window.location.href = url.toString();
+  });
+
+  // Archive toggle
+document.querySelectorAll(".archiveBtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const id = btn.getAttribute("data-id");
+
+    fetch(BASE_URL + "backend/admin/archive_message.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `toggle_archive=${id}`
+    })
+    .then(res => res.text())
+    .then(data => {
+      console.log("Archive response:", data);
+      // Remove row from table
+      document.querySelector(`#row-${id}`)?.remove();
+    })
+    .catch(err => console.error("Fetch error:", err));
+  });
+});
+
 </script>

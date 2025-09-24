@@ -11,4 +11,4 @@ ALTER TABLE inbox
   ADD COLUMN sentiment VARCHAR(10) NULL AFTER message,
   ADD COLUMN sentiment_score FLOAT NULL AFTER sentiment;
 
-
+-- nobi done

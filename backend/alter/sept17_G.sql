@@ -7,3 +7,5 @@ ADD COLUMN payment_status ENUM('unpaid','paid','failed','refunded') DEFAULT 'unp
 ALTER TABLE order_items
 ADD COLUMN size ENUM('medium','large') NULL,
 ADD COLUMN flavor_ids VARCHAR(100) NULL;
+
+-- nobi done

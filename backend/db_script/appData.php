@@ -55,30 +55,34 @@ if (!class_exists('AppData')) {
     ");
             $this->products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
-        public function adminloadProducts()
-        {
-            $stmt = $this->db->query("
-        SELECT DISTINCT
-    p.product_id, 
-    p.category_id,   
-    p.product_name, 
-    p.product_price, 
-    p.price_large,
-    p.status, 
-    p.product_picture,
-    c.category_name, 
-    c.main_category_id,
-    mc.main_category_name
-FROM products p
-JOIN categories c 
-    ON p.category_id = c.category_id
-JOIN categories mc
-    ON c.main_category_id = mc.main_category_id;
 
+        public function adminloadProducts($archived = false)
+        {
+            // 0 = active, 1 = archived
+            $isArchive = $archived ? 1 : 0;
+
+            $stmt = $this->db->prepare("
+        SELECT DISTINCT
+            p.product_id, 
+            p.category_id,   
+            p.product_name, 
+            p.product_price, 
+            p.price_large,
+            p.status, 
+            p.product_picture,
+            c.category_name, 
+            c.main_category_id,
+            mc.main_category_name
+        FROM products p
+        JOIN categories c 
+            ON p.category_id = c.category_id
+        JOIN categories mc
+            ON c.main_category_id = mc.main_category_id
+        WHERE p.is_archive = :is_archive
     ");
+            $stmt->execute(['is_archive' => $isArchive]);
             $this->products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
-
 
         // --- Orders ---
         public function loadOrders()
@@ -125,11 +129,12 @@ JOIN categories mc
             return ($row && !empty($row['password_hash']));
         }
 
-        public function loadInbox()
+        public function loadInbox($archived = 0)
         {
-            $stmt = $this->db->prepare("SELECT * FROM inbox WHERE is_archived = 0 ORDER BY created_at DESC");
+            $stmt = $this->db->prepare("SELECT * FROM inbox WHERE is_archived = :archived ORDER BY created_at DESC");
+            $stmt->bindParam(":archived", $archived, PDO::PARAM_INT);
             $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC); 
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
     }
 }

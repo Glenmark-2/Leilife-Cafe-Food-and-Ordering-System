@@ -1,4 +1,25 @@
+#first-row {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
+#view-archive {
+    height: fit-content;
+    padding: 6px 12px;
+    border: none;
+    background-color: #4caf50;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+#view-archive:hover {
+    background-color: #45a049;
+}
 
 #second-row {
     display: flex;
@@ -60,6 +81,7 @@
 }
 #table-container {
   max-height: 500px;
+  min-height: 500px;
   overflow-y: auto;
   border: 1px solid #ddd;
   border-radius: 12px;
@@ -785,3 +807,20 @@ select {
         height: 40px;
     }
 }
+
+    .archive-icon {
+        width: 20px;
+        margin: auto;
+        filter: brightness(0.5);
+        /* gray initially */
+        cursor: pointer;
+        transition: filter 0.2s;
+    }
+
+    .archive-icon:hover {
+        filter: brightness(0);
+        /* black on hover */
+    }
+
+
+    

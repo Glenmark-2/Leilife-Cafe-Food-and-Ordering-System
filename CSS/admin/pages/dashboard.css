@@ -230,3 +230,89 @@
 }
 
 
+/* Welcome Modal Styles */
+.modal {
+    display: none; /* hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+
+    /* Flexbox centering */
+    display: flex;
+    justify-content: center; /* horizontal center */
+    align-items: center;     /* vertical center */
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 30px 20px;
+    border-radius: 12px;
+    width: 400px;
+    max-width: 90%;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-content h2 {
+    margin-bottom: 15px;
+}
+
+.modal-content button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: #a6927b;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.modal-content button:hover {
+    background-color: #5e4f3e;
+}
+
+.close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    color: #888;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .modal-content {
+        width: 90%;
+        padding: 20px 15px;
+    }
+    .modal-content h2 {
+        font-size: 1.2rem;
+    }
+    .modal-content button {
+        font-size: 13px;
+        padding: 8px 16px;
+    }
+}
+
+@media (max-width: 400px) {
+    .modal-content h2 {
+        font-size: 1rem;
+    }
+    .modal-content button {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+}
+

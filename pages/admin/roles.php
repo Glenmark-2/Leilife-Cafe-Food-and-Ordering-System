@@ -1,105 +1,86 @@
 <?php
+session_start();
 require_once __DIR__ . '/../../backend/db_script/db.php';
+if (!isset($_SESSION['admin_id'])) {
+    header('Location: /leilife/pages/admin/login-x9P2kL7zQ.php');
+    exit;
+}
 
-// Fetch all staff roles
-$stmt = $pdo->query("SELECT * FROM staff_roles");
+$showArchived = $_GET['archived'] ?? 0; // 0 = active, 1 = archived
+$stmt = $pdo->prepare("SELECT * FROM staff_roles WHERE is_archive = :archived");
+$stmt->execute(['archived' => $showArchived]);
 $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <div id="first-row">
     <h2>Staff</h2>
+    <button type="button" id="view-archive"><span><?= $showArchived ? "View Active" : "View Archive" ?></span></button>
 </div>
 
 <div id="third-row">
     <div id="search_add">
         <form class="search-bar" role="search">
-            <input
-                type="search"
-                id="search-input"
-                placeholder="🔍 Search staff"
-                aria-label="Search staff">
+            <input type="search" id="search-input" placeholder="🔍 Search staff" aria-label="Search staff">
         </form>
-
-        <button type="button" id="add-member"><span>+ Add new member</span></button>
+        <div>
+            <button type="button" class="add" id="add-member"><span>+ Add new member</span></button>
+            <button type="button" class="add" id="add-admin"><span>+ Add new admin</span></button>
+        </div>
     </div>
 
     <div id="table-container">
         <table class="staff-table">
             <thead>
                 <tr>
-                    <th><input type="checkbox" class="checkbox"></th>
                     <th>Name</th>
-                    <th>Role</th>
+                    <th>Position</th>
                     <th>Shift</th>
-                    <th></th>
                     <th>Status</th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
+                    <th style="text-align:center">Actions</th>
                 </tr>
             </thead>
             <tbody id="staff-content">
                 <?php foreach ($staffRoles as $staff): ?>
-                <tr class="staff-row" data-id="<?= $staff['staff_id'] ?>">
-                    <td><input type="checkbox" class="checkbox"></td>
+                    <tr class="staff-row" data-id="<?= isset($staff['staff_id']) ? htmlspecialchars($staff['staff_id']) : '' ?>">
+                        <td>
+                            <div class="name-cell">
+                                <label class="photo-wrapper">
+                                    <img class="profile-photo"
+                                        src="<?= !empty($staff['staff_image']) ? "public/staffs/" . $staff['staff_image'] : "public/assests/about us.png" ?>"
+                                        alt="profile-photo">
+                                    <input type="file" class="photoInput" accept="image/*" style="display:none;" disabled>
+                                </label>
+                                <div>
+                                    <input type="text" class="inputData" value="<?= htmlspecialchars($staff['staff_name']) ?>" disabled>
+                                    <p class="staff-id">#<?= htmlspecialchars($staff['staff_id']) ?></p>
+                                </div>
+                            </div>
+                        </td>
 
-                    <!-- Name -->
-                   <!-- Name -->
-<td>
-    <div class="name-cell">
-        <label class="photo-wrapper">
-            <img class="profile-photo"
-                src="<?= !empty($staff['staff_image'])
-                        ? "public/staffs/" . $staff['staff_image']
-                        : "public/assests/about us.png" ?>"
-                alt="profile-photo">
-            <input type="file" class="photoInput" accept="image/*" style="display:none;" disabled>
-        </label>
-        <div>
-            <input type="text" class="inputData"
-                value="<?= htmlspecialchars($staff['staff_name']) ?>" disabled>
-            <p class="staff-id">#<?= htmlspecialchars($staff['staff_id']) ?></p>
-        </div>
-    </div>
-</td>
+                        <td>
+                            <input type="text" class="inputData" value="<?= htmlspecialchars($staff['staff_role']) ?>" disabled>
+                        </td>
 
+                        <td>
+                            <select class="pcategory" disabled>
+                                <option value="Day" <?= $staff['shift'] == 'Day' ? 'selected' : '' ?>>Day</option>
+                                <option value="Night" <?= $staff['shift'] == 'Night' ? 'selected' : '' ?>>Night</option>
+                            </select>
+                        </td>
 
-                    <!-- Role -->
-                    <td>
-                        <input type="text" class="inputData"
-                            value="<?= htmlspecialchars($staff['staff_role']) ?>" disabled>
-                    </td>
+                        <td>
+                            <button type="button"
+                                class="statusBtn <?= strtolower($staff['status']) === 'active' ? 'active' : 'inactive' ?>"
+                                disabled>
+                                <?= ucfirst($staff['status']) ?>
+                            </button>
+                        </td>
 
-                    <!-- Shift -->
-                    <td>
-                        <select class="pcategory" disabled>
-                            <option value="Day" <?= $staff['shift']=='Day'?'selected':'' ?>>Day</option>
-                            <option value="Night" <?= $staff['shift']=='Night'?'selected':'' ?>>Night</option>
-                        </select>
-                    </td>
-
-                    <!-- Status -->
-                    <td>
-                       <td>
-    <button type="button"
-        class="statusBtn <?= strtolower($staff['status']) === 'available' ? 'available' : 'unavailable' ?>"
-        disabled>
-        <?= ucfirst($staff['status']) ?>
-    </button>
-</td>
-                    </td>
-                    <!-- Edit -->
-                    <td class="actions-cell">
-    <button class="editBtn" type="button">Edit</button>
-</td>
-<td>
-    <img src="public/assests/trash-bin.png"
-         alt="Delete"
-         class="trash-icon hidden"
-         onclick="deleteRow(<?= $staff['staff_id'] ?>)">
-</td>
-
-                </tr>
+                        <td class="actions-cell">
+                            <button class="editBtn" type="button">Edit</button>
+                            <img src="public/assests/archive.png" alt="Archive" class="archive-icon">
+                        </td>
+                    </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
@@ -107,17 +88,17 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 
-<!-- Modal -->
+<!-- Add Staff Modal -->
 <div id="modal">
     <div id="new-product-modal">
         <div id="left">
             <img id="new-product-photo" src="public/assests/uploadImg.jpg" alt="photo">
-              <input type="file" id="uploadInput" style="display:none;" accept="image/*">
+            <input type="file" id="uploadInput" style="display:none;" accept="image/*">
             <button id="uploadBtn">Upload Photo</button>
         </div>
 
         <div id="right">
-            <form>
+            <form id="staff-form">
                 <div class="form-row">
                     <label for="name">Name:</label>
                     <input type="text" id="name" name="name" required>
@@ -125,7 +106,13 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <div class="form-row">
                     <label for="role">Role:</label>
-                    <input type="text" id="role" name="role" required>
+                    <select id="role" name="role" required>
+                        <option value="">Select position</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Cashier">Cashier</option>
+                        <option value="Chef">Chef</option>
+                        <option value="Cleaner">Cleaner</option>
+                    </select>
                 </div>
 
                 <div class="form-row">
@@ -136,11 +123,10 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <option value="Night">Night</option>
                     </select>
                 </div>
-                
 
                 <div class="form-row status-row">
                     <label>Status:</label>
-                    <div id="available">Available</div>
+                    <div id="status-default">Active</div>
                 </div>
 
                 <div id="buttons">
@@ -152,242 +138,363 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 </div>
 
+<!-- Add Admin Modal -->
+<div id="admin-modal">
+    <div class="modal-card">
+        <button class="modal-close" id="cancel-admin-btn">&times;</button>
+
+        <div class="photo-section">
+            <img id="admin-photo-preview" src="public/assests/uploadImg.jpg" alt="Admin Photo">
+            <input type="file" id="admin-upload-input" name="photo" accept="image/*" style="display:none;">
+            <button type="button" id="admin-upload-btn">Upload Photo</button>
+        </div>
+
+        <div class="form-section">
+            <h2>Add New Admin</h2>
+            <form id="admin-form">
+                <div class="form-row">
+                    <label for="admin-name">Full Name</label>
+                    <input type="text" id="admin-name" placeholder="John Doe" required>
+                </div>
+
+                <div class="form-row">
+                    <label>Role</label>
+                    <input type="text" value="Admin" disabled>
+                </div>
+
+                <div class="form-row">
+                    <label>Status</label>
+                    <input type="text" value="Active" disabled>
+                </div>
+
+                <div class="form-row">
+                    <label for="admin-shift">Shift</label>
+                    <select id="admin-shift" required>
+                        <option value="">Select shift</option>
+                        <option value="Day">Day</option>
+                        <option value="Night">Night</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <label for="admin-username">Username</label>
+                    <input type="text" id="admin-username" placeholder="admin123" required>
+                </div>
+
+                <div class="form-row">
+                    <label for="admin-email">Email</label>
+                    <input type="email" id="admin-email" placeholder="admin@example.com" required>
+                </div>
+
+                <div class="form-row">
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" placeholder="Enter password" required>
+                    <div class="password-meter">
+                        <div id="password-strength-bar"></div>
+                    </div>
+                    <p id="password-strength-text">Weak</p>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="submit" id="add-admin-btn">Add Admin</button>
+                    <button type="button" id="cancel-admin-btn-2">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 const BASE_URL = "http://localhost/Leilife/";
 
-// ---- Live search ----
-const searchInput = document.getElementById('search-input');
-const staffRows = document.querySelectorAll('.staff-row');
-searchInput.addEventListener('input', () => {
-    const search = searchInput.value.toLowerCase();
-    staffRows.forEach(row => {
-        const name = row.querySelector('.name-cell .inputData').value.toLowerCase();
-        row.style.display = name.includes(search) ? 'table-row' : 'none';
-    });
-});
-
-// ---- Edit & Save ----
-document.querySelectorAll('.editBtn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const row = btn.closest('.staff-row');
-        const nameInput = row.querySelector('.name-cell .inputData');
-        const roleInput = row.querySelector('td:nth-child(3) .inputData');
-        const shiftSelect = row.querySelector('.pcategory');
-        const statusBtn = row.querySelector('.statusBtn');
-        const photo = row.querySelector('.profile-photo');
-        const photoInput = row.querySelector('.photoInput');
-        const trashIcon = row.querySelector('.trash-icon');
-        const isEditing = !nameInput.disabled;
-
-        if (!isEditing) {
-            // --- ENTER EDIT MODE ---
-            [nameInput, roleInput, shiftSelect, statusBtn, photoInput].forEach(el => el.disabled = false);
-            photo.classList.add('editable');
-            trashIcon.classList.remove("hidden");
-
-            btn.textContent = 'Save';
-            btn.style.backgroundColor = '#75c277';
-            btn.style.color = '#036d2b';
-
-            // 🚫 disable all other edit buttons + add-member
-            document.querySelectorAll('.editBtn').forEach(b => {
-                if (b !== btn) {
-                    b.disabled = true;
-                    b.style.opacity = "0.5";
-                    b.style.cursor = "not-allowed";
-                }
-            });
-            document.getElementById("add-member").disabled = true;
-            document.getElementById("add-member").style.opacity = "0.5";
-
-            // Preview photo when selected
-            photoInput.addEventListener('change', e => {
-                const file = e.target.files[0];
-                if (file) {
-                    photo.src = URL.createObjectURL(file);
-                    photo.dataset.newFile = file.name;
-                }
-            });
-
-            // Clicking image opens file picker
-            photo.addEventListener('click', () => {
-                if (!photoInput.disabled) photoInput.click();
-            });
-
-        } else {
-            // --- SAVE MODE ---
-            [nameInput, roleInput, shiftSelect, statusBtn, photoInput].forEach(el => el.disabled = true);
-            photo.classList.remove('editable');
-            trashIcon.classList.add("hidden");
-
-            btn.textContent = 'Edit';
-            btn.style.backgroundColor = '#C6C3BD';
-            btn.style.color = '#22333B';
-
-            // ✅ re-enable all buttons
-            document.querySelectorAll('.editBtn').forEach(b => {
-                b.disabled = false;
-                b.style.opacity = "1";
-                b.style.cursor = "pointer";
-            });
-            document.getElementById("add-member").disabled = false;
-            document.getElementById("add-member").style.opacity = "1";
-
-            // Save to backend
-            const staffId = row.dataset.id;
-            const formData = new FormData();
-            formData.append("id", staffId);
-            formData.append("name", nameInput.value);
-            formData.append("role", roleInput.value);
-            formData.append("shift", shiftSelect.value);
-            formData.append("status", statusBtn.textContent.trim());
-            if (photoInput.files[0]) formData.append("photo", photoInput.files[0]);
-
-            fetch(BASE_URL + "backend/admin/update_staff.php", {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showModal("Staff updated successfully!", "success");
-                } else {
-                    showModal("Update failed: " + data.message, "error");
-                }
-            })
-            .catch(err => showModal("Fetch error: " + err.message, "error"));
-        }
-    });
-});
-
-// ---- Status toggle ----
-document.querySelectorAll('.statusBtn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        if (!btn.disabled) {
-            if (btn.textContent.trim() === 'Available') {
-                btn.textContent = 'Unavailable';
-                btn.classList.remove('available');
-                btn.classList.add('unavailable');
-            } else {
-                btn.textContent = 'Available';
-                btn.classList.remove('unavailable');
-                btn.classList.add('available');
-            }
-        }
-    });
-});
-
-// ---- Modal (Add new member) ----
+// --- Staff Modal ---
+const staffModal = document.getElementById("modal");
 const addMember = document.getElementById("add-member");
-const modal = document.getElementById("modal");
 const cancel = document.getElementById("cancel");
+addMember.addEventListener('click', () => staffModal.style.display = "flex");
+cancel.addEventListener('click', () => staffModal.style.display = "none");
 
-addMember.addEventListener('click', () => modal.style.display = "flex");
-cancel.addEventListener('click', () => modal.style.display = "none");
-
-// File upload preview inside modal
-document.getElementById("uploadBtn").addEventListener("click", () => {
-    document.getElementById("uploadInput").click();
-});
-document.getElementById("uploadInput").addEventListener("change", (e) => {
+document.getElementById("uploadBtn").addEventListener("click", () => document.getElementById("uploadInput").click());
+document.getElementById("uploadInput").addEventListener("change", e => {
     const file = e.target.files[0];
-    if (file) {
-        document.getElementById("new-product-photo").src = URL.createObjectURL(file);
-    }
+    if(file) document.getElementById("new-product-photo").src = URL.createObjectURL(file);
 });
 
-// ---- Add staff ----
+// Add Staff
 document.getElementById("add").addEventListener("click", () => {
-    const name   = document.getElementById("name").value.trim();
-    const role   = document.getElementById("role").value.trim();
-    const shift  = document.getElementById("category").value;
-    const status = "Available";
-    const file   = document.getElementById("uploadInput").files[0];
+    const name = document.getElementById("name").value.trim();
+    const role = document.getElementById("role").value.trim();
+    const shift = document.getElementById("category").value;
+    const status = "Active";
+    const file = document.getElementById("uploadInput").files[0];
 
-    if (!name || !role || !shift) {
-        showModal("Please fill all fields", "error");
-        return;
-    }
+    if (!name || !role || !shift) { showModal("Please fill all fields", "error"); return; }
 
     const formData = new FormData();
     formData.append("name", name);
     formData.append("role", role);
     formData.append("shift", shift);
     formData.append("status", status);
-    if (file) formData.append("photo", file);
+    if(file) formData.append("photo", file);
 
-    fetch(BASE_URL + "backend/admin/add_staff.php", {
-        method: "POST",
-        body: formData
-    })
+    fetch(BASE_URL + "backend/admin/add_staff.php", { method: "POST", body: formData })
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
+        if(data.success) {
             showModal("Staff added successfully!", "success");
-            modal.style.display = "none";
-            setTimeout(() => location.reload(), 1000); // refresh after add
-        } else {
-            showModal("Error: " + data.message, "error");
-        }
+            staffModal.style.display = "none";
+            setTimeout(() => location.reload(), 1000);
+        } else showModal("Error: " + data.message, "error");
     })
     .catch(err => showModal("Fetch error: " + err.message, "error"));
 });
 
-// ---- Delete staff ----
-function deleteRow(staffId) {
-    if (!confirm("Are you sure you want to delete this staff?")) return;
-    fetch(BASE_URL + "backend/admin/delete_staff.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: "id=" + encodeURIComponent(staffId)
-    })
+// --- Admin Modal ---
+const adminModal = document.getElementById('admin-modal');
+document.getElementById('add-admin').addEventListener('click', () => adminModal.style.display = 'flex');
+document.getElementById('cancel-admin-btn').addEventListener('click', () => adminModal.style.display = 'none');
+document.getElementById('cancel-admin-btn-2').addEventListener('click', () => adminModal.style.display = 'none');
+
+const adminUploadBtn = document.getElementById('admin-upload-btn');
+const adminUploadInput = document.getElementById('admin-upload-input');
+const adminPhotoPreview = document.getElementById('admin-photo-preview');
+adminUploadBtn.addEventListener('click', () => adminUploadInput.click());
+adminUploadInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if(file) adminPhotoPreview.src = URL.createObjectURL(file);
+});
+
+// Password strength
+const passwordInput = document.getElementById('admin-password');
+const strengthMeter = document.getElementById('password-strength-bar');
+const strengthText = document.getElementById('password-strength-text');
+
+passwordInput.addEventListener('input', () => {
+    const val = passwordInput.value;
+    let strength = 0;
+    if(val.length >= 8) strength++;
+    if(/[A-Z]/.test(val)) strength++;
+    if(/[0-9]/.test(val)) strength++;
+    if(/[\W]/.test(val)) strength++;
+
+    const percent = (strength / 4) * 100;
+    strengthMeter.style.width = percent + "%";
+
+    const colors = ['#e74c3c','#f39c12','#f1c40f','#2ecc71','#27ae60'];
+    strengthMeter.style.backgroundColor = colors[strength];
+
+    const strengthTextMap = ["Weak","Fair","Good","Strong","Very Strong"];
+    strengthText.textContent = strengthTextMap[strength];
+});
+
+// Add Admin AJAX
+document.getElementById('admin-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('admin-name').value.trim();
+    const shift = document.getElementById('admin-shift').value;
+    const username = document.getElementById('admin-username').value.trim();
+    const email = document.getElementById('admin-email').value.trim();
+    const password = passwordInput.value;
+    const photo = adminUploadInput.files[0];
+
+    if(!name || !shift || !username || !email || !password) {
+        showModal("Please fill all fields.", "error");
+        return;
+    }
+    if(password.length < 8) { showModal("Password must be at least 8 characters.", "error"); return; }
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("role", "Admin");
+    formData.append("shift", shift);
+    formData.append("username", username);
+    formData.append("email", email);
+    formData.append("password", password);
+    if(photo) formData.append("photo", photo);
+
+    fetch(BASE_URL + "backend/admin/add_admin.php", { method:"POST", body: formData })
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
-            showModal("Staff deleted successfully!", "success");
-            document.querySelector(`tr[data-id="${staffId}"]`).remove();
-        } else {
-            showModal("Delete failed: " + data.message, "error");
-        }
+        if(data.success) {
+            showModal("Admin added successfully!", "success");
+            adminModal.style.display = 'none';
+            setTimeout(()=> location.reload(),1000);
+        } else showModal("Error: " + data.message, "error");
     })
-    .catch(err => showModal("Fetch error: " + err.message, "error"));
+    .catch(err=>showModal("Fetch error: "+err.message,"error"));
+});
+
+// --- Notifications ---
+function showModal(message, type="success", autoClose=true, duration=3000){
+    let modal = document.getElementById("notif-modal");
+    if(!modal){
+        modal = document.createElement("div");
+        modal.id = "notif-modal";
+        modal.className = "notif-modal";
+        modal.innerHTML = `<div class="notif-content"><p id="notif-message"></p><button id="notif-close">OK</button></div>`;
+        document.body.appendChild(modal);
+        const style = document.createElement("style");
+        style.innerHTML = `
+        .notif-modal{display:none;position:fixed;z-index:10000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.4);justify-content:center;align-items:center;}
+        .notif-content{background:white;padding:20px 30px;border-radius:10px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.3);min-width:250px;animation:popin 0.3s ease;}
+        .notif-content p{margin-bottom:15px;font-size:16px;}
+        .notif-content button{padding:6px 16px;border:none;border-radius:6px;cursor:pointer;font-size:14px;color:white;}
+        .notif-content button.success{background:#4caf50;}
+        .notif-content button.error{background:#f44336;}
+        @keyframes popin{from{transform:scale(0.8);opacity:0;}to{transform:scale(1);opacity:1;}}
+        `;
+        document.head.appendChild(style);
+    }
+    document.getElementById("notif-message").textContent = message;
+    const closeBtn = document.getElementById("notif-close");
+    closeBtn.className = type==="success"?"success":"error";
+    modal.style.display = "flex";
+    const closeModal = () => modal.style.display = "none";
+    closeBtn.onclick = closeModal;
+    modal.onclick = e => { if(e.target===modal) closeModal(); };
+    if(autoClose) setTimeout(closeModal,duration);
 }
 
-// ---- Notification modal ----
-function showModal(message, type = "success", autoClose = true, duration = 3000) {
-  let modal = document.getElementById("notif-modal");
-  if (!modal) {
-    modal = document.createElement("div");
-    modal.id = "notif-modal";
-    modal.className = "notif-modal";
-    modal.innerHTML = `
-      <div class="notif-content">
-        <p id="notif-message"></p>
-        <button id="notif-close">OK</button>
-      </div>
-    `;
-    document.body.appendChild(modal);
-    const style = document.createElement("style");
-    style.innerHTML = `
-      .notif-modal { display:none; position:fixed; z-index:10000; left:0; top:0;
-        width:100%; height:100%; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; }
-      .notif-content { background:white; padding:20px 30px; border-radius:10px; text-align:center;
-        box-shadow:0 4px 10px rgba(0,0,0,0.3); min-width:250px; animation:popin 0.3s ease; }
-      .notif-content p { margin-bottom:15px; font-size:16px; }
-      .notif-content button { padding:6px 16px; border:none; border-radius:6px; cursor:pointer; font-size:14px; color:white; }
-      .notif-content button.success { background:#4caf50; }
-      .notif-content button.error { background:#f44336; }
-      @keyframes popin { from { transform:scale(0.8); opacity:0; } to { transform:scale(1); opacity:1; } }
-    `;
-    document.head.appendChild(style);
-  }
-  document.getElementById("notif-message").textContent = message;
-  const closeBtn = document.getElementById("notif-close");
-  closeBtn.className = type === "success" ? "success" : "error";
-  modal.style.display = "flex";
-  const closeModal = () => modal.style.display = "none";
-  closeBtn.onclick = closeModal;
-  modal.onclick = (e) => { if (e.target === modal) closeModal(); };
-  if (autoClose) setTimeout(closeModal, duration);
-}
+// --- Search Staff ---
+const searchInput = document.getElementById('search-input');
+const staffRows = document.querySelectorAll('.staff-row');
+searchInput.addEventListener('input', () => {
+    const search = searchInput.value.toLowerCase();
+    staffRows.forEach(row=>{
+        const name = row.querySelector('.name-cell .inputData').value.toLowerCase();
+        row.style.display = name.includes(search)? 'table-row':'none';
+    });
+});
+
+// --- Edit / Save ---
+document.querySelectorAll('.editBtn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+        const row = btn.closest('.staff-row');
+        const nameInput = row.querySelector('.name-cell .inputData');
+        const photo = row.querySelector('.profile-photo');
+        const photoInput = row.querySelector('.photoInput');
+        const archiveIcon = row.querySelector('.archive-icon');
+        const statusBtn = row.querySelector('.statusBtn');
+        const shiftSelect = row.querySelector('.pcategory');
+        const roleCell = row.querySelector('td:nth-child(2) .inputData');
+
+        const isEditing = !nameInput.disabled;
+
+        if(!isEditing){
+            // Enter edit mode
+            nameInput.disabled = false;
+            photoInput.disabled = false;
+            archiveIcon.style.filter = 'brightness(0)';
+            statusBtn.disabled = false;
+            shiftSelect.disabled = false;
+
+            const currentRole = roleCell.value;
+            const roleDropdown = document.createElement('select');
+            roleDropdown.className = 'roleDropdown';
+            ['Manager','Cashier','Chef','Cleaner'].forEach(r=>{
+                const opt = document.createElement('option'); opt.value=r; opt.textContent=r;
+                if(r===currentRole) opt.selected=true;
+                roleDropdown.appendChild(opt);
+            });
+            roleCell.replaceWith(roleDropdown);
+
+            photo.onclick = ()=>{ if(!photoInput.disabled) photoInput.click(); };
+            photoInput.onchange = e => { const file=e.target.files[0]; if(file) photo.src=URL.createObjectURL(file); };
+
+            btn.textContent='Save'; btn.classList.add('editing');
+            document.querySelectorAll('.editBtn').forEach(b=>{ if(b!==btn){b.disabled=true;b.style.opacity=0.5;b.style.cursor='not-allowed';} });
+            document.getElementById('add-member').disabled=true; document.getElementById('add-member').style.opacity=0.5;
+
+        } else {
+            // Save
+            nameInput.disabled=true; photoInput.disabled=true; archiveIcon.style.filter='brightness(0.5)'; statusBtn.disabled=true; shiftSelect.disabled=true;
+
+            const roleDropdown = row.querySelector('.roleDropdown');
+            const newRole = roleDropdown.value;
+            const roleInput = document.createElement('input');
+            roleInput.type='text'; roleInput.className='inputData'; roleInput.value=newRole; roleInput.disabled=true;
+            roleDropdown.replaceWith(roleInput);
+
+            btn.textContent='Edit'; btn.classList.remove('editing');
+            document.querySelectorAll('.editBtn').forEach(b=>{ b.disabled=false;b.style.opacity=1;b.style.cursor='pointer'; });
+            document.getElementById('add-member').disabled=false; document.getElementById('add-member').style.opacity=1;
+
+            const staffId = row.dataset.id;
+            const updatedData = {
+                id: staffId,
+                name: nameInput.value,
+                role: newRole,
+                shift: shiftSelect.value,
+                status: statusBtn.textContent.trim()
+            };
+            const photoFile = photoInput.files[0];
+            const formData = new FormData();
+            Object.entries(updatedData).forEach(([k,v])=>formData.append(k,v));
+            if(photoFile) formData.append("photo", photoFile);
+
+            fetch(BASE_URL+"backend/admin/update_staff.php",{method:"POST",body:formData})
+            .then(res=>res.json())
+            .then(data=> showModal(data.success? "Staff updated successfully!":"Error: "+data.message, data.success? "success":"error"))
+            .catch(err=>showModal("Fetch error: "+err.message,"error"));
+        }
+    });
+});
+
+// --- Toggle Status ---
+document.querySelectorAll('.statusBtn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+        if(!btn.disabled){
+            if(btn.textContent.trim()==='Active'){
+                btn.textContent='Inactive';
+                btn.classList.replace('active','inactive');
+            } else {
+                btn.textContent='Active';
+                btn.classList.replace('inactive','active');
+            }
+        }
+    });
+});
+
+const viewArchiveBtn = document.getElementById('view-archive');
+
+// Toggle between archived/active using URL search params
+viewArchiveBtn.addEventListener('click', () => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('archived') === '1') {
+        url.searchParams.set('archived', '0');
+    } else {
+        url.searchParams.set('archived', '1');
+    }
+    window.location.href = url.toString();
+});
+
+// Archive staff
+document.querySelectorAll('.archive-icon').forEach(icon => {
+    icon.addEventListener('click', () => {
+        const row = icon.closest('.staff-row');
+        const staffId = row.dataset.id;
+
+        if (!staffId) { showModal("Error: Missing staff ID", "error"); return; }
+
+        const formData = new FormData();
+        formData.append('staff_id', staffId);
+        formData.append('is_archive', 1); // mark as archived
+
+        fetch(BASE_URL + "backend/admin/archive_staff.php", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showModal("Staff archived!", "success");
+                row.remove(); // remove from table immediately
+            } else {
+                showModal("Error: " + data.message, "error");
+            }
+        })
+        .catch(err => showModal("Fetch error: " + err.message, "error"));
+    });
+});
+
 </script>

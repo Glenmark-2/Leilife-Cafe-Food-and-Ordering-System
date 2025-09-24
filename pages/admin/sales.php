@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (!isset($_SESSION['admin_id'])) {
+    header('Location: /leilife/pages/admin/login-x9P2kL7zQ.php');
+    exit;
+}
 // Dummy data (replace with DB queries)
 $totalSales = 10;
 $totalOrders = 10;

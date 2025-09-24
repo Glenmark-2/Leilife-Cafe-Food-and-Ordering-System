@@ -1,7 +1,26 @@
 
 
 #first-row {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#view-archive {
+    height: fit-content;
+    padding: 6px 12px;
+    border: none;
+    background-color: #4caf50;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+#view-archive:hover {
+    background-color: #45a049;
 }
 
 .search-bar {
@@ -79,7 +98,7 @@
   margin-bottom: 10px;
 }
 
-#add-member {
+.add {
   background-color: #4CAF50;
   color: white;
   border: none;
@@ -89,8 +108,9 @@
   cursor: pointer;
   transition: background-color 0.2s;
 }
-#add-member:hover {
-  background-color: #43a047;
+.add:hover {
+  background-color: #5e4f3e;
+  color: #e8e5d2;
 }
 
 /* === Table container === */
@@ -99,7 +119,8 @@
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   overflow-x: auto;
-  max-height: 600px;
+  max-height: 500px;
+  min-height: 500px;
 }
 
 /* === Staff table === */
@@ -147,6 +168,7 @@
 }
 
 /* === Status button === */
+/* === Status button === */
 .statusBtn {
   padding: 6px 14px;
   border-radius: 20px;
@@ -156,14 +178,19 @@
   display: inline-block;
   margin: auto;
 }
-.statusBtn.available {
-  background: #27ae60;
+
+/* Active */
+.statusBtn.active {
+  background: #27ae60; /* green */
   color: #fff;
 }
-.statusBtn.unavailable {
-  background: #e74c3c;
+
+/* Inactive */
+.statusBtn.inactive {
+  background: #e74c3c; /* red */
   color: #fff;
 }
+
 
 /* === Edit button === */
 .editBtn {
@@ -321,4 +348,207 @@ font-size: 12px;
     font-size: 11px;
     padding: 4px 10px;
   }
+}
+
+.editBtn.editing {
+    background-color: #75c277;
+    color: #fff;
+    border: none;
+}
+
+.editBtn.editing:hover {
+  background: #66ad68;   /* darker green on hover */
+}
+
+    .archive-icon {
+        width: 20px;
+        margin: auto;
+        filter: brightness(0.5);
+        /* gray initially */
+        cursor: pointer;
+        transition: filter 0.2s;
+    }
+
+    .archive-icon:hover {
+        filter: brightness(0);
+        /* black on hover */
+    }
+
+
+
+/* Overlay */
+#admin-modal {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+    font-family:"Segoe UI",sans-serif;
+}
+
+/* Card */
+.modal-card {
+    background:#ffffff; /* nude background */
+    border-radius:18px;
+    width:380px;
+    max-width:90%;
+    box-shadow:0 10px 30px rgba(0,0,0,0.25);
+    padding:20px 25px;
+    position:relative;
+    animation:popIn 0.3s ease;
+}
+
+/* Close button */
+.modal-close {
+    position:absolute;
+    top:10px;
+    right:15px;
+    font-size:22px;
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:#a1866f;
+    transition:0.2s;
+}
+.modal-close:hover { color:#7a5e46; }
+
+/* Photo Section */
+.photo-section {
+    display: flex;
+    flex-direction: column;  /* stack vertically */
+    align-items: center;     /* horizontal centering */
+    justify-content: center; /* vertical centering */
+    gap: 12px;               /* spacing between photo and button */
+    margin-bottom: 20px;
+}
+.photo-section img {
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    object-fit:cover;
+    border:3px solid #d8c3a5;
+    margin-bottom:10px;
+}
+#admin-upload-btn {
+    background:#d8c3a5;
+    color:#5e4b3c;
+    border:none;
+    padding:6px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+    transition:0.2s;
+}
+#admin-upload-btn:hover { background:#c0a78a; }
+
+/* Form Section */
+.form-section h2 {
+    font-size:18px;
+    color:#5e4b3c;
+    text-align:center;
+    margin-bottom:15px;
+}
+.form-row { display:flex; flex-direction:column; margin-bottom:12px; }
+.form-row label { font-weight:600; font-size:13px; margin-bottom:4px; color:black; }
+.form-row input, .form-row select {
+    padding:8px 12px;
+    border-radius:8px;
+    border:1px solid #d8c3a5;
+    outline:none;
+    font-size:14px;
+    transition:0.2s;
+    background:white;
+    color:#5e4b3c;
+}
+.form-row input:disabled { background:white; color:black; cursor:default; }
+.form-row input:focus, .form-row select:focus { border-color:#b99a7c; box-shadow:0 0 5px rgba(185,154,124,0.3); }
+
+/* Password strength */
+.password-meter {
+    width:100%;
+    height:6px;
+    background:#eee0d9;
+    border-radius:5px;
+    margin-top:4px;
+    overflow:hidden;
+}
+#password-strength-bar {
+    height:100%;
+    width:0%;
+    background:#e0a96d;
+    border-radius:5px;
+    transition:0.3s;
+}
+#password-strength-text { font-size:12px; margin:2px 0 0; color:#a1866f; }
+
+/* Buttons */
+.modal-buttons { display:flex; justify-content:flex-end; gap:10px; margin-top:15px; }
+#add-admin-btn { background:#d8c3a5; color:#5e4b3c; padding:8px 14px; border:none; border-radius:8px; font-weight:600; cursor:pointer; }
+#add-admin-btn:hover { background:#c0a78a; }
+#cancel-admin-btn-2 { background:#f5e0cf; color:#5e4b3c; border:none; border-radius:8px; padding:8px 14px; cursor:pointer; }
+#cancel-admin-btn-2:hover { background:#e5cbb7; }
+
+/* Popin animation */
+@keyframes popIn { from{transform:scale(0.9);opacity:0;} to{transform:scale(1);opacity:1;} }
+
+/* Responsive */
+@media(max-width:400px){
+    .modal-card { width:90%; padding:15px 20px; }
+    .photo-section img { width:80px; height:80px; }
+}
+
+
+
+/* Ensure all table cells align properly */
+.staff-table th,
+.staff-table td {
+  text-align: left;
+  vertical-align: middle;
+  padding: 12px 14px;
+  white-space: nowrap;
+}
+
+/* Keep header Actions centered */
+.staff-table th:last-child {
+  text-align: center;
+  width: 140px; /* consistent width */
+}
+
+/* Actions cell fix */
+.actions-cell {
+  text-align: center; /* center inside td */
+}
+
+.actions-cell button,
+.actions-cell img {
+  vertical-align: middle;
+  margin: 0 4px;
+}
+
+.editBtn {
+  background: #d1ccc7;
+  color: #333;
+  border: none;
+  font-size: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: background 0.2s;
+}
+
+.editBtn:hover {
+  background: #bfb8b2;
+}
+
+.archive-icon {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0.5);
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+.archive-icon:hover {
+  filter: brightness(0);
 }

@@ -15,6 +15,8 @@ sidebarButton("public/assests/sales.png", "Sales", "sales", "Sales logo");
 sidebarButton("public/assests/fast-food.png", "Products", "products", "Products logo");
 sidebarButton("public/assests/people.png", "Roles", "roles", "Roles logo");
 sidebarButton("public/assests/messages.png", "Inbox", "inbox", "Inbox logo");
+sidebarButton("public/assests/logout.png", "Sign out", "logout", "Sign out logo");
+
 ?>
 
 </div>

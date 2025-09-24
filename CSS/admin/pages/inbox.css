@@ -1,202 +1,201 @@
-/* Container */
-#body-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  padding: 20px;
-}
-
-
-/* #box {
-  background-color: #f5f5f5;
-  padding: 30px;
-  border-radius: 25px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  width: 100%;          
-  box-sizing: border-box;
-  margin: 0;  
-  flex: 1;       
-} */
-
-#content-wrapper {
-  display: flex;        /* enable flexbox */
-  flex-direction: column; 
-  flex: 1;              /* take remaining height in parent */
-}
-
-#box {
-  flex: 1;              /* take all leftover space inside content-wrapper */
-  width: 100%;          /* stretch full width */
-  display: flex;        /* optional: allow children to align */
-  flex-direction: column;
-  background-color: #f5f5f5;
-  padding: 30px;
-  border-radius: 25px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box;
+/* First row (title + archive button) */
+#first-row {
   margin-bottom: 20px;
-  
-}
-
-
-
-
-
-/* Search + Sort container */
-.search-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
 }
 
-/* Search input takes available space */
-#searchInbox {
-  flex: 1;
-  min-width: 200px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-/* Sort dropdown */
-#sortInbox {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  background: #f9f9f9;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-#sortInbox:hover {
-  border-color: #bbb;
-  background: #fff;
-}
-
-/* Table */
-.inbox-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.inbox-table th, .inbox-table td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-.inbox-table th {
-  background-color: #f4f4f4;
-  font-weight: bold;
-}
-
-.inbox-table tr:hover {
-  background-color: white;
-}
-
-
-
-.unread:hover {
-  background-color: #fff2cc;
-}
-
-/* Buttons */
-.view-btn, .delete-btn {
+#view-archive {
+  height: fit-content;
   padding: 6px 12px;
   border: none;
+  background-color: #4caf50;
+  color: white;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+#view-archive:hover {
+  background-color: #45a049;
 }
 
-.view-btn {
-  background-color: #3498db;
-  color: white;
+/* Search + sort row */
+#search_add {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
 
-.view-btn:hover {
-  background-color: #2980b9;
+.search-bar {
+  display: inline-flex;
+  width: auto;
+}
+.search-bar input {
+  width: 30vw;
+  margin: 0;
+  padding: 8px 15px;
+  border: 2px solid #8b7863;
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+  background-color: #f5f5f5;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.search-bar input::placeholder {
+  color: #8b7863;
+}
+.search-bar input:focus {
+  border-color: #6b5846;
+  box-shadow: 0 0 5px rgba(139, 120, 99, 0.5);
 }
 
-.delete-btn {
-  background-color: #e74c3c;
-  color: white;
-  margin-left: 5px;
+/* === Table container === */
+#table-container {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow-x: auto;
+  max-height: 500px;
+  min-height: 500px;
 }
 
-.delete-btn:hover {
-  background-color: #c0392b;
+/* === Inbox table (reuse staff-table styling) === */
+.staff-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: #333;
+}
+.staff-table thead {
+  background: #f9f7f4;
+  border-bottom: 2px solid #e6e2da;
+}
+.staff-table th {
+  font-weight: 600;
+  padding: 14px 12px;
+  text-align: left;
+}
+.staff-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+.staff-table tbody tr:hover {
+  background: #fafafa;
 }
 
-/* Modal */
+/* unread highlight */
+.staff-table tr.unread td {
+  font-weight: 600;
+  background-color: #fef9f6;
+}
+
+/* === Buttons === */
+.editBtn {
+  background: #d1ccc7;
+  color: #333;
+  border: none;
+  font-size: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 70px;
+  height: 22px;
+  transition: background 0.2s;
+}
+.editBtn:hover {
+  background: #bfb8b2;
+}
+
+.statusBtn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-block;
+}
+.statusBtn.available {
+  background: #27ae60;
+  color: #fff;
+}
+.statusBtn.unavailable {
+  background: #e74c3c;
+  color: #fff;
+}
+
+/* === Modal for message === */
 .modal {
   display: none;
   position: fixed;
-  z-index: 1000;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
-  background-color: rgba(0,0,0,0.6);
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+  animation: popIn 0.3s ease;
+}
+.close-btn {
+  float: right;
+  font-size: 20px;
+  cursor: pointer;
+  color: #a1866f;
+}
+.close-btn:hover {
+  color: #7a5e46;
+}
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+#search_add select {
+  padding: 3px 15px;
+  font-size: 1rem;
+  border: 2px solid #8b7863;
+  border-radius: 10px;
+  background-color: #f5f5f5;
+  color: #333;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#search_add select:focus {
+  border-color: #6b5846;
+  box-shadow: 0 0 5px rgba(139, 120, 99, 0.5);
+  outline: none;
+}
+
+#search_add select option {
+  background: #fff;
+  color: #333;
+}
+
+/* Action cell */
+.staff-table td.actions {
+  display: flex;
+  justify-content: center;   /* center horizontally */
+  align-items: center;       /* center vertically */
+  gap: 10px;                 /* space between buttons */
+}
+
+/* Keep your existing button styles */
+.archiveBtn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
-
-.modal-content {
-  background: #fff;
-  padding: 25px;
-  border-radius: 20px;
-  max-width: 600px;
-  width: 90%;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
-
-.close-btn {
-  float: right;
-  font-size: 22px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.close-btn:hover {
-  color: red;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  #box {
-    padding: 20px;
-    width: 100%;
-    margin: 20px 10px;
-  }
-
-  .search-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  #searchInbox {
-    width: 100%;
-  }
-
-  #sortInbox {
-    width: 100%;
-  }
-
-  .inbox-table th, .inbox-table td {
-    font-size: 13px;
-    padding: 8px;
-  }
-}
-.unread {
-  font-weight: bold;
-}
-
-form{
-  width: fit-content;
-}
-

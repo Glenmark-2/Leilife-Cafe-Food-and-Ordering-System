@@ -6,7 +6,7 @@ require_once __DIR__ . '/../db_script/db.php';
 $name   = isset($_POST['name'])   ? ucwords(strtolower(trim($_POST['name']))) : null;
 $role   = isset($_POST['role'])   ? trim($_POST['role'])   : null;
 $shift  = isset($_POST['shift'])  ? trim($_POST['shift'])  : null;
-$status = isset($_POST['status']) ? trim($_POST['status']) : "Available";
+$status = isset($_POST['status']) ? trim($_POST['status']) : "active";
 
 if (!$name || !$role || !$shift) {
     echo json_encode(["success" => false, "message" => "Missing fields"]);

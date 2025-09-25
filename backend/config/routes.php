@@ -2,6 +2,7 @@
 // backend/config/routes.php
 return [
     'home'            => __DIR__ . '/../../pages/home.php',
+    'thankyou'        => __DIR__ . '/../../pages/thankyou.php', 
     'menu'            => __DIR__ . '/../../pages/menu.php',
     'orders'          => __DIR__ . '/../../pages/orders.php',
     'signUp'          => __DIR__ . '/../../pages/signUp.php',

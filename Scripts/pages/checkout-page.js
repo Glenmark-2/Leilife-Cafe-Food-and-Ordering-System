@@ -22,6 +22,50 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
+const placeOrderBtn = document.getElementById("place-order-bt");
+
+if (placeOrderBtn) {
+  placeOrderBtn.addEventListener("click", async () => {
+    // 1. Get selected payment method (from radio value)
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
+
+    if (!paymentMethod) {
+      alert("Please select a payment method.");
+      return;
+    }
+
+    try {
+      // 2. Send to backend
+      const response = await fetch("../backend/place_order.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          payment_method: paymentMethod
+        })
+      });
+
+      const result = await response.json();
+
+    // 3. Handle response
+    if (result.success) {
+      if (paymentMethod === "gcash" && result.checkout_url) {
+        // Redirect to PayMongo checkout page
+        window.location.replace(result.checkout_url);
+      } else {
+        // COD → redirect to order success page
+        window.location.replace("/Leilife/public/index.php?page=menu");
+      }
+    } else {
+      alert(result.message || "Something went wrong.");
+    }
+    
+    } catch (err) {
+      console.error("Place order error:", err);
+      alert("Error placing order.");
+    }
+  });
+}
+
 // ============================
 // FETCH USER DATA
 // ============================

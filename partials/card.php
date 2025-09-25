@@ -1,9 +1,28 @@
+<?php
+function renderRandomFeaturedProducts($appData)
+{
+    $products = $appData->loadFeaturedProducts();
 
+    if (!empty($products)) {
+        shuffle($products);
+        $randomFeatured = array_slice($products, 0, 4);
 
-<div class="card">
-  <img src="/Leilife/public/assests/image 39.png" class="card-img-top" alt="Spanish Latte">
-  <div class="card-body">
-    <p class="card-title">Spanish Latte</p>
-    <p class="card-price">75 PHP</p>
-  </div>
+        foreach ($randomFeatured as $product) {
+            $image = $product['product_picture'] ?? "placeholder.png"; 
+            $name  = $product['product_name'] ?? "Unnamed Product";
+            $price = $product['product_price'] ?? "0";
+?>
+<div class="menu-card">
+    <img src="../public/products/<?= htmlspecialchars($image) ?>" class="menu-card-img" alt="<?= htmlspecialchars($name) ?>">
+    <div class="menu-card-body">
+        <p class="menu-card-title"><?= htmlspecialchars($name) ?></p>
+        <p class="menu-card-price">₱<?= htmlspecialchars($price) ?></p>
+    </div>
 </div>
+<?php
+        }
+    } else {
+        echo "<p>No featured products available.</p>";
+    }
+}
+?>

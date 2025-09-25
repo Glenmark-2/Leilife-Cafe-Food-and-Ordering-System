@@ -138,7 +138,7 @@ $subCategories = array_values($subCategories);
 <div id="modal">
   <div id="new-product-modal">
     <div id="left">
-      <img id="new-product-photo" src="public/assests/image-43.png" alt="photo">
+      <img id="new-product-photo" src="public/assests/upload-food-img.png" alt="photo">
       <input type="file" id="uploadInput" style="display:none;" accept="image/*">
       <button id="uploadBtn">Upload Photo</button>
     </div>
@@ -558,53 +558,53 @@ uploadInput.addEventListener("change", (e) => {
 });
 
 // Add product click
-document.getElementById("add").addEventListener("click", () => {
-    const name = document.getElementById("name").value.trim();
-    const price = document.getElementById("price").value.trim();
-    const category = document.getElementById("add-category").value;
-    const status = "Available";
-    const file = uploadInput.files[0];
+// document.getElementById("add").addEventListener("click", () => {
+//     const name = document.getElementById("name").value.trim();
+//     const price = document.getElementById("price").value.trim();
+//     const category = document.getElementById("add-category").value;
+//     const status = "Available";
+//     const file = uploadInput.files[0];
 
-    if (!name || !price || !category) {
-        showModal("Please fill all fields", "error");
-        return;
-    }
+//     if (!name || !price || !category) {
+//         showModal("Please fill all fields", "error");
+//         return;
+//     }
 
-    if (file && !allowedTypes.includes(file.type)) {
-        document.getElementById("file-error-message").textContent = 
-            "Invalid file type. Allowed types: PNG, JPG, JPEG, WEBP.";
-        fileErrorModal.style.display = "flex";
-        return;
-    }
+//     if (file && !allowedTypes.includes(file.type)) {
+//         document.getElementById("file-error-message").textContent = 
+//             "Invalid file type. Allowed types: PNG, JPG, JPEG, WEBP.";
+//         fileErrorModal.style.display = "flex";
+//         return;
+//     }
 
-    const formData = new FormData();
-    formData.append("product_name", name);
-    formData.append("product_price", price);
-    formData.append("category_id", category);
-    formData.append("status", status);
-    if (file) formData.append("photo", file);
+//     const formData = new FormData();
+//     formData.append("product_name", name);
+//     formData.append("product_price", price);
+//     formData.append("category_id", category);
+//     formData.append("status", status);
+//     if (file) formData.append("photo", file);
 
-    fetch(BASE_URL + "backend/admin/add_product.php", {
-        method: "POST",
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showModal("Product added successfully!", "success");
-            document.getElementById("modal").style.display = "none";
-            document.getElementById("name").value = "";
-            document.getElementById("price").value = "";
-            document.getElementById("add-category").value = "";
-            uploadInput.value = "";
-            newProductPhoto.src = "public/assests/image-43.png";
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            showModal("Error: " + data.message, "error");
-        }
-    })
-    .catch(err => showModal("Fetch error: " + err.message, "error"));
-});
+//     fetch(BASE_URL + "backend/admin/add_product.php", {
+//         method: "POST",
+//         body: formData
+//     })
+//     .then(res => res.json())
+//     .then(data => {
+//         if (data.success) {
+//             showModal("Product added successfully!", "success");
+//             document.getElementById("modal").style.display = "none";
+//             document.getElementById("name").value = "";
+//             document.getElementById("price").value = "";
+//             document.getElementById("add-category").value = "";
+//             uploadInput.value = "";
+//             newProductPhoto.src = "public/assests/image-43.png";
+//             setTimeout(() => location.reload(), 1000);
+//         } else {
+//             showModal("Error: " + data.message, "error");
+//         }
+//     })
+//     .catch(err => showModal("Fetch error: " + err.message, "error"));
+// });
 
 
 </script>

@@ -1,14 +1,15 @@
 .product-card {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   background: #fdf9f5;
   border-radius: 16px;
-  padding: clamp(10px, 2vw, 18px);
+  padding: 16px;
   box-shadow: 0 3px 10px rgba(0,0,0,0.12);
-  width: 100%;
-  max-width: 650px;
+  width: 100%;       /* fixed card width */
+  height: fit-content; 
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin: 0 auto; /* centers card */
+  margin: 0;          /* ✅ no margin */
 }
 
 .product-card:hover {
@@ -17,60 +18,64 @@
 }
 
 .product-image {
-  width: clamp(80px, 25%, 140px);
-  max-height: 160px;
+  width: 120px;        /* 🔒 fixed image width */
+  height: 120px;       /* 🔒 fixed image height */
   border-radius: 14px;
-  object-fit: contain;
+  object-fit: cover;   /* ensures consistent crop */
   background: #fff;
   flex-shrink: 0;
 }
 
 .product-info {
   flex: 1;
-  margin-left: clamp(10px, 2vw, 18px);
+  margin-left: 14px;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  justify-content: space-between;
 }
 
 .info-wrapper {
-  flex: 1;
+  flex-grow: 1;                /* ✅ pushes actions down consistently */
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  align-items: flex-start;      /* keep title at top */
 }
 
 .product-title {
-  font-size: clamp(14px, 2vw, 18px);
+  font-size: 16px;
   font-weight: 600;
   margin: 0;
   color: #222;
-  text-align: center;
+  text-align: left;
+  line-height: 1.2;
+  min-height: 40px;            /* ✅ force consistent title height */
 }
 
 .product-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: clamp(6px, 1.5vw, 12px);
+  margin-top: 8px;
+  width: 100%;
 }
 
+
 .product-price {
-  font-size: clamp(13px, 2vw, 16px);
+  font-size: 15px;
   font-weight: 600;
   color: #111;
 }
 
 .buy-btn {
-  padding: clamp(5px, 1vw, 8px) clamp(14px, 2vw, 20px);
+  padding: 6px 16px;
   border: none;
   border-radius: 20px;
   background: #293b42;
   color: #fff;
-  font-size: clamp(12px, 2vw, 15px);
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s ease;
+  margin-bottom: 0;
 }
 
 .buy-btn:hover {
@@ -81,16 +86,23 @@
 @media (max-width: 600px) {
   .product-card {
     flex-direction: column;
+    width: 220px;    /* smaller card for mobile */
+    height: auto;    /* allow flexible height */
     text-align: center;
+  }
+
+  .product-image {
+    width: 100px;
+    height: 100px;
   }
 
   .product-info {
     margin-left: 0;
-    margin-top: 12px;
+    margin-top: 10px;
   }
 
   .product-actions {
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
 }

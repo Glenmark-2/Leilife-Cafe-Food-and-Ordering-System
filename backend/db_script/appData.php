@@ -134,6 +134,21 @@ if (!class_exists('AppData')) {
             $stmt = $this->db->prepare("SELECT * FROM inbox WHERE is_archived = :archived ORDER BY created_at DESC");
             $stmt->bindParam(":archived", $archived, PDO::PARAM_INT);
             $stmt->execute();
+        }
+
+        public function loadFeaturedProducts()
+        {
+            $stmt = $this->db->prepare("
+            SELECT 
+                c.main_category_id,
+                c.main_category_name,
+                p.*
+            FROM products p
+            LEFT JOIN categories c 
+                ON p.category_id = c.category_id
+            where main_category_id = 3;
+            ");
+            $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
     }

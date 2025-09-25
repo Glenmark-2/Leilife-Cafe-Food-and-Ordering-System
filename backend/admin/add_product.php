@@ -55,7 +55,7 @@ try {
             throw new Exception("File upload failed.");
         }
 
-        $productPicture = "public/products/" . $fileName;
+        $productPicture = $fileName;
     }
 
     // Case-insensitive & trimmed duplicate name check

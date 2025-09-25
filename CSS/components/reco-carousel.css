@@ -23,7 +23,7 @@
 .reco-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.2rem;
+  
   justify-content: center;
   align-items: center;
   padding: 1rem;
@@ -43,3 +43,5 @@
 
 .carousel-arrow.left { left: 10px; }
 .carousel-arrow.right { right: 10px; }
+
+

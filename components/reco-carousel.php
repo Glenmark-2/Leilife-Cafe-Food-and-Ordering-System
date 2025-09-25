@@ -1,16 +1,9 @@
-
-
-
 <?php
-// Example data (in real case this could come from a database)
-$products = [
-  ["title" => "Spanish Latte + Classic Tiramisu", "price" => "₱ 99.00", "image" => "/Leilife/public/assests/image 3 (2).png"],
-  ["title" => "Iced Americano + Croissant", "price" => "₱ 120.00", "image" => "/Leilife/public/assests/image 5.png"],
-  ["title" => "Cappuccino + Blueberry Muffin", "price" => "₱ 140.00", "image" => "/Leilife/public/assests/image 6.png"],
-  ["title" => "Mocha Latte + Brownie", "price" => "₱ 130.00", "image" => "/Leilife/public/assests/image 7.png"],
-  ["title" => "Vanilla Latte + Donut", "price" => "₱ 115.00", "image" => "/Leilife/public/assests/image 8.png"],
-  ["title" => "Matcha Latte + Cheesecake", "price" => "₱ 150.00", "image" => "/Leilife/public/assests/image 9.png"]
-];
+include "../backend/db_script/db.php";
+include "../backend/db_script/appData.php";
+
+$appData = new AppData($pdo);
+$products = $appData->loadFeaturedProducts();
 
 // Group products into chunks of 4 (2x2 per slide)
 $slides = array_chunk($products, 4);
@@ -27,9 +20,9 @@ $slides = array_chunk($products, 4);
             <div class="reco-card">
               <?php 
                 // pass product data to reco-card
-                $title = $product['title'];
-                $price = $product['price'];
-                $image = $product['image'];
+                $title = $product['product_name'];
+                $price = $product['product_price'];
+                $image = $product['product_picture'];
                 include 'reco-card.php'; 
               ?>
             </div>
@@ -42,4 +35,31 @@ $slides = array_chunk($products, 4);
   <button class="carousel-arrow right">&#10095;</button>
 </div>
 
-<script src="../Scripts/components/reco-carousel.js"></script>
+
+<script>
+  document.querySelectorAll('.carousel').forEach(carousel => {
+  const slides = carousel.querySelectorAll('.carousel-slide');
+  const prevBtn = carousel.querySelector('.carousel-arrow.left');
+  const nextBtn = carousel.querySelector('.carousel-arrow.right');
+  let currentIndex = 0;
+
+  function showSlide(index) {
+    slides.forEach((slide, i) => {
+      slide.classList.toggle('active', i === index);
+    });
+  }
+
+  prevBtn.addEventListener('click', () => {
+    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+    showSlide(currentIndex);
+  });
+
+  nextBtn.addEventListener('click', () => {
+    currentIndex = (currentIndex + 1) % slides.length;
+    showSlide(currentIndex);
+  });
+
+  showSlide(currentIndex);
+});
+</script>
+<!-- <script src="../Scripts/components/reco-carousel.js"></script> -->

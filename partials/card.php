@@ -11,8 +11,9 @@ function renderRandomFeaturedProducts($appData)
             $image = $product['product_picture'] ?? "placeholder.png"; 
             $name  = $product['product_name'] ?? "Unnamed Product";
             $price = $product['product_price'] ?? "0";
+            $productLink = "index.php?page=solo-product&id=" . $product['product_id'];
 ?>
-<div class="menu-card">
+<div class="menu-card" onclick="window.location.href='<?= htmlspecialchars($productLink) ?>'">
     <img src="../public/products/<?= htmlspecialchars($image) ?>" class="menu-card-img" alt="<?= htmlspecialchars($name) ?>">
     <div class="menu-card-body">
         <p class="menu-card-title"><?= htmlspecialchars($name) ?></p>

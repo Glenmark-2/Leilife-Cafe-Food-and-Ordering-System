@@ -10,12 +10,18 @@ try {
         throw new Exception("Invalid request method");
     }
 
-    $productId   = intval($_POST['product_id'] ?? 0);
-    $productName = trim($_POST['product_name'] ?? '');
-    $productPrice = trim($_POST['product_price'] ?? '');
-    $categoryId  = intval($_POST['category_id'] ?? 0);
-    $status      = trim($_POST['status'] ?? 'Available');
-    $status      = strtolower($status) === 'unavailable' ? 'Unavailable' : 'Available';
+    $productId     = intval($_POST['product_id'] ?? 0);
+    $productName   = trim($_POST['product_name'] ?? '');
+    $productPrice  = trim($_POST['product_price'] ?? '');
+
+    // ✅ Allow NULL for large price
+    $priceLarge = isset($_POST['price_large']) && $_POST['price_large'] !== ''
+        ? trim($_POST['price_large'])
+        : null;
+
+    $categoryId    = intval($_POST['category_id'] ?? 0);
+    $status        = trim($_POST['status'] ?? 'Available');
+    $status        = strtolower($status) === 'unavailable' ? 'Unavailable' : 'Available';
 
     if ($productId <= 0 || $productName === '' || $productPrice === '' || $categoryId <= 0) {
         throw new Exception("Missing required fields");
@@ -55,33 +61,48 @@ try {
     if ($fileName) {
         $stmt = $pdo->prepare("
             UPDATE products
-            SET product_name = ?, product_price = ?, category_id = ?, status = ?, product_picture = ?
+            SET product_name = ?, product_price = ?, price_large = ?, category_id = ?, status = ?, product_picture = ?
             WHERE product_id = ?
         ");
-        $stmt->execute([$productName, $productPrice, $categoryId, $status, $fileName, $productId]);
+        $stmt->bindValue(1, $productName);
+        $stmt->bindValue(2, $productPrice);
+        $stmt->bindValue(3, $priceLarge, $priceLarge === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $stmt->bindValue(4, $categoryId, PDO::PARAM_INT);
+        $stmt->bindValue(5, $status);
+        $stmt->bindValue(6, $fileName);
+        $stmt->bindValue(7, $productId, PDO::PARAM_INT);
+        $stmt->execute();
     } else {
         $stmt = $pdo->prepare("
             UPDATE products
-            SET product_name = ?, product_price = ?, category_id = ?, status = ?
+            SET product_name = ?, product_price = ?, price_large = ?, category_id = ?, status = ?
             WHERE product_id = ?
         ");
-        $stmt->execute([$productName, $productPrice, $categoryId, $status, $productId]);
+        $stmt->bindValue(1, $productName);
+        $stmt->bindValue(2, $productPrice);
+        $stmt->bindValue(3, $priceLarge, $priceLarge === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $stmt->bindValue(4, $categoryId, PDO::PARAM_INT);
+        $stmt->bindValue(5, $status);
+        $stmt->bindValue(6, $productId, PDO::PARAM_INT);
+        $stmt->execute();
     }
 
-    // fetch updated
     $stmt = $pdo->prepare("
-        SELECT p.product_id, p.product_name, p.product_price, p.status, p.product_picture,
-               c.category_name, mc.main_category_name
-        FROM products p
-        JOIN categories c ON p.category_id = c.category_id
-        JOIN categories mc ON c.main_category_id = mc.main_category_id
-        WHERE p.product_id = ?
-        LIMIT 1
-    ");
+    SELECT p.product_id, p.product_name, p.product_price, p.price_large, p.status, p.product_picture,
+           c.category_name
+    FROM products p
+    JOIN categories c ON p.category_id = c.category_id
+    WHERE p.product_id = ?
+    LIMIT 1
+");
+
     $stmt->execute([$productId]);
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
     echo json_encode(["success" => true, "product" => $product]);
 } catch (Exception $e) {
-    echo json_encode(["success" => false, "message" => $e->getMessage()]);
+    echo json_encode([
+        "success" => false,
+        "message" => "Update failed: " . $e->getMessage()
+    ]);
 }

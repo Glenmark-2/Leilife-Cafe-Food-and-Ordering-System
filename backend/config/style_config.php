@@ -19,7 +19,8 @@ return [
     'user-profile'    => [
         '../CSS/pages/user-profile.css',
         '../CSS/admin/components/set-address-modal.css',
-        '../CSS/components/change_password.css'
+        '../CSS/components/change_password.css',
+        '../CSS/components/reco-card.css'
     ],
     'order-tracking'  => ['../CSS/pages/order-tracking.css'],
     'forgot-password' => ['../CSS/pages/forgot-password.css'],

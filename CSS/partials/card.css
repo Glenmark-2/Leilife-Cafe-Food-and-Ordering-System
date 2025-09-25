@@ -50,6 +50,29 @@
     right: 8px;
 }
 
+.menu-card.unavailable {
+    filter: brightness(0.6);  /* darken card */
+    cursor: default;          /* remove pointer */
+    pointer-events: none;     /* prevent clicks */
+    position: relative;
+}
+
+.unavailable-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-20deg);
+    background-color: rgba(255, 0, 0, 0.7);
+    color: #fff;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    pointer-events: none;
+    text-align: center;
+}
+
+
 /* Mobile adjustments */
 @media (max-width: 520px) {
     .menu-card {

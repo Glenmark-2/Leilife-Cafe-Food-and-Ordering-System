@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  background: #fdf9f5;
+  background: #e8e5d7;
   border-radius: 16px;
   padding: 16px;
   box-shadow: 0 3px 10px rgba(0,0,0,0.12);
@@ -105,4 +105,23 @@
     flex-direction: column;
     gap: 6px;
   }
+}
+.product-card.unavailable {
+    filter: brightness(0.6);   /* darken the card */
+    cursor: default;           /* remove pointer */
+    pointer-events: none;      /* disable click */
+    position: relative;
+}
+
+.unavailable-label {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 20px;
+  background: #293b42;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  margin-bottom: 0;
 }

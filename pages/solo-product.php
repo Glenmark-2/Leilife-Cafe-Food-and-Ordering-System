@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once '../backend/db_script/db.php';
 require_once __DIR__ . '/../backend/db_script/appData.php';
 
@@ -31,7 +34,18 @@ $isDrink = in_array($product['category_id'], [7, 8, 9, 10, 11, 12, 13]);
         <div class="product-details">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
                 <h2 style="margin:0;"><?= htmlspecialchars(ucwords($product['product_name'])) ?></h2>
-                <button id="heartBtn" style="border:2px solid black; background:transparent; border-radius:50%; width:35px; height:35px; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer;">❤</button>
+                <?php
+                $isFavorite = false;
+                if (isset($_SESSION['user_id'])) {
+                    $stmtFav = $pdo->prepare("SELECT favorite_id FROM favorites WHERE user_id = ? AND product_id = ? LIMIT 1");
+                    $stmtFav->execute([$_SESSION['user_id'], $productId]);
+                    $isFavorite = (bool)$stmtFav->fetch(PDO::FETCH_ASSOC);
+                }
+                ?>
+
+                <!-- Heart button with active class if isFavorite is true -->
+                <button type="button" id="heartBtn" class="<?= $isFavorite ? 'active' : '' ?>">❤</button>
+
             </div>
 
             <?php if (!empty($flavors)): ?>
@@ -136,7 +150,9 @@ $isDrink = in_array($product['category_id'], [7, 8, 9, 10, 11, 12, 13]);
 
         const closeModal = () => modal.style.display = "none";
         closeBtn.onclick = closeModal;
-        modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+        modal.onclick = (e) => {
+            if (e.target === modal) closeModal();
+        };
 
         if (autoClose) setTimeout(closeModal, duration);
     }
@@ -164,7 +180,7 @@ $isDrink = in_array($product['category_id'], [7, 8, 9, 10, 11, 12, 13]);
         const isDrink = <?= $isDrink ? 'true' : 'false' ?>;
 
         const priceMedium = <?= (float)$product['product_price'] ?>;
-        const priceLarge  = <?= (float)($product['price_large'] ?? 0) ?>;
+        const priceLarge = <?= (float)($product['price_large'] ?? 0) ?>;
 
         let unitPrice = priceMedium;
 
@@ -243,22 +259,75 @@ $isDrink = in_array($product['category_id'], [7, 8, 9, 10, 11, 12, 13]);
             if (flavors.length) params.append('flavors', JSON.stringify(flavors));
 
             fetch('../backend/add_to_cart.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params.toString()
-            })
-            .then(res => res.json())
-            .then(data => {
-            if (data.success) {
-            if (typeof fetchCart === "function") fetchCart();
-            showModal("Item added to cart!", "success");
-            window.location.href = '/Leilife/public/index.php?page=menu';
-        } else {
-            showModal(data.message || "Failed to add item", "error");
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params.toString()
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof fetchCart === "function") fetchCart();
+                        showModal("Item added to cart!", "success");
+                        window.location.href = '/Leilife/public/index.php?page=menu';
+                    } else {
+                        showModal(data.message || "Failed to add item", "error");
+                    }
+
+                })
+                .catch(err => showModal("Error adding item: " + err.message, "error"));
+        });
+    });
+
+    const heartBtn = document.getElementById('heartBtn');
+    const userId = <?= $_SESSION['user_id'] ?? 'null' ?>;
+    const productId = <?= $productId ?>;
+
+    heartBtn.addEventListener('click', async () => {
+        if (!userId) {
+            showModal("Please log in to add favorites", "warning");
+            return;
         }
 
-            })
-            .catch(err => showModal("Error adding item: " + err.message, "error"));
-        });
+        // Toggle UI immediately
+        heartBtn.classList.toggle('active');
+
+        try {
+            const resp = await fetch('../backend/favorites.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `user_id=${userId}&product_id=${productId}`
+            });
+
+            let result;
+            try {
+                result = await resp.clone().json(); // clone before reading as JSON
+            } catch (e) {
+                const text = await resp.text(); // now safe to read original
+                console.error("Invalid JSON response from server:", text);
+                showModal("Failed to process favorites. See console for details.", "error");
+                heartBtn.classList.toggle('active'); // revert UI
+                return;
+            }
+
+            if (!result.success) {
+                heartBtn.classList.toggle('active'); // revert UI
+                showModal(result.error || "Failed to update favorites", "error");
+                return;
+            }
+
+            const actionText = result.action === "added" ?
+                "Added to favorites!" :
+                "Removed from favorites!";
+            showModal(actionText, "success");
+
+        } catch (err) {
+            console.error("Fetch error:", err);
+            heartBtn.classList.toggle('active'); // revert UI
+            showModal("Network error: " + err.message, "error");
+        }
     });
 </script>

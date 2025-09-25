@@ -1,8 +1,12 @@
 <?php
 require_once "../components/product-card.php";
 require_once '../partials/intro-card.php';
-include "../components/modal.php"; 
-include "../components/buttonTemplate.php"; 
+include "../components/modal.php";
+include "../components/buttonTemplate.php";
+include "../backend/db_script/db.php";
+include "../backend/db_script/appData.php";
+
+
 ?>
 
 <?= createModal(); ?>
@@ -19,12 +23,12 @@ include "../components/buttonTemplate.php";
     <a href="index.php?page=menu">
       <?php
       echo createButton(
-        45,              
-        180,             
-        "Order Now",  
+        45,
+        180,
+        "Order Now",
         "",
-        16,              
-        "button",       
+        16,
+        "button",
       );
       ?>
     </a>
@@ -38,10 +42,11 @@ include "../components/buttonTemplate.php";
   <p class="statementGreating">Take a break and enjoy the flavors of Leilife Cafe and Resto!</p>
 
   <div class="row">
-    <?php include '../partials/card.php'; ?>
-    <?php include '../partials/card.php'; ?>
-    <?php include '../partials/card.php'; ?>
-    <?php include '../partials/card.php'; ?>
+    <?php
+    $appData = new AppData($pdo);
+    include "../partials/card.php";
+    renderRandomFeaturedProducts($appData); 
+    ?>
   </div>
 </div>
 
@@ -230,10 +235,10 @@ include "../components/buttonTemplate.php";
 </div>
 
 <script>
-const contactForm = document.getElementById("contactForm");
-const submitBtn = document.getElementById("submitBtn");
+  const contactForm = document.getElementById("contactForm");
+  const submitBtn = document.getElementById("submitBtn");
 
-contactForm.addEventListener("submit", function(e) {
+  contactForm.addEventListener("submit", function(e) {
     e.preventDefault(); // prevent default form submission
     const formData = new FormData(contactForm);
 
@@ -245,24 +250,24 @@ contactForm.addEventListener("submit", function(e) {
     fetch("../backend/mail.php", {
         method: "POST",
         body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
+      })
+      .then(res => res.json())
+      .then(data => {
         if (data.success) {
-            showModal("Your message has been sent!", "success");
-            contactForm.reset();
+          showModal("Your message has been sent!", "success");
+          contactForm.reset();
         } else {
-            showModal(data.message || "Your message did not send!", "error");
+          showModal(data.message || "Your message did not send!", "error");
         }
-    })
-    .catch(err => {
+      })
+      .catch(err => {
         console.error(err);
         showModal("Network error. Please try again.", "error");
-    })
-    .finally(() => {
+      })
+      .finally(() => {
         // Restore button
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
-    });
-});
+      });
+  });
 </script>

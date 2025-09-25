@@ -2,10 +2,24 @@
 const USER_API = '../backend/checkout-page.php';
 const CART_API = '../backend/get_cart.php';
 
-document.addEventListener('DOMContentLoaded', () => {
-  bindPhoneEdit();
-  fetchUserData();
-  fetchCartData(); // fetch cart items + totals
+document.addEventListener('DOMContentLoaded', async () => {
+  await bindPhoneEdit();
+  await fetchUserData();
+  await fetchCartData(); // fetch cart items + totals
+
+  // ✅ Listen for global cart updates (from update_cart or other components)
+  document.addEventListener("cart:updated", async (e) => {
+    console.log("🔔 Cart updated event received, re-fetching cart...");
+    
+    // If cart data is passed with the event, use it directly
+    if (e.detail?.cart) {
+      cp_renderCart(e.detail.cart || []);
+      updateTotals(e.detail.totals || {});
+    } else {
+      // Otherwise, re-fetch from backend
+      await fetchCartData();
+    }
+  });
 });
 
 // ============================
@@ -29,16 +43,11 @@ async function fetchUserData() {
 }
 
 function populateFields(data) {
-  // Full name
   const fullName = [data.first_name, data.last_name].filter(Boolean).join(" ");
   document.getElementById('full-name').value = fullName;
-
-  // Phone
   document.getElementById('phone').value = data.phone_number ?? '';
 
-  // ✅ Barangay + fixed city/province/region
   const barangay = data.barangay ? `Barangay ${data.barangay}` : '';
-
   const fullAddress = [
     data.street_address,
     barangay,
@@ -46,47 +55,26 @@ function populateFields(data) {
     "Metro Manila",
     "NCR"
   ].filter(Boolean).join(', ');
-
   document.getElementById('full-address').value = fullAddress;
-
-  // Notes
   document.getElementById('note').value = data.note_to_rider ?? '';
 }
 
 
-
-
 // ============================
-// FETCH CART DATA
+// CART RENDER
 // ============================
-async function fetchCartData() {
-  try {
-    const res = await fetch(CART_API, {
-      method: 'GET',
-      credentials: 'same-origin'
-    });
-    const payload = await res.json();
-    console.log("Cart payload:", payload); // 🔎 debug
-
-    if (!payload.success) {
-      console.error('Cart error:', payload.message);
-      return;
-    }
-    renderCart(payload.cart || []);
-    updateTotals(payload.totals || {});
-  } catch (err) {
-    console.error('Cart fetch error:', err);
-  }
-}
-
-function renderCart(items) {
+function cp_renderCart(items) {
   const container = document.getElementById('order-items');
   container.innerHTML = ''; // clear placeholder
 
-  if (!items.length) {
-    container.innerHTML = '<p>Your cart is empty.</p>';
-    return;
-  }
+if (!items.length) {
+  container.innerHTML = '<p>Your cart is empty. Redirecting to menu...</p>';
+  setTimeout(() => {
+    window.location.replace("/Leilife/public/index.php?page=menu");
+  }, 2000); // wait 2s before redirect
+  return;
+}
+
 
   items.forEach(item => {
     const div = document.createElement('div');
@@ -95,7 +83,6 @@ function renderCart(items) {
     div.style.alignItems = "center";
     div.style.marginBottom = "10px";
 
-    // Safe image path (fallback placeholder if null)
     const imgSrc = item.product_picture 
       ? `../public/products/${item.product_picture}` 
       : '../public/assets/no-image.png';
@@ -117,6 +104,31 @@ function renderCart(items) {
     container.appendChild(div);
   });
 }
+
+
+// ============================
+// FETCH CART DATA
+// ============================
+async function fetchCartData() {
+  try {
+    const res = await fetch(CART_API, {
+      method: 'GET',
+      credentials: 'same-origin'
+    });
+    const payload = await res.json();
+    console.log("Cart payload:", payload);
+
+    if (!payload.success) {
+      console.error('Cart error:', payload.message);
+      return;
+    }
+    cp_renderCart(payload.cart || []);
+    updateTotals(payload.totals || {});
+  } catch (err) {
+    console.error('Cart fetch error:', err);
+  }
+}
+
 
 // ============================
 // DELIVERY TOGGLE
@@ -142,55 +154,6 @@ function toggleDelivery() {
     home.style.display = 'block';
   }
 }
-
-
-// // ============================
-// // ADDRESS EDIT
-// // ============================
-// async function toggleEdit() {
-//   const fields = document.querySelectorAll('#home-options textarea');
-//   const editBtn = document.querySelector('#home-options .edit-btn');
-//   if (!fields || fields.length === 0) return;
-
-//   const isReadonly = fields[0].hasAttribute('readonly');
-
-//   if (isReadonly) {
-//     fields.forEach(field => {
-//       field.removeAttribute('readonly');
-//       field.style.background = '#fff';
-//     });
-//     editBtn.textContent = 'Save';
-//     return;
-//   }
-
-//   const payload = {
-//     action: 'update_address',
-//     full_address: document.getElementById('full-address').value.trim(),
-//     note_to_rider: document.getElementById('note').value.trim()
-//   };
-
-//   try {
-//     const res = await fetch(USER_API, {
-//       method: 'POST',
-//       credentials: 'same-origin',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify(payload)
-//     });
-//     const data = await res.json();
-//     if (data.success) {
-//       fields.forEach(field => {
-//         field.setAttribute('readonly', true);
-//         field.style.background = '#f5f5f5';
-//       });
-//       editBtn.textContent = 'Edit';
-//       showTempMessage('Address updated successfully');
-//     } else {
-//       showTempMessage('Failed to update address: ' + (data.message || 'unknown'), true);
-//     }
-//   } catch (err) {
-//     showTempMessage('Network error while updating address', true);
-//   }
-// }
 
 
 // ============================
@@ -238,10 +201,10 @@ function bindPhoneEdit() {
   });
 }
 
+
 // ============================
 // UTILS
 // ============================
 function showTempMessage(msg, isError = false) {
   alert(msg); // Replace with custom toast/notification if you want
 }
-

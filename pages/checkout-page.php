@@ -100,15 +100,16 @@ include "../components/buttonTemplate.php";
     <div class="card">
       <h3>Payment Method</h3>
       <label class="options">
-        <input type="radio" name="payment" checked>
+        <input type="radio" name="payment_method" id="pm-cash" value="cash" checked>
         <span>Cash</span>
       </label>
       <label class="options">
-        <input type="radio" name="payment">
+        <input type="radio" name="payment_method" id="pm-gcash" value="gcash">
         <span>GCash</span>
       </label>
     </div>
   </div>
+
 
   <!-- RIGHT COLUMN -->
   <div class="card order-summary">
@@ -152,6 +153,9 @@ include "../components/buttonTemplate.php";
 </div>
 
 <?php include "../components/admin/set-address-modal.php"; ?>
+<script src="../Scripts/pages/cart.js"></script>
+<script src="../Scripts/pages/checkout-page.js"></script>
+
 
 <script>
   // -------------------------
@@ -199,4 +203,3 @@ include "../components/buttonTemplate.php";
 </script>
 
 
-<script src="../Scripts/pages/checkout-page.js" defer></script>

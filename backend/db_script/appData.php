@@ -129,12 +129,20 @@ if (!class_exists('AppData')) {
             return ($row && !empty($row['password_hash']));
         }
 
-        public function loadInbox($archived = 0)
-        {
-            $stmt = $this->db->prepare("SELECT * FROM inbox WHERE is_archived = :archived ORDER BY created_at DESC");
-            $stmt->bindParam(":archived", $archived, PDO::PARAM_INT);
-            $stmt->execute();
-        }
+public function loadInbox($archived = 0)
+{
+    $stmt = $this->db->prepare("
+        SELECT * 
+        FROM inbox 
+        WHERE is_archived = :archived 
+        ORDER BY created_at DESC
+    ");
+    $stmt->bindParam(":archived", $archived, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC); 
+}
+
 
         public function loadFeaturedProducts()
         {

@@ -76,11 +76,15 @@ $isDrink = in_array($product['category_id'], [7, 8, 9, 10, 11, 12, 13]);
                             <input type="radio" name="size" value="medium" checked onclick="updatePrice('medium')">
                             Medium (₱<?= number_format($product['product_price'], 2) ?>)
                         </label>
-                        <label class="flavor-option">
-                            <input type="radio" name="size" value="large" onclick="updatePrice('large')">
-                            Large (₱<?= number_format($product['price_large'], 2) ?>)
-                        </label>
+
+                        <?php if (!empty($product['price_large'])): ?>
+                            <label class="flavor-option">
+                                <input type="radio" name="size" value="large" onclick="updatePrice('large')">
+                                Large (₱<?= number_format($product['price_large'], 2) ?>)
+                            </label>
+                        <?php endif; ?>
                     </div>
+
                 </div>
             <?php endif; ?>
 

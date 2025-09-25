@@ -24,10 +24,12 @@ echo '<div id="pageContent">';
 include $target;
 echo '</div>';
 
+// Expose current page to JS
+echo '<script>window.currentPage = "' . htmlspecialchars($page) . '";</script>';
+
 // Cart modal (global)
 echo '<div id="cartModal">';
 include __DIR__ . '/../pages/cart.php';
 echo '</div>';
 
 include __DIR__ . '/../components/footer.php';
-

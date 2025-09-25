@@ -151,5 +151,18 @@ if (!class_exists('AppData')) {
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
+
+        public function loadUsersFave($user_id)
+        {
+            $stmt = $this->db->prepare("SELECT * from favorites where user_id = :user_id");
+            $stmt->execute(['user_id' => $user_id]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        public function getProductById($product_id)
+        {
+            $stmt = $this->db->prepare("SELECT * FROM products WHERE product_id = :id");
+            $stmt->execute(['id' => $product_id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        }
     }
 }

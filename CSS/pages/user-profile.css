@@ -249,3 +249,50 @@ button {
   justify-content: flex-end;
   margin-top: 10px;
 }
+
+.favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+
+    .small-reco-card {
+        transform: scale(1); /* scale down the card */
+        transform-origin: top left; /* anchor scaling to top-left */
+        /* optional: maintain consistent height in the grid */
+        display: flex;
+        justify-content: center;
+    }
+
+    /* Responsive fallback */
+    @media (max-width: 600px) {
+        .favorites-grid {
+            grid-template-columns: 1fr;
+        }
+        .small-reco-card {
+            transform: scale(1); /* full size on small screens */
+        }
+    }
+
+.favorites-scroll-container {
+    max-height: 500px; /* height limit */
+    overflow-y: auto;  /* vertical scroll */
+    overflow-x: hidden; /* prevent side scroll */
+    padding-right: 10px;
+}
+
+
+.favorites-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.favorites-scroll-container::-webkit-scrollbar-thumb {
+    background-color: rgba(34, 51, 60, 0.3);
+    border-radius: 3px;
+}
+
+.favorites-scroll-container::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+

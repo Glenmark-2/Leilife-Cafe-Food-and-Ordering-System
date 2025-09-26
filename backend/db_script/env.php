@@ -7,12 +7,25 @@ if (!function_exists('loadEnv')) {
 
         $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($lines as $line) {
-            if (str_starts_with(trim($line), '#')) {
-                continue; // skip comments
+            $line = trim($line);
+
+            // Skip empty lines or comments
+            if ($line === '' || str_starts_with($line, '#')) {
+                continue;
             }
+
+            // Skip lines that don't contain '='
+            if (strpos($line, '=') === false) {
+                continue;
+            }
+
+            // Split key=value safely
             list($name, $value) = explode('=', $line, 2);
-            $name = trim($name);
-            $value = trim($value);
+
+            $name  = trim($name);
+            $value = trim($value ?? ''); // ensure $value is not null
+
+            if ($name === '') continue; // skip if no key
 
             $_ENV[$name] = $value;
             putenv("$name=$value");

@@ -134,6 +134,7 @@ if (!class_exists('AppData')) {
             $stmt = $this->db->prepare("SELECT * FROM inbox WHERE is_archived = :archived ORDER BY created_at DESC");
             $stmt->bindParam(":archived", $archived, PDO::PARAM_INT);
             $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         public function loadFeaturedProducts()

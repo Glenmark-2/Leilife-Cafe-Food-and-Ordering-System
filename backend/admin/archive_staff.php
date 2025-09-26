@@ -20,14 +20,23 @@ try {
         throw new Exception("Staff not found");
     }
 
+    // Toggle archive status
     $new_status = $current['is_archive'] == 1 ? 0 : 1;
 
+    // Update staff_roles
     $updateStaff = $pdo->prepare("UPDATE staff_roles SET is_archive = ? WHERE staff_id = ?");
     $updateStaff->execute([$new_status, $staff_id]);
 
+    // If admin, update is_active in admin_accounts
     if (strtolower($current['staff_role']) === 'admin') {
-        $updateAdmin = $pdo->prepare("UPDATE admin_account SET is_active = ? WHERE full_name = ?");
+        $updateAdmin = $pdo->prepare("UPDATE admin_accounts SET is_active = ? WHERE full_name = ?");
         $updateAdmin->execute([$new_status == 1 ? 0 : 1, $current['staff_name']]);
+    }
+
+    // If driver, update is_active in driver_accounts
+    if (strtolower($current['staff_role']) === 'driver') {
+        $updateDriver = $pdo->prepare("UPDATE driver_accounts SET is_active = ? WHERE full_name = ?");
+        $updateDriver->execute([$new_status == 1 ? 0 : 1, $current['staff_name']]);
     }
 
     $response['success'] = true;

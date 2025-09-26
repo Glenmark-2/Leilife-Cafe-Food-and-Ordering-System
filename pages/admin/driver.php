@@ -1,5 +1,11 @@
 <?php
 // Mockup rider and orders
+session_start();
+if (!isset($_SESSION['driver_id'])) {
+    header('Location: /leilife/pages/admin/login-driver-123.php');
+    exit;
+}
+
 $rider = [
     "name" => "Tony Rider",
     "shift" => "9:00 AM - 5:00 PM"

@@ -37,7 +37,8 @@ if (isset($_POST["email"])) {
             ':expires_at' => $expiresAt,
         ]);
 
-        sendResetLink($email, $token);
+        $link = "http://localhost/Leilife/public/index.php?page=forgot-password&token=" . urlencode($token);
+        sendResetLink($email, $token,$link);
 
         //TODO: insert password_resets
         //TODO: call the send mail to send the token

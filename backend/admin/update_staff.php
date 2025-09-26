@@ -8,23 +8,28 @@ try {
         throw new Exception("Missing staff ID");
     }
 
-    $id = $_POST['id'];
-    $name = $_POST['name'] ?? '';
-    $role = $_POST['role'] ?? '';
-    $shift = $_POST['shift'] ?? '';
+    $id     = $_POST['id'];
+    $name   = $_POST['name']   ?? '';
+    $role   = $_POST['role']   ?? '';
+    $shift  = $_POST['shift']  ?? '';
     $status = $_POST['status'] ?? '';
 
     // Handle file upload if provided
     $photoName = null;
     if (!empty($_FILES['photo']['name'])) {
-        $photoName = time() . "_" . basename($_FILES['photo']['name']);
-        $target = __DIR__ . "/../../public/staffs/" . $photoName;
+        $uploadDir = __DIR__ . "/../../public/staffs/";
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+
+        $cleanFileName = preg_replace("/[^A-Za-z0-9.\-_]/", "_", trim($_FILES['photo']['name']));
+        $photoName = time() . "_" . $cleanFileName;
+        $target = $uploadDir . $photoName;
+
         if (!move_uploaded_file($_FILES['photo']['tmp_name'], $target)) {
             throw new Exception("Failed to upload photo");
         }
     }
 
-    // Update query
+    // --- Update staff_roles ---
     $sql = "UPDATE staff_roles 
             SET staff_name = :name,
                 staff_role = :role,
@@ -40,18 +45,30 @@ try {
     $stmt->bindParam(":status", $status);
     $stmt->bindParam(":id", $id);
     if ($photoName) $stmt->bindParam(":photo", $photoName);
+    $stmt->execute();
 
-    if ($stmt->execute()) {
-        $response["success"] = true;
-    } else {
-        throw new Exception("Database update failed");
+    // --- Sync with admin_accounts or driver_accounts if needed ---
+    if (strtolower($role) === "admin") {
+        $stmtAdmin = $pdo->prepare("UPDATE admin_accounts 
+                                    SET full_name = :name
+                                    WHERE full_name = (
+                                        SELECT staff_name FROM staff_roles WHERE staff_id = :id
+                                    )");
+        $stmtAdmin->execute([":name" => $name, ":id" => $id]);
+    } elseif (strtolower($role) === "driver") {
+        $stmtDriver = $pdo->prepare("UPDATE driver_accounts 
+                                     SET full_name = :name
+                                     WHERE full_name = (
+                                        SELECT staff_name FROM staff_roles WHERE staff_id = :id
+                                     )");
+        $stmtDriver->execute([":name" => $name, ":id" => $id]);
     }
+
     if ($stmt->rowCount() > 0) {
         $response["success"] = true;
         $response["message"] = "Staff updated successfully!";
     } else {
-        //  No rows affected (means no changes were made)
-        $response["success"] = false;
+        $response["success"] = true; // still success, even if no rows affected
         $response["message"] = "No changes were made.";
     }
 

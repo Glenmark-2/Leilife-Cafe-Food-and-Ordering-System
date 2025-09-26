@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $stmt = $pdo->prepare("SELECT * FROM admin_account WHERE email = :input OR username = :input");
+    $stmt = $pdo->prepare("SELECT * FROM admin_accounts WHERE email = :input OR username = :input");
     $stmt->execute(['input' => $emailOrUsername]);
     $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Verify password
         if (password_verify($password, $admin['password'])) {
-            $_SESSION['admin_id'] = $admin['id'];
+            $_SESSION['admin_id'] = $admin['admin_id'];
             $_SESSION['admin_name'] = $admin['full_name'];
             $_SESSION['admin_email'] = $admin['email'];
             $_SESSION['show_welcome'] = true;

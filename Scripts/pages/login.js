@@ -101,4 +101,41 @@ document.addEventListener("DOMContentLoaded", () => {
 // --- Close button logic ---
 document.getElementById("close-btn")?.addEventListener("click", () => {
   document.getElementById("box-container").style.display = "none";
+
 });
+document.getElementById("close-btn").addEventListener("click", () => {
+  document.getElementById("login-overlay").style.display = "none";
+
+});
+const overlay = document.getElementById("login-overlay");
+const closeBtn = document.getElementById("close-btn");
+
+// Show modal
+function openLoginModal() {
+  overlay.style.display = "flex"; // show modal
+  document.body.classList.add("modal-open"); // disable scroll
+}
+
+// Close modal
+function closeLoginModal() {
+  overlay.style.display = "none"; // hide modal
+  document.body.classList.remove("modal-open"); // enable scroll
+}
+
+// Close button event
+closeBtn.addEventListener("click", closeLoginModal);
+
+// (Optional) close when clicking outside the box
+overlay.addEventListener("click", (e) => {
+  if (e.target === overlay) {
+    closeLoginModal();
+  }
+});
+
+// Example: auto-show modal on page load
+// openLoginModal();
+
+
+
+
+

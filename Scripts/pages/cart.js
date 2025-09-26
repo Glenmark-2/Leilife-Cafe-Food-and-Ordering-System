@@ -134,8 +134,8 @@ function renderCart() {
                 <button class="qty-btn" onclick="changeItemQty(${index}, 1)">+</button>
             </div>
             <p class="product-name">
-                ${item.product_name || "Unknown Product"} 
-                ${item.size ? ' (' + item.size + ')' : ''} 
+                ${item.product_name || "Unknown Product"}
+                ${item.size ? ' (' + item.size + ')' : ''}
                 ${item.flavor_names ? ' - ' + item.flavor_names : ''}
             </p>
             <p class="product-price">₱${(price * item.quantity).toFixed(2)}</p>
@@ -151,7 +151,9 @@ function renderCart() {
 // ===============================
 function changeItemQty(index, change) {
     const item = cart[index];
-    const newQty = item.quantity + change;
+      const currentQty = parseInt(item.quantity, 10);
+    const newQty = currentQty + change;
+    console.log("Changing quantity:", item, "New Qty:", newQty);
     if (newQty < 1) return;
 
     item.quantity = newQty;
@@ -173,7 +175,10 @@ function changeItemQty(index, change) {
 // ===============================
 // Remove item
 // ===============================
-function removeItem(index) {
+async function removeItem(index) {
+    const confirmed = await showConfirm("Are you sure you want to remove this item?");
+    if (!confirmed) return; // cancel if user pressed "No"
+
     const removedItem = cart[index];
     cart.splice(index, 1);
     renderCart();
@@ -184,14 +189,14 @@ function removeItem(index) {
     });
 
     if (removedItem) {
-        showModal(`Removed "${removedItem.product_name}" from cart`, "success");
+        showModal(`Item removed from the cart.`, "success");
     }
 
     // 🔔 Notify listeners
     document.dispatchEvent(new CustomEvent("cart:updated", {
         detail: { cart: cart }
     }));
-    toggleCheckoutButton(); // ✅ check after rendering
+    toggleCheckoutButton();
 }
 document.addEventListener("DOMContentLoaded", () => {
     if (window.currentPage === "checkout-page") {
@@ -256,6 +261,57 @@ function updateSession(payload) {
     })
     .catch(err => console.error("Error updating cart:", err));
 }
+
+// ===============================
+// Confirmation modal (Yes/No)
+// ===============================
+function showConfirm(message) {
+    return new Promise((resolve) => {
+        let modal = document.getElementById("confirm-modal");
+        if (!modal) {
+            modal = document.createElement("div");
+            modal.id = "confirm-modal";
+            modal.style.cssText = `
+                display:none; position:fixed; z-index:10000; left:0; top:0;
+                width:100%; height:100%; background:rgba(0,0,0,0.4);
+                justify-content:center; align-items:center;
+            `;
+            modal.innerHTML = `
+                <div class="confirm-content" style="
+                    background:white; padding:20px 30px; border-radius:10px;
+                    text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3);
+                    min-width:280px; animation:popin .3s ease;
+                ">
+                    <p id="confirm-message" style="margin-bottom:20px; font-size:16px;"></p>
+                    <div style="display:flex; gap:15px; justify-content:center;">
+                        <button id="confirm-yes" style="
+                            padding:6px 16px; border:none; border-radius:6px;
+                            cursor:pointer; font-size:14px; color:white; background:#4caf50;
+                        ">Yes</button>
+                        <button id="confirm-no" style="
+                            padding:6px 16px; border:none; border-radius:6px;
+                            cursor:pointer; font-size:14px; color:white; background:#f44336;
+                        ">No</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        document.getElementById("confirm-message").textContent = message;
+        const yesBtn = document.getElementById("confirm-yes");
+        const noBtn = document.getElementById("confirm-no");
+
+        modal.style.display = "flex";
+
+        const closeModal = () => { modal.style.display = "none"; };
+
+        yesBtn.onclick = () => { closeModal(); resolve(true); };
+        noBtn.onclick = () => { closeModal(); resolve(false); };
+        modal.onclick = (e) => { if (e.target === modal) { closeModal(); resolve(false); } };
+    });
+}
+
 
 // ===============================
 // Init

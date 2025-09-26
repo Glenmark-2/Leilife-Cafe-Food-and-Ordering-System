@@ -87,24 +87,28 @@ $subCategories = array_values($subCategories);
                         <td>
                             <?php if ($product['main_category_id'] == 2): ?>
                                 <div style="display: flex; flex-direction: column; justify-content:space-between; gap:5px">
-                                    <div style="display: flex; flex-direction:row; justify-content:space-between; gap:10px">
 
+
+                                    <div style="display: flex; flex-direction:row; justify-content:space-between; gap:10px">
                                         <label>Medium</label>
-                                        <input type="text" id="pprice" class="inputData"
-                                            value="<?= number_format($product['product_price'], 2) ?>" disabled>
+                                        <input type="number" id="pprice" class="inputData" min=0
+                                            value="<?= isset($product['product_price']) ? number_format($product['product_price'], 2) : '' ?>" disabled>
                                     </div>
 
                                     <div style="display: flex; flex-direction:row; justify-content:space-between; gap:10px">
                                         <label>Large</label>
-                                        <input type="text" id="pprice_large" class="inputData"
-                                            value="<?= number_format($product['price_large'], 2) ?>" disabled>
+                                        <input type="number" id="pprice_large" class="inputData" min=0
+
+                                            value="<?= isset($product['price_large']) ? number_format($product['price_large'], 2) : '' ?>" disabled>
                                     </div>
                                 </div>
                             <?php else: ?>
-                                <input type="text" id="pprice" class="inputData"
-                                    value="<?= number_format($product['product_price'], 2) ?>" disabled>
+                                <input type="number" id="pprice" class="inputData" min=0
+                                    value="<?= number_format($product['product_price'] ?? 0, 2) ?>" disabled>
                             <?php endif; ?>
+
                         </td>
+
 
                         <!-- Category -->
                         <td>
@@ -168,9 +172,15 @@ $subCategories = array_values($subCategories);
                 </div>
 
                 <div class="form-row">
-                    <label for="price">Price:</label>
+                    <label for="price">Price :</label>
                     <input type="number" id="price" name="price" step="0.01" required>
                 </div>
+
+                <div class="form-row">
+                    <label for="price_large">Price (Large, if applicable):</label>
+                    <input type="number" id="price_large" name="price_large" step="0.01">
+                </div>
+
 
                 <div class="form-row">
                     <label for="category">Category:</label>
@@ -316,61 +326,63 @@ $subCategories = array_values($subCategories);
             addBtn.style.opacity = "0.5";
 
         } else {
-            // Save changes
-            const changed =
-                row.dataset.originalName !== nameInput.value ||
-                row.dataset.originalPrice !== priceInput.value ||
-                (priceLargeInput && row.dataset.originalPriceLarge !== priceLargeInput.value) ||
-                row.dataset.originalCategory !== categorySelect.value ||
-                row.dataset.originalStatus !== statusBtn.textContent ||
-                fileInput.files.length > 0;
+    // Save changes
+    const changed =
+        row.dataset.originalName !== nameInput.value ||
+        row.dataset.originalPrice !== (priceInput ? priceInput.value : '') ||
+        (priceLargeInput && row.dataset.originalPriceLarge !== priceLargeInput.value) ||
+        row.dataset.originalCategory !== categorySelect.value ||
+        row.dataset.originalStatus !== statusBtn.textContent ||
+        fileInput.files.length > 0;
 
-            if (!changed) {
-                disableRow(row, btn);
-                showModal("No changes made.", "warning");
-                return;
+    if (!changed) {
+        disableRow(row, btn);
+        showModal("No changes made.", "warning");
+        return;
+    }
+
+    // Build FormData (send both prices, empty strings if blank)
+    const formData = new FormData();
+    formData.append("product_id", productId);
+    formData.append("product_name", nameInput.value);
+    formData.append("product_price", priceInput ? priceInput.value.trim() : '');
+    if (priceLargeInput) {
+        formData.append("price_large", priceLargeInput.value.trim());
+    }
+    formData.append("category_id", categorySelect.value);
+    formData.append("status", statusBtn.textContent.trim());
+    if (fileInput.files[0]) formData.append("photo", fileInput.files[0]);
+
+    // Send to backend
+    fetch(BASE_URL + 'backend/admin/update_product.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const updated = data.product;
+            const statusText = updated.status === "Unavailable" ? "Unavailable" : "Available";
+            statusBtn.textContent = statusText;
+            statusBtn.classList.remove("Available", "Unavailable");
+            statusBtn.classList.add(statusText);
+
+            if (updated.product_picture) {
+                row.querySelector(".product-photo").src = BASE_URL + "public/products/" + updated.product_picture;
             }
 
-            const formData = new FormData();
-            formData.append("product_id", productId);
-            formData.append("product_name", nameInput.value);
-            formData.append("product_price", priceInput.value);
-
-            if (priceLargeInput) {
-                formData.append("price_large", priceLargeInput.value);
-            }
-
-            formData.append("category_id", categorySelect.value);
-            formData.append("status", statusBtn.textContent.trim());
-            if (fileInput.files[0]) formData.append("photo", fileInput.files[0]);
-
-            fetch(BASE_URL + 'backend/admin/update_product.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        const updated = data.product;
-                        const statusText = updated.status === "Unavailable" ? "Unavailable" : "Available";
-                        statusBtn.textContent = statusText;
-                        statusBtn.classList.remove("Available", "Unavailable");
-                        statusBtn.classList.add(statusText);
-
-                        if (updated.product_picture) {
-                            row.querySelector(".product-photo").src = BASE_URL + "public/products/" + updated.product_picture;
-                        }
-
-                        disableRow(row, btn);
-                        showModal("Product updated successfully!", "success");
-                        setTimeout(() => location.reload(), 1000);
-                    } else {
-                        showModal("Failed to update product.", "error");
-                        console.error(data.message);
-                    }
-                })
-                .catch(() => showModal("Error saving product.", "error"));
+            disableRow(row, btn);
+            showModal("Product updated successfully!", "success");
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showModal(data.message || "Failed to update product.", "error");
+            console.error(data.message);
         }
+    })
+    .catch(() => showModal("Error saving product.", "error"));
+}
+
+
     }
 
     function disableRow(row, btn) {
@@ -415,6 +427,7 @@ $subCategories = array_values($subCategories);
     document.getElementById("add").addEventListener("click", () => {
         const name = document.getElementById("name").value.trim();
         const price = document.getElementById("price").value.trim();
+        const priceLarge = document.getElementById("price_large").value.trim();
         const category = document.getElementById("add-category").value;
         const status = "Available";
         const file = document.getElementById("uploadInput").files[0];
@@ -427,6 +440,7 @@ $subCategories = array_values($subCategories);
         const formData = new FormData();
         formData.append("product_name", name);
         formData.append("product_price", price);
+        if (priceLarge) formData.append("price_large", priceLarge);
         formData.append("category_id", category);
         formData.append("status", status);
         if (file) formData.append("photo", file);
@@ -534,7 +548,13 @@ $subCategories = array_values($subCategories);
         icon.addEventListener('click', () => {
             const row = icon.closest('.product-row');
             const productId = row.dataset.id;
-            const isArchive = 1;
+
+            // check current "archived" state from URL
+            const url = new URL(window.location.href);
+            const archivedMode = url.searchParams.get('archived') === '1';
+
+            // if we are viewing archive, unarchive on click
+            const isArchive = archivedMode ? 0 : 1;
 
             const formData = new FormData();
             formData.append('product_id', productId);
@@ -547,8 +567,8 @@ $subCategories = array_values($subCategories);
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        showModal("Product archived!", "success");
-                        row.remove();
+                        showModal(isArchive ? "Product archived!" : "Product restored!", "success");
+                        row.remove(); // remove from table since it no longer belongs in this view
                     } else {
                         showModal("Error: " + data.message, "error");
                     }

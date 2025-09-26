@@ -3,6 +3,7 @@ session_start();
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
+
 if (!isset($_SESSION['admin_id'])) {
   header('Location: /leilife/pages/admin/login-x9P2kL7zQ.php');
   exit;
@@ -11,6 +12,7 @@ if (!isset($_SESSION['admin_id'])) {
 $appData = new AppData($pdo);
 $archived = $_GET['archived'] ?? 0;
 $messages = $appData->loadInbox($archived);
+
 ?>
 
 <!-- === First Row (Title + Archive Button) === -->
@@ -27,7 +29,8 @@ $messages = $appData->loadInbox($archived);
   <select id="sortInbox">
     <option value="unread">Unread</option>
     <option value="date">Newest</option>
-    <option value="type">By Type</option>
+    <option value="mail">Mail</option>
+    <option value="feedback">Feedback</option>
   </select>
 </div>
 
@@ -139,6 +142,7 @@ $messages = $appData->loadInbox($archived);
   });
 
   // Sort
+  // Sort
   document.getElementById("sortInbox").addEventListener("change", function() {
     const sortBy = this.value;
     const tbody = document.getElementById("inboxTableBody");
@@ -146,19 +150,27 @@ $messages = $appData->loadInbox($archived);
 
     rows.sort((a, b) => {
       if (sortBy === "unread") {
+        // Put unread on top
         return b.classList.contains("unread") - a.classList.contains("unread");
       }
       if (sortBy === "date") {
+        // Newest first
         return new Date(b.cells[4].textContent) - new Date(a.cells[4].textContent);
       }
-      if (sortBy === "type") {
-        return a.cells[3].textContent.localeCompare(b.cells[3].textContent);
+      if (sortBy === "mail" || sortBy === "feedback") {
+        // Filter by type
+        const typeA = a.cells[3].textContent.toLowerCase();
+        const typeB = b.cells[3].textContent.toLowerCase();
+        if (typeA === sortBy && typeB !== sortBy) return -1;
+        if (typeA !== sortBy && typeB === sortBy) return 1;
+        return 0;
       }
       return 0;
     });
 
     rows.forEach(row => tbody.appendChild(row));
   });
+
 
   // View Archive toggle
   document.getElementById("view-archive").addEventListener("click", () => {
@@ -168,23 +180,24 @@ $messages = $appData->loadInbox($archived);
   });
 
   // Archive toggle
-document.querySelectorAll(".archiveBtn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const id = btn.getAttribute("data-id");
+  document.querySelectorAll(".archiveBtn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-id");
 
-    fetch(BASE_URL + "backend/admin/archive_message.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `toggle_archive=${id}`
-    })
-    .then(res => res.text())
-    .then(data => {
-      console.log("Archive response:", data);
-      // Remove row from table
-      document.querySelector(`#row-${id}`)?.remove();
-    })
-    .catch(err => console.error("Fetch error:", err));
+      fetch(BASE_URL + "backend/admin/archive_message.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: `toggle_archive=${id}`
+        })
+        .then(res => res.text())
+        .then(data => {
+          console.log("Archive response:", data);
+          // Remove row from table
+          document.querySelector(`#row-${id}`)?.remove();
+        })
+        .catch(err => console.error("Fetch error:", err));
+    });
   });
-});
-
 </script>

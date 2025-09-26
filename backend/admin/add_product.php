@@ -15,15 +15,17 @@ try {
         throw new Exception("Invalid request method.");
     }
 
-    // Raw inputs and trimming
+    // Raw inputs
     $rawName      = $_POST["product_name"] ?? null;
     $rawPrice     = $_POST["product_price"] ?? null;
+    $rawPriceLarge= $_POST["price_large"] ?? null;
     $rawCategory  = $_POST["category_id"] ?? null;
     $rawStatus    = $_POST["status"] ?? "Available";
 
     // Trim & normalize
-    $productName  = $rawName ? ucwords(strtolower(trim($rawName))) : null; // Title Case + trimmed
+    $productName  = $rawName ? ucwords(strtolower(trim($rawName))) : null; 
     $productPrice = $rawPrice !== null ? trim($rawPrice) : null;
+    $priceLarge   = $rawPriceLarge !== null ? trim($rawPriceLarge) : null;
     $categoryId   = $rawCategory !== null ? trim($rawCategory) : null;
     $status       = $rawStatus !== null ? trim($rawStatus) : "Available";
 
@@ -42,9 +44,7 @@ try {
         }
 
         $uploadDir = __DIR__ . "/../../public/products/";
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
         $originalFileName = trim($_FILES["photo"]["name"]);                          
         $cleanFileName    = preg_replace("/[^A-Za-z0-9.\-_]/", "_", $originalFileName); 
@@ -58,14 +58,13 @@ try {
         $productPicture = $fileName;
     }
 
-    // Case-insensitive & trimmed duplicate name check
+    // Duplicate checks
     $checkName = $pdo->prepare("SELECT COUNT(*) FROM products WHERE LOWER(TRIM(product_name)) = LOWER(TRIM(:name))");
     $checkName->execute([":name" => $productName]);
     if ($checkName->fetchColumn() > 0) {
         throw new Exception("A product with this name already exists.");
     }
 
-    // Case-insensitive & trimmed duplicate picture check (only if picture uploaded)
     if ($productPicture) {
         $checkPic = $pdo->prepare("SELECT COUNT(*) FROM products WHERE LOWER(TRIM(product_picture)) = LOWER(TRIM(:pic))");
         $checkPic->execute([":pic" => trim($productPicture)]);
@@ -74,16 +73,17 @@ try {
         }
     }
 
-    // Insert using normalized (trimmed & title-cased) name
-    $sql = "INSERT INTO products (product_name, product_price, category_id, status, product_picture) 
-            VALUES (:name, :price, :category_id, :status, :picture)";
+    // Insert including price_large
+    $sql = "INSERT INTO products (product_name, product_price, price_large, category_id, status, product_picture) 
+            VALUES (:name, :price, :price_large, :category_id, :status, :picture)";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
-        ":name"       => $productName,
-        ":price"      => $productPrice,
-        ":category_id"=> $categoryId,
-        ":status"     => $status,
-        ":picture"    => $productPicture
+        ":name"        => $productName,
+        ":price"       => $productPrice,
+        ":price_large" => $priceLarge ?: null,
+        ":category_id" => $categoryId,
+        ":status"      => $status,
+        ":picture"     => $productPicture
     ]);
 
     $response["success"] = true;

@@ -129,6 +129,7 @@ if (!class_exists('AppData')) {
             return ($row && !empty($row['password_hash']));
         }
 
+
 public function loadInbox($archived = 0)
 {
     $stmt = $this->db->prepare("

@@ -57,7 +57,7 @@ foreach ($appData->categories as $cat) {
           <?php foreach ($productsByCategory[$categoryName] as $product): ?>
             <?php
             $name  = $product['product_name'] ?? '';
-            $price = $product['product_price'] ?? 0;
+            $price = $product['product_price'] ?? $product['price_large'];
             $image = !empty($product['product_picture'] ?? '')
               ? "../public/products/" . trim($product['product_picture'])
               : "../public/assests/image-43.png";

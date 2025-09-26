@@ -87,23 +87,28 @@ $subCategories = array_values($subCategories);
                         <td>
                             <?php if ($product['main_category_id'] == 2): ?>
                                 <div style="display: flex; flex-direction: column; justify-content:space-between; gap:5px">
+
+
                                     <div style="display: flex; flex-direction:row; justify-content:space-between; gap:10px">
                                         <label>Medium</label>
                                         <input type="text" id="pprice" class="inputData"
-                                            value="<?= number_format($product['product_price'], 2) ?>" disabled>
+                                            value="<?= isset($product['product_price']) ? number_format($product['product_price'], 2) : '' ?>" disabled>
                                     </div>
 
                                     <div style="display: flex; flex-direction:row; justify-content:space-between; gap:10px">
                                         <label>Large</label>
                                         <input type="text" id="pprice_large" class="inputData"
-                                            value="<?= !empty($product['price_large']) ? number_format($product['price_large'], 2) : '' ?>" disabled>
-                                    </div>
 
-                                <?php else: ?>
-                                    <input type="text" id="pprice" class="inputData"
-                                        value="<?= number_format($product['product_price'], 2) ?>" disabled>
-                                <?php endif; ?>
+                                            value="<?= isset($product['price_large']) ? number_format($product['price_large'], 2) : '' ?>" disabled>
+                                    </div>
+                                </div>
+                            <?php else: ?>
+                                <input type="text" id="pprice" class="inputData"
+                                    value="<?= number_format($product['product_price'] ?? 0, 2) ?>" disabled>
+                            <?php endif; ?>
+
                         </td>
+
 
                         <!-- Category -->
                         <td>
@@ -167,9 +172,15 @@ $subCategories = array_values($subCategories);
                 </div>
 
                 <div class="form-row">
-                    <label for="price">Price:</label>
+                    <label for="price">Price :</label>
                     <input type="number" id="price" name="price" step="0.01" required>
                 </div>
+
+                <div class="form-row">
+                    <label for="price_large">Price (Large, if applicable):</label>
+                    <input type="number" id="price_large" name="price_large" step="0.01">
+                </div>
+
 
                 <div class="form-row">
                     <label for="category">Category:</label>
@@ -330,18 +341,28 @@ $subCategories = array_values($subCategories);
                 return;
             }
 
+            // Validate that at least one price is entered
+            if ((!priceInput.value || priceInput.value.trim() === '') &&
+                (!priceLargeInput || priceLargeInput.value.trim() === '')) {
+                showModal("Please enter at least a Medium or Large price.", "error");
+                return;
+            }
+
+            // Build FormData
             const formData = new FormData();
             formData.append("product_id", productId);
             formData.append("product_name", nameInput.value);
-            formData.append("product_price", priceInput.value);
 
+            // Send empty string if input is empty, backend converts to NULL
+            formData.append("product_price", priceInput && priceInput.value.trim() !== '' ? priceInput.value.trim() : '');
             if (priceLargeInput) {
-                formData.append("price_large", priceLargeInput.value);
+                formData.append("price_large", priceLargeInput.value && priceLargeInput.value.trim() !== '' ? priceLargeInput.value.trim() : '');
             }
 
             formData.append("category_id", categorySelect.value);
             formData.append("status", statusBtn.textContent.trim());
             if (fileInput.files[0]) formData.append("photo", fileInput.files[0]);
+
 
             fetch(BASE_URL + 'backend/admin/update_product.php', {
                     method: 'POST',
@@ -414,6 +435,7 @@ $subCategories = array_values($subCategories);
     document.getElementById("add").addEventListener("click", () => {
         const name = document.getElementById("name").value.trim();
         const price = document.getElementById("price").value.trim();
+        const priceLarge = document.getElementById("price_large").value.trim();
         const category = document.getElementById("add-category").value;
         const status = "Available";
         const file = document.getElementById("uploadInput").files[0];
@@ -426,6 +448,7 @@ $subCategories = array_values($subCategories);
         const formData = new FormData();
         formData.append("product_name", name);
         formData.append("product_price", price);
+        if (priceLarge) formData.append("price_large", priceLarge);
         formData.append("category_id", category);
         formData.append("status", status);
         if (file) formData.append("photo", file);

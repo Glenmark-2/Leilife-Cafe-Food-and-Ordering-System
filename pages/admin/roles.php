@@ -6,6 +6,13 @@ if (!isset($_SESSION['admin_id'])) {
     exit;
 }
 
+// fetch the logged-in admin info
+$stmt = $pdo->prepare("SELECT username FROM admin_account WHERE id = :id");
+$stmt->execute(['id' => $_SESSION['admin_id']]);
+$currentAdmin = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$isMainAdmin = $currentAdmin && $currentAdmin['username'] === 'mAdmin';
+
 $showArchived = $_GET['archived'] ?? 0; // 0 = active, 1 = archived
 $stmt = $pdo->prepare("SELECT * FROM staff_roles WHERE is_archive = :archived");
 $stmt->execute(['archived' => $showArchived]);
@@ -23,8 +30,14 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <input type="search" id="search-input" placeholder="🔍 Search staff" aria-label="Search staff">
         </form>
         <div>
-            <button type="button" class="add" id="add-member"><span>+ Add new member</span></button>
-            <button type="button" class="add" id="add-admin"><span>+ Add new admin</span></button>
+            <!-- <button type="button" class="add" id="add-member"><span>+ Add new member</span></button>
+            <button type="button" class="add" id="add-admin"><span>+ Add new admin</span></button> -->
+            <?php if ($isMainAdmin): ?>
+                <button type="button" class="add" id="add-admin"><span>+ Add new admin</span></button>
+            <?php else: ?>
+                <button type="button" class="add" id="add-admin" disabled
+                    style="opacity:0.5;cursor:not-allowed"><span>+ Add new admin</span></button>
+            <?php endif; ?>
         </div>
     </div>
 

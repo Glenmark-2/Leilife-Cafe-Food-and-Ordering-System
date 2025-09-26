@@ -69,16 +69,16 @@ require_once "../components/buttonTemplate.php";
                 <?php echo createButton(45, 150, "Cancel Order"); ?>
             </div>
 
-            <!-- Feedback box under Cancel Order -->
+            <!-- Feedback box under Cancel Order
             <div class="feedback-box">
                 <h4>Give a Feedback</h4>
                 <textarea placeholder="Write your feedback here..."></textarea>
-            </div>
+            </div> -->
 
             <!-- Submit Feedback button -->
-            <div class="submit">
-                <?php echo createButton(45, 150, "Submit"); ?>
-            </div>
+            <!-- <div class="submit">
+             
+            </div> -->
         </div>
     </div>
 </div>

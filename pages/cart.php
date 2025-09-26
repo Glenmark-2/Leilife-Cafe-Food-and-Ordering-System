@@ -13,8 +13,8 @@ $cart = $_SESSION['cart'] ?? [];
             echo createButton(25, 60, "Change", "change", 10);
             ?>
         </div>
-<!-- test -->
-        <h3>My Carttttttttttttttttttttttttttttttttttttttttttt</h3>
+
+        <h3>My Cart</h3>
         <div id="mid-div"></div>
     </div>
 

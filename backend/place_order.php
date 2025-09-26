@@ -50,6 +50,9 @@ try {
         INSERT INTO orders (user_id, total, payment_method, payment_status)
         VALUES (:uid, :total, :payment, :status)
     ");
+    //test
+
+    
     $orderStmt->execute([
         ':uid'     => $user_id,
         ':total'   => $cart['total'],

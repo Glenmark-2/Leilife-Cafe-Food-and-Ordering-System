@@ -98,6 +98,7 @@ $subCategories = array_values($subCategories);
                                     <div style="display: flex; flex-direction:row; justify-content:space-between; gap:10px">
                                         <label>Large</label>
                                         <input type="text" id="pprice_large" class="inputData"
+
                                             value="<?= isset($product['price_large']) ? number_format($product['price_large'], 2) : '' ?>" disabled>
                                     </div>
                                 </div>
@@ -105,6 +106,7 @@ $subCategories = array_values($subCategories);
                                 <input type="text" id="pprice" class="inputData"
                                     value="<?= number_format($product['product_price'] ?? 0, 2) ?>" disabled>
                             <?php endif; ?>
+
                         </td>
 
 
@@ -554,7 +556,13 @@ $subCategories = array_values($subCategories);
         icon.addEventListener('click', () => {
             const row = icon.closest('.product-row');
             const productId = row.dataset.id;
-            const isArchive = 1;
+
+            // check current "archived" state from URL
+            const url = new URL(window.location.href);
+            const archivedMode = url.searchParams.get('archived') === '1';
+
+            // if we are viewing archive, unarchive on click
+            const isArchive = archivedMode ? 0 : 1;
 
             const formData = new FormData();
             formData.append('product_id', productId);
@@ -567,8 +575,8 @@ $subCategories = array_values($subCategories);
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        showModal("Product archived!", "success");
-                        row.remove();
+                        showModal(isArchive ? "Product archived!" : "Product restored!", "success");
+                        row.remove(); // remove from table since it no longer belongs in this view
                     } else {
                         showModal("Error: " + data.message, "error");
                     }

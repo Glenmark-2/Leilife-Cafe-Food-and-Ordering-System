@@ -57,7 +57,12 @@ try {
         ':token' => $token,
         ':expires_at' => $expiresAt
     ]);
-    $link = "http://localhost/leilife/pages/admin/login-x9P2kL7zQ.php";
+
+    if ($user['role'] === 'admin') {
+        $link = "http://localhost/leilife/pages/admin/set-password-x9P2kL7zQ.php?token=" . urlencode($token);
+    } else {
+        $link = "http://localhost/leilife/pages/driver/set-password-8Xc1mB2.php?token=" . urlencode($token);
+    }
 
     // Send reset link email
     if (sendResetLink($user['email'], $token, $link)) {

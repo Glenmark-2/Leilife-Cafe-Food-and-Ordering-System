@@ -76,8 +76,10 @@ h2 {
     cursor: pointer;
     width: 20px;
     height: 20px;
-    fill: #888;
-    transition: fill 0.2s;
+    fill: none;
+    stroke: #888;
+    stroke-width: 2;
+    transition: stroke 0.2s;
 }
 
 .login-button {
@@ -178,7 +180,8 @@ h2 {
             <label for="password">Password</label>
             <input type="password" name="password" id="password" autocomplete="current-password" required>
             <svg id="togglePassword" class="toggle-password" viewBox="0 0 24 24">
-                <path d="M17.94 17.94A9.956 9.956 0 0112 19c-7 0-10-7-10-7s1.72-3.32 4.63-5.41M12 5c7 0 10 7 10 7s-1.72 3.32-4.63 5.41M1 1l22 22" stroke="#888" stroke-width="2" fill="none" />
+                <path d="M1 12s3-7 11-7 11 7 11 7-3 7-11 7-11-7-11-7z"/>
+                <circle cx="12" cy="12" r="3"/>
             </svg>
         </div>
 
@@ -203,30 +206,6 @@ h2 {
     </div>
 </div>
 
-
-<!-- Forgot Password Modal -->
-<div id="forgot-password-modal">
-    <div class="modal-content">
-        <h3>Forgot Password</h3>
-        <p>Enter your Email or Username</p>
-        <input type="text" id="forgot-identifier" placeholder="Email or Username">
-        <div id="forgot-error" style="color:red;margin-bottom:10px;"></div>
-        <button id="send-reset-btn">Send Reset Link</button>
-        <button id="close-forgot-modal">Cancel</button>
-    </div>
-</div>
-
-<!-- Reset Password Modal -->
-<div id="reset-password-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
-    <div class="modal-content">
-        <h3>Reset Password</h3>
-        <input type="password" id="new-password" placeholder="New Password">
-        <input type="password" id="confirm-password" placeholder="Confirm Password">
-        <div id="reset-error" style="color:red;margin-bottom:10px;"></div>
-        <button id="update-password-btn">Update Password</button>
-    </div>
-</div>
-
 <script>
 const loginContainer = document.querySelector('.login-container');
 const forgotBtn = document.getElementById('forgot-password-btn');
@@ -234,10 +213,6 @@ const forgotModal = document.getElementById('forgot-password-modal');
 const closeForgot = document.getElementById('close-forgot-modal');
 const sendResetBtn = document.getElementById('send-reset-btn');
 const forgotError = document.getElementById('forgot-error');
-
-const resetModal = document.getElementById('reset-password-modal');
-const updatePasswordBtn = document.getElementById('update-password-btn');
-const resetError = document.getElementById('reset-error');
 
 // Show forgot password modal & hide login
 forgotBtn.addEventListener('click', () => {
@@ -277,9 +252,6 @@ sendResetBtn.addEventListener('click', () => {
         sendResetBtn.innerText = 'Send Reset Link';
         forgotError.style.color = data.success ? 'green' : 'red';
         forgotError.innerText = data.message;
-
-        // **DO NOT hide the forgot password modal**
-        // The modal stays open so user can see message
     })
     .catch(err => {
         sendResetBtn.disabled = false;
@@ -289,60 +261,30 @@ sendResetBtn.addEventListener('click', () => {
     });
 });
 
+// Toggle show/hide password
+const togglePassword = document.getElementById('togglePassword');
+const passwordInput = document.getElementById('password');
 
-// Check if URL has ?token=xxx for reset
-const urlParams = new URLSearchParams(window.location.search);
-const token = urlParams.get('token');
-if(token) {
-    resetModal.style.display = 'flex';
-    loginContainer.style.display = 'none';
-}
+togglePassword.addEventListener('click', () => {
+    const isPassword = passwordInput.type === 'password';
+    passwordInput.type = isPassword ? 'text' : 'password';
 
-// Update password
-updatePasswordBtn.addEventListener('click', () => {
-    const newPass = document.getElementById('new-password').value.trim();
-    const confirmPass = document.getElementById('confirm-password').value.trim();
-    resetError.innerText = '';
-
-    if(!newPass || !confirmPass){
-        resetError.innerText = 'Please fill in both fields.';
-        return;
+    // Switch icon between eye and eye-off
+    if (isPassword) {
+        togglePassword.innerHTML = '<path d="M1 12s3-7 11-7 11 7 11 7-3 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>';
+    } else {
+        togglePassword.innerHTML = '<path d="M17.94 17.94A9.956 9.956 0 0112 19c-7 0-10-7-10-7s1.72-3.32 4.63-5.41M12 5c7 0 10 7 10 7s-1.72 3.32-4.63 5.41M1 1l22 22" stroke="#888" stroke-width="2" fill="none" />';
     }
-    if(newPass !== confirmPass){
-        resetError.innerText = 'Passwords do not match.';
-        return;
-    }
-
-    updatePasswordBtn.disabled = true;
-    updatePasswordBtn.innerText = 'Updating...';
-
-    fetch('/leilife/backend/admin/driver_update_password.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ token, password: newPass })
-    })
-    .then(res => res.json())
-    .then(data => {
-        updatePasswordBtn.disabled = false;
-        updatePasswordBtn.innerText = 'Update Password';
-        resetError.style.color = data.success ? 'green' : 'red';
-        resetError.innerText = data.message;
-
-        if(data.success){
-            setTimeout(()=> window.location.href = '/leilife/pages/admin/login-x9P2kL7zQ.php', 2000);
-        }
-    })
-    .catch(err => {
-        updatePasswordBtn.disabled = false;
-        updatePasswordBtn.innerText = 'Update Password';
-        resetError.style.color = 'red';
-        resetError.innerText = 'Error: ' + err.message;
-    });
 });
 
 // Optional: close modal if clicking outside
 window.addEventListener('click', (e) => {
-    if (e.target === forgotModal) forgotModal.style.display = 'none';
-    if (e.target === resetModal) resetModal.style.display = 'none';
+    if (e.target === forgotModal) {
+        forgotModal.style.display = 'none';
+        loginContainer.style.display = 'block';
+    }
 });
 </script>
+
+</body>
+</html>

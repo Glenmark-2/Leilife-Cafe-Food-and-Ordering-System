@@ -14,19 +14,15 @@ $btnText = $archived === '1' ? 'View Products' : 'View Archive';
 $appData->adminloadProducts($archived);
 $appData->loadCategories();
 
-
 $subCategories = array_unique(
     array_map(fn($c) => $c['category_name'] ?? '', $appData->categories)
 );
 $subCategories = array_values($subCategories);
-
-
 ?>
 <div id="first-row">
     <h2>Products</h2>
     <button type="button" id="view-archive"><span><?= $btnText ?></span></button>
 </div>
-
 
 <div id="second-row">
     <button type="button" class="box-row clicked" data-category="all">All</button>
@@ -41,17 +37,16 @@ $subCategories = array_values($subCategories);
 <hr>
 <div id="third-row">
     <div id="top">
-        <form class="search-bar" role="search">
+        <form class="search-bar" role="search" onsubmit="return false;">
             <input type="search" id="search-input" placeholder="🔍 Search product" aria-label="Search products">
         </form>
         <button type="button" id="add-product"><span>+ Add new product</span></button>
     </div>
 
     <div id="table-container">
-        <table class="product-table">
+        <table class="product-table" role="table">
             <thead>
                 <tr>
-                    <!-- <th><input type="checkbox" class="checkbox"></th> -->
                     <th>Name</th>
                     <th>Price</th>
                     <th>Category</th>
@@ -64,8 +59,6 @@ $subCategories = array_values($subCategories);
                     <tr class="product-row"
                         data-id="<?= $product['product_id'] ?>"
                         data-sub="<?= htmlspecialchars(strtolower($product['category_name'])) ?>">
-                        <!-- <td><input type="checkbox" class="checkbox"></td> -->
-
                         <!-- Name -->
                         <td>
                             <div class="name-cell">
@@ -86,19 +79,15 @@ $subCategories = array_values($subCategories);
                         <!-- Price -->
                         <td>
                             <?php if ($product['main_category_id'] == 2): ?>
-                                <div style="display: flex; flex-direction: column; justify-content:space-between; gap:5px">
-
-
-                                    <div style="display: flex; flex-direction:row; justify-content:space-between; gap:10px">
+                                <div style="display: flex; flex-direction: column; gap:5px">
+                                    <div style="display: flex; justify-content:space-between; gap:10px">
                                         <label>Medium</label>
                                         <input type="number" id="pprice" class="inputData" min=0
                                             value="<?= isset($product['product_price']) ? number_format($product['product_price'], 2) : '' ?>" disabled>
                                     </div>
-
-                                    <div style="display: flex; flex-direction:row; justify-content:space-between; gap:10px">
+                                    <div style="display: flex; justify-content:space-between; gap:10px">
                                         <label>Large</label>
                                         <input type="number" id="pprice_large" class="inputData" min=0
-
                                             value="<?= isset($product['price_large']) ? number_format($product['price_large'], 2) : '' ?>" disabled>
                                     </div>
                                 </div>
@@ -106,9 +95,7 @@ $subCategories = array_values($subCategories);
                                 <input type="number" id="pprice" class="inputData" min=0
                                     value="<?= number_format($product['product_price'] ?? 0, 2) ?>" disabled>
                             <?php endif; ?>
-
                         </td>
-
 
                         <!-- Category -->
                         <td>
@@ -134,20 +121,10 @@ $subCategories = array_values($subCategories);
                             </button>
                         </td>
 
-                        <td class="actions-cell" style="display: flex; justify-content: center; align-items: center;">
+                        <td class="actions-cell">
                             <button id="editBtn" class="editBtn" type="button">Edit</button>
                             <img src="public/assests/archive.png" alt="Archive" class="archive-icon">
                         </td>
-
-                        <!-- <td>
-                        <button id="editBtn" class="editBtn" type="button">Edit</button>
-                    </td> -->
-                        <!-- <td>
-                        <img src="public/assests/trash-bin.png"
-                            alt="Delete"
-                            class="trash-icon"
-                            onclick="deleteRow(<?= $product['product_id'] ?>, this)">
-                    </td> -->
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -165,7 +142,7 @@ $subCategories = array_values($subCategories);
         </div>
 
         <div id="right">
-            <form>
+            <form onsubmit="return false;">
                 <div class="form-row">
                     <label for="name">Name:</label>
                     <input type="text" id="name" name="name" required>
@@ -180,7 +157,6 @@ $subCategories = array_values($subCategories);
                     <label for="price_large">Price (Large, if applicable):</label>
                     <input type="number" id="price_large" name="price_large" step="0.01">
                 </div>
-
 
                 <div class="form-row">
                     <label for="category">Category:</label>
@@ -208,7 +184,7 @@ $subCategories = array_values($subCategories);
     </div>
 </div>
 
-<script>
+                            <script>
     const BASE_URL = "http://localhost/Leilife/";
 
     // --- Search & Filter ---
@@ -218,14 +194,19 @@ $subCategories = array_values($subCategories);
     function filterProducts() {
         const search = searchInput.value.toLowerCase();
         const activeCategoryBtn = document.querySelector('.box-row.clicked');
-        const category = activeCategoryBtn ? activeCategoryBtn.dataset.category.toLowerCase() : 'all';
+        const category = activeCategoryBtn ? (activeCategoryBtn.dataset.category || 'all').toLowerCase() : 'all';
 
         document.querySelectorAll('.product-row').forEach(row => {
-            const name = row.querySelector('#pname').value.toLowerCase();
+            const nameEl = row.querySelector('#pname');
+            const name = nameEl ? (nameEl.value || '').toLowerCase() : '';
             const prodSub = row.dataset.sub ? row.dataset.sub.toLowerCase() : '';
             const matchesSearch = name.includes(search);
             const matchesCategory = category === 'all' || prodSub === category;
-            row.style.display = (matchesSearch && matchesCategory) ? 'table-row' : 'none';
+            if (matchesSearch && matchesCategory) {
+                row.classList.remove('hidden');
+            } else {
+                row.classList.add('hidden');
+            }
         });
     }
 
@@ -292,7 +273,7 @@ $subCategories = array_values($subCategories);
 
             // Store original values
             row.dataset.originalName = nameInput.value;
-            row.dataset.originalPrice = priceInput.value;
+            row.dataset.originalPrice = priceInput ? priceInput.value : '';
             if (priceLargeInput) row.dataset.originalPriceLarge = priceLargeInput.value;
             row.dataset.originalCategory = categorySelect.value;
             row.dataset.originalStatus = statusBtn.textContent;
@@ -326,63 +307,61 @@ $subCategories = array_values($subCategories);
             addBtn.style.opacity = "0.5";
 
         } else {
-    // Save changes
-    const changed =
-        row.dataset.originalName !== nameInput.value ||
-        row.dataset.originalPrice !== (priceInput ? priceInput.value : '') ||
-        (priceLargeInput && row.dataset.originalPriceLarge !== priceLargeInput.value) ||
-        row.dataset.originalCategory !== categorySelect.value ||
-        row.dataset.originalStatus !== statusBtn.textContent ||
-        fileInput.files.length > 0;
+            // Save changes
+            const changed =
+                row.dataset.originalName !== nameInput.value ||
+                row.dataset.originalPrice !== (priceInput ? priceInput.value : '') ||
+                (priceLargeInput && row.dataset.originalPriceLarge !== priceLargeInput.value) ||
+                row.dataset.originalCategory !== categorySelect.value ||
+                row.dataset.originalStatus !== statusBtn.textContent ||
+                (fileInput && fileInput.files && fileInput.files.length > 0);
 
-    if (!changed) {
-        disableRow(row, btn);
-        showModal("No changes made.", "warning");
-        return;
-    }
-
-    // Build FormData (send both prices, empty strings if blank)
-    const formData = new FormData();
-    formData.append("product_id", productId);
-    formData.append("product_name", nameInput.value);
-    formData.append("product_price", priceInput ? priceInput.value.trim() : '');
-    if (priceLargeInput) {
-        formData.append("price_large", priceLargeInput.value.trim());
-    }
-    formData.append("category_id", categorySelect.value);
-    formData.append("status", statusBtn.textContent.trim());
-    if (fileInput.files[0]) formData.append("photo", fileInput.files[0]);
-
-    // Send to backend
-    fetch(BASE_URL + 'backend/admin/update_product.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            const updated = data.product;
-            const statusText = updated.status === "Unavailable" ? "Unavailable" : "Available";
-            statusBtn.textContent = statusText;
-            statusBtn.classList.remove("Available", "Unavailable");
-            statusBtn.classList.add(statusText);
-
-            if (updated.product_picture) {
-                row.querySelector(".product-photo").src = BASE_URL + "public/products/" + updated.product_picture;
+            if (!changed) {
+                disableRow(row, btn);
+                showModal("No changes made.", "warning");
+                return;
             }
 
-            disableRow(row, btn);
-            showModal("Product updated successfully!", "success");
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            showModal(data.message || "Failed to update product.", "error");
-            console.error(data.message);
+            // Build FormData (send both prices, empty strings if blank)
+            const formData = new FormData();
+            formData.append("product_id", productId);
+            formData.append("product_name", nameInput.value);
+            formData.append("product_price", priceInput ? priceInput.value.trim() : '');
+            if (priceLargeInput) {
+                formData.append("price_large", priceLargeInput.value.trim());
+            }
+            formData.append("category_id", categorySelect.value);
+            formData.append("status", statusBtn.textContent.trim());
+            if (fileInput && fileInput.files[0]) formData.append("photo", fileInput.files[0]);
+
+            // Send to backend
+            fetch(BASE_URL + 'backend/admin/update_product.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const updated = data.product;
+                    const statusText = updated.status === "Unavailable" ? "Unavailable" : "Available";
+                    statusBtn.textContent = statusText;
+                    statusBtn.classList.remove("Available", "Unavailable");
+                    statusBtn.classList.add(statusText);
+
+                    if (updated.product_picture) {
+                        row.querySelector(".product-photo").src = BASE_URL + "public/products/" + updated.product_picture;
+                    }
+
+                    disableRow(row, btn);
+                    showModal("Product updated successfully!", "success");
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showModal(data.message || "Failed to update product.", "error");
+                    console.error(data.message);
+                }
+            })
+            .catch(() => showModal("Error saving product.", "error"));
         }
-    })
-    .catch(() => showModal("Error saving product.", "error"));
-}
-
-
     }
 
     function disableRow(row, btn) {
@@ -394,7 +373,7 @@ $subCategories = array_values($subCategories);
         });
         row.classList.remove('editing');
         btn.textContent = "Edit";
-        btn.style.backgroundColor = "#C6C3BD";
+        btn.style.backgroundColor = "#ffc107";
         btn.style.color = "#22333B";
 
         document.querySelectorAll('.editBtn').forEach(b => {
@@ -568,6 +547,7 @@ $subCategories = array_values($subCategories);
                 .then(data => {
                     if (data.success) {
                         showModal(isArchive ? "Product archived!" : "Product restored!", "success");
+                        disableRow(row, row.querySelector('.editBtn'));
                         row.remove(); // remove from table since it no longer belongs in this view
                     } else {
                         showModal("Error: " + data.message, "error");
@@ -609,5 +589,10 @@ $subCategories = array_values($subCategories);
             }
             newProductPhoto.src = URL.createObjectURL(file);
         }
+    });
+
+    // initial filter to apply (in case some rows are hidden by server-side logic)
+    document.addEventListener('DOMContentLoaded', () => {
+        filterProducts();
     });
 </script>

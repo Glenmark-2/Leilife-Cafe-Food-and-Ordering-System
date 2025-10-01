@@ -181,6 +181,7 @@ async function removeItem(index) {
 
     const removedItem = cart[index];
     cart.splice(index, 1);
+    console.log("Removed item:", removedItem);
     renderCart();
 
     updateSession({

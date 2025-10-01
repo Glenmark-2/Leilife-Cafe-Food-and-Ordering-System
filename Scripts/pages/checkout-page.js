@@ -26,6 +26,11 @@ const placeOrderBtn = document.getElementById("place-order-bt");
 
 if (placeOrderBtn) {
   placeOrderBtn.addEventListener("click", async () => {
+
+        // prevent multiple clicks
+    placeOrderBtn.disabled = true;
+    placeOrderBtn.textContent = "Processing...";
+
     // 1. Get selected payment method (from radio value)
     const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
 

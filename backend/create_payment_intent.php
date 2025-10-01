@@ -17,11 +17,12 @@ function createPaymentIntent($amount, $order_id) {
                 "statement_descriptor" => "Order #{$order_id}",
                 "capture_type" => "automatic",
                 "metadata" => [
-                    "order_id" => $order_id   // ✅ important for webhook
+                    "order_id" => $order_id   // ✅ always include order_id
                 ]
             ]
         ]
     ];
+
 
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
@@ -50,7 +51,7 @@ function createPaymentIntent($amount, $order_id) {
 
     $piId = $decoded['data']['id'] ?? null;
 
-    // Create PM + attach it, now we pass $order_id
+    // Create Payment Method + attach
     $pm = createPaymentMethodGCash($secretKey);
     $attach = attachPaymentMethodToIntent($secretKey, $piId, $pm, $order_id);
 
@@ -59,7 +60,6 @@ function createPaymentIntent($amount, $order_id) {
         "checkout_url" => $attach['next_action']['redirect']['url'] ?? null
     ];
 }
-
 
 // ✅ Create a Payment Method for GCash
 function createPaymentMethodGCash($secretKey, $billing = []) {
@@ -132,4 +132,3 @@ function attachPaymentMethodToIntent($secretKey, $piId, $pmId, $order_id) {
 
     return $decoded['data']['attributes'];
 }
-

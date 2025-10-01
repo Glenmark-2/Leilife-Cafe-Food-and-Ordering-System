@@ -16,7 +16,6 @@ if (session_status() === PHP_SESSION_NONE) {
 function isLoggedIn(): bool {
     return isset($_SESSION['user_id']);
 }
-
 /**
  * Redirects to login if page is protected and user is not logged in.
  */

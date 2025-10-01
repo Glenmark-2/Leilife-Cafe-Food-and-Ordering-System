@@ -17,6 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $city = trim($_POST['city'] ?? '');
     $province = trim($_POST['province'] ?? '');
     $region = trim($_POST['region'] ?? '');
+    $latitude = isset($_POST['latitude']) ? (float)$_POST['latitude'] : null;
+    $longitude = isset($_POST['longitude']) ? (float)$_POST['longitude'] : null;
 
     if (!$street_address || !$barangay || !$city || !$province || !$region) {
         echo json_encode(["success" => false, "error" => "All fields are required"]);
@@ -29,8 +31,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($existing) {
         $sql = "UPDATE addresses 
-                SET street_address = :street, barangay = :barangay, city = :city,
-                    province = :province, region = :region
+                SET street_address = :street, 
+                    barangay = :barangay, 
+                    city = :city,
+                    province = :province, 
+                    region = :region,
+                    latitude = :latitude,
+                    longitude = :longitude
                 WHERE user_id = :user_id";
         $stmt = $pdo->prepare($sql);
         $ok = $stmt->execute([
@@ -39,12 +46,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':barangay' => $barangay,
             ':city' => $city,
             ':province' => $province,
-            ':region' => $region
+            ':region' => $region,
+            ':latitude' => $latitude,
+            ':longitude' => $longitude
         ]);
     } else {
         $sql = "INSERT INTO addresses 
-                (user_id, street_address, barangay, city, province, region, payment_method, delivery_option)
-                VALUES (:user_id, :street, :barangay, :city, :province, :region, 'cash_on_delivery', 'delivery')";
+                (user_id, street_address, barangay, city, province, region, latitude, longitude, payment_method, delivery_option)
+                VALUES (:user_id, :street, :barangay, :city, :province, :region, :latitude, :longitude, 'cash_on_delivery', 'delivery')";
         $stmt = $pdo->prepare($sql);
         $ok = $stmt->execute([
             ':user_id' => $user_id,
@@ -52,7 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':barangay' => $barangay,
             ':city' => $city,
             ':province' => $province,
-            ':region' => $region
+            ':region' => $region,
+            ':latitude' => $latitude,
+            ':longitude' => $longitude
         ]);
     }
 
@@ -61,5 +72,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         : ["success" => false, "error" => "Database error"]);
     exit;
 }
-
-// echo json_encode(["success" => false, "error" => "Invalid request"]);

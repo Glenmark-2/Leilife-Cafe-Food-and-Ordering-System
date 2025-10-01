@@ -165,5 +165,47 @@ if (!class_exists('AppData')) {
             $stmt->execute(['id' => $product_id]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         }
+        public function getOrderOfUser($user_id)
+        {
+            // Step 1: get the latest order_id of this user
+            $stmt = $this->db->prepare("
+                SELECT order_id 
+                FROM orders 
+                WHERE user_id = :user_id 
+                ORDER BY order_id DESC 
+                LIMIT 1
+            ");
+            $stmt->execute(['user_id' => $user_id]);
+            $latestOrderId = $stmt->fetchColumn();
+        
+            if (!$latestOrderId) {
+                return []; // no orders
+            }
+        
+            // Step 2: get all items of that order
+            $stmt = $this->db->prepare("
+                SELECT 
+                    o.order_id, 
+                    o.status, 
+                    o.payment_method, 
+                    o.payment_status,
+                    o.total,
+                    o.order_date,
+                    oi.quantity, 
+                    oi.price,
+                    p.product_name
+                FROM orders o
+                LEFT JOIN order_items oi ON o.order_id = oi.order_id
+                LEFT JOIN products p ON oi.product_id = p.product_id
+                WHERE o.user_id = :user_id
+                  AND o.order_id = :order_id
+            ");
+            $stmt->execute([
+                'user_id' => $user_id,
+                'order_id' => $latestOrderId
+            ]);
+        
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
     }
 }

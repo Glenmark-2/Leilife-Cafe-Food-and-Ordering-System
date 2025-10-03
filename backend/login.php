@@ -29,17 +29,14 @@ if (
     exit;
 }
 
-// Collect + sanitize
-$email    = strtolower(trim($_POST["email"] ?? ''));
+$login    = strtolower(trim($_POST["login"] ?? ''));
 $password = trim($_POST["password"] ?? '');
 
 $errors = [];
 
 // Validation
-if (empty($email) || empty($password)) {
+if (empty($login) || empty($password)) {
     $errors[] = "Please fill in all fields.";
-} elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $errors[] = "Please enter a valid email address.";
 }
 
 if ($errors) {
@@ -48,27 +45,76 @@ if ($errors) {
 }
 
 try {
-    // Fetch only needed fields
+    // ---------- ADMIN LOGIN ----------
+    $stmt = $pdo->prepare("SELECT * FROM admin_accounts WHERE email = :input OR username = :input LIMIT 1");
+    $stmt->execute(['input' => $login]);
+    $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($admin) {
+        if ((int)$admin['is_active'] === 0) {
+            echo json_encode(["success" => false, "errors" => ["This account is temporarily deactivated. Please contact the system administrator."]]);
+            exit;
+        }
+
+        if (password_verify($password, $admin['password'])) {
+            $_SESSION['admin_id']    = $admin['admin_id'];
+            $_SESSION['admin_name']  = $admin['full_name'];
+            $_SESSION['admin_email'] = $admin['email'];
+            $_SESSION['show_welcome'] = true;
+
+            echo json_encode([
+                "success"  => true,
+                "redirect" => "/Leilife/public/admin.php?page=dashboard"
+            ]);
+            exit;
+        }
+    }
+
+    // ---------- DRIVER4 LOGIN ----------
+    $stmt = $pdo->prepare("SELECT * FROM driver_accounts WHERE email = :input OR username = :input");
+    $stmt->execute(['input' => $login]);
+    $driver = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($driver) {
+        if ((int)$driver['is_active'] === 0) {
+            echo json_encode(["success" => false, "errors" => [
+                "This account is temporarily deactivated. Please contact the system administrator."
+            ]]);
+            exit;
+        }
+
+        if (password_verify($password, $driver['password'])) {
+            $_SESSION['driver_id']    = $driver['driver_id'];
+            $_SESSION['driver_name']  = $driver['full_name'];
+            $_SESSION['driver_email'] = $driver['email'];
+            $_SESSION['show_welcome'] = true;
+
+            echo json_encode([
+                "success"  => true,
+                "redirect" => "/Leilife/public/driver.php?page=home"
+            ]);
+            exit;
+        }
+    }
+
+
+    // ---------- USER LOGIN ----------
     $stmt = $pdo->prepare("
         SELECT user_id, username, email, password_hash, auth_provider
-        FROM users WHERE email = :email LIMIT 1
+        FROM users 
+        WHERE email = :input OR username = :input
+        LIMIT 1
     ");
-    $stmt->execute([':email' => $email]);
+    $stmt->execute(['input' => $login]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $invalidLogin = ["success" => false, "errors" => ["Invalid email or password."]];
-
-    if (!$user) {
+    $invalidLogin = ["success" => false, "errors" => ["Invalid email/username or password."]];
+    if (!$user || !password_verify($password, $user['password_hash'])) {
         echo json_encode($invalidLogin);
         exit;
     }
 
-    if (!password_verify($password, $user['password_hash'])) {
-        echo json_encode($invalidLogin);
-        exit;
-    }
-
-    // ---------- CART MERGE ----------
+    // ---------- CART MERGE (unchanged) ----------
     $oldSessionId = session_id();
     $guestToken   = $_COOKIE['guest_token'] ?? null;
     $userId       = (int)$user['user_id'];
@@ -76,7 +122,6 @@ try {
     try {
         $pdo->beginTransaction();
 
-        // 1. Find guest cart (prefer guest_token, fallback session_id)
         $guestCart = null;
 
         if ($guestToken) {
@@ -94,13 +139,11 @@ try {
         if ($guestCart) {
             $guestCartId = (int)$guestCart['cart_id'];
 
-            // 2. Check if user already has a cart
             $userStmt = $pdo->prepare("SELECT cart_id FROM carts WHERE user_id = :uid LIMIT 1");
             $userStmt->execute([':uid' => $userId]);
             $userCart = $userStmt->fetch(PDO::FETCH_ASSOC);
 
             if ($userCart) {
-                // Merge guest cart items into user cart
                 $userCartId = (int)$userCart['cart_id'];
 
                 $moveSql = "
@@ -112,20 +155,17 @@ try {
                         quantity = quantity + VALUES(quantity),
                         updated_at = NOW()
                 ";
-
                 $moveStmt = $pdo->prepare($moveSql);
                 $moveStmt->execute([
                     ':user_cart_id'  => $userCartId,
                     ':guest_cart_id' => $guestCartId
                 ]);
 
-                // Delete old guest cart (cart_items already merged)
                 $pdo->prepare("DELETE FROM carts WHERE cart_id = :guest_cart_id")
                     ->execute([':guest_cart_id' => $guestCartId]);
 
                 recalcCartTotals($pdo, $userCartId);
             } else {
-                // No existing user cart → claim guest cart for this user
                 $upd = $pdo->prepare("
                     UPDATE carts 
                     SET user_id = :uid, session_id = NULL, guest_token = NULL, updated_at = NOW() 
@@ -144,20 +184,15 @@ try {
         }
         error_log("Cart merge error: " . $cartEx->getMessage());
     }
-    // ---------- END CART MERGE ----------
 
-    // ✅ Clear guest token cookie so it won’t conflict after login
     if (isset($_COOKIE['guest_token'])) {
         setcookie("guest_token", "", time() - 3600, "/");
         unset($_COOKIE['guest_token']);
     }
 
-    // ✅ Set session values before regenerating
-    $_SESSION['user_id']   = $user['user_id'];
-    $_SESSION['username']  = $user['username'];
-    $_SESSION['email']     = $user['email'];
-
-    // ✅ Now regenerate to prevent fixation
+    $_SESSION['user_id']  = $user['user_id'];
+    $_SESSION['username'] = $user['username'];
+    $_SESSION['email']    = $user['email'];
     session_regenerate_id(true);
 
     echo json_encode([

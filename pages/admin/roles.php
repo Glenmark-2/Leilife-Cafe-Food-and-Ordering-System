@@ -158,7 +158,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <div class="photo-section">
             <img id="admin-photo-preview" src="public/assests/uploadImg.jpg" alt="Photo">
-            <input type="file" id="admin-upload-input" name="photo" accept="image/*" style="display:none;" >
+            <input type="file" id="admin-upload-input" name="photo" accept="image/*" style="display:none;">
             <button type="button" id="admin-upload-btn">Upload Photo</button>
         </div>
 
@@ -223,23 +223,23 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!-- OTP Modal -->
 <div id="otp-modal" style="display:none;">
-  <div class="modal-card">
-    <button class="modal-close" id="cancel-otp-btn">&times;</button>
-    <h2>Email Verification</h2>
-    <p id="otpStatus">We sent a 6-digit code to your email. Please enter it below:</p>
+    <div class="modal-card">
+        <button class="modal-close" id="cancel-otp-btn">&times;</button>
+        <h2>Email Verification</h2>
+        <p id="otpStatus">We sent a 6-digit code to your email. Please enter it below:</p>
 
-    <form id="otp-form">
-      <div class="form-row">
-        <label for="otp-code">Enter OTP</label>
-        <input type="text" id="otp-code" name="otp" maxlength="6" required>
-      </div>
-      <div class="modal-buttons">
-        <button type="submit" id="verify-otp-btn">Verify</button>
-        <button type="button" id="resend-otp-btn" disabled>Resend OTP (30s)</button>
-        <button type="button" id="cancel-otp-btn-2">Cancel</button>
-      </div>
-    </form>
-  </div>
+        <form id="otp-form">
+            <div class="form-row">
+                <label for="otp-code">Enter OTP</label>
+                <input type="text" id="otp-code" name="otp" maxlength="6" required>
+            </div>
+            <div class="modal-buttons">
+                <button type="submit" id="verify-otp-btn">Verify</button>
+                <button type="button" id="resend-otp-btn" disabled>Resend OTP (30s)</button>
+                <button type="button" id="cancel-otp-btn-2">Cancel</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 
@@ -332,8 +332,8 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
         strengthText.textContent = strengthTextMap[strength];
     });
 
-   // Add Account (Admin/Driver)
-document.getElementById('admin-form').addEventListener('submit', e => {
+    // Add Account (Admin/Driver)
+ document.getElementById('admin-form').addEventListener('submit', e => {
     e.preventDefault();
 
     const name = document.getElementById('admin-name').value.trim();
@@ -385,126 +385,128 @@ document.getElementById('admin-form').addEventListener('submit', e => {
     formData.append("password", password);
     formData.append("photo", photo);
 
-    // --- Close Add Account modal instantly ---
-    adminModal.style.display = 'none';
-
-    // --- Open OTP modal instantly ---
-    openOtpModal();
+    // --- Show loading state while waiting ---
     document.getElementById("otpStatus").innerText = "Sending OTP to email...";
 
-    // --- Send OTP request ---
     fetch(BASE_URL + "backend/admin/request_account_otp.php", {
         method: "POST",
         body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success && data.otp_required) {
-            document.getElementById("otpStatus").innerText =
-                "Enter the 6-digit OTP sent to your email.";
-        } else {
-            document.getElementById("otpStatus").innerText = "Error: " + data.message;
-        }
-    })
-    .catch(err => {
-        document.getElementById("otpStatus").innerText = "Fetch error: " + err.message;
-    });
-});
-
-// --- OTP Modal ---
-const otpModal = document.getElementById('otp-modal');
-const otpCancel1 = document.getElementById('cancel-otp-btn');
-const otpCancel2 = document.getElementById('cancel-otp-btn-2');
-const resendBtn = document.getElementById('resend-otp-btn');
-const otpStatus = document.getElementById('otp-status'); // make sure <p id="otp-status"></p> exists in modal
-
-let resendTimer; // timer reference
-
-function openOtpModal() {
-    otpModal.style.display = 'flex';
-    if (otpStatus) otpStatus.innerText = "We sent a 6-digit code to your email.";
-
-    // Disable resend button initially
-    resendBtn.disabled = true;
-    resendBtn.textContent = "Resend OTP (5:00)";
-
-    // Start 5-minute countdown
-    let timeLeft = 5 * 60; // 5 minutes in seconds
-    resendTimer = setInterval(() => {
-        timeLeft--;
-        const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-        const seconds = (timeLeft % 60).toString().padStart(2, '0');
-        resendBtn.textContent = `Resend OTP (${minutes}:${seconds})`;
-
-        if (timeLeft <= 0) {
-            clearInterval(resendTimer);
-            resendBtn.disabled = false;
-            resendBtn.textContent = "Resend OTP";
-        }
-    }, 1000);
-}
-
-function closeOtpModal() {
-    otpModal.style.display = 'none';
-    clearInterval(resendTimer);
-}
-
-otpCancel1.addEventListener('click', closeOtpModal);
-otpCancel2.addEventListener('click', closeOtpModal);
-
-// Submit OTP
-document.getElementById('otp-form').addEventListener('submit', e => {
-    e.preventDefault();
-    const otp = document.getElementById('otp-code').value.trim();
-
-    if (!otp) {
-        showModal("Please enter the OTP.", "error");
-        return;
-    }
-
-    fetch(BASE_URL + "backend/admin/verify_account_otp.php", {
-        method: "POST",
-        body: new URLSearchParams({ otp })
     })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            showModal("Account verified and created!", "success");
-            closeOtpModal();
-            setTimeout(() => location.reload(), 1200);
+            // ✅ Success: close Add Account modal, open OTP modal
+            adminModal.style.display = 'none';
+            openOtpModal();
+            document.getElementById("otpStatus").innerText =
+                "Enter the 6-digit OTP sent to your email.";
         } else {
-            showModal("Error: " + data.message, "error");
-        }
-    })
-    .catch(err => showModal("Fetch error: " + err.message, "error"));
-});
-
-// Resend OTP handler
-resendBtn.addEventListener('click', () => {
-    resendBtn.disabled = true;
-    resendBtn.textContent = "Sending...";
-
-    const formData = new FormData(document.getElementById('admin-form'));
-
-    fetch(BASE_URL + "backend/admin/request_account_otp.php", {
-        method: "POST",
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.otp_required) {
-            otpStatus.innerText = "New OTP sent to your email!";
-            openOtpModal(); // restart 5-min countdown
-        } else {
-            otpStatus.innerText = "Error: " + data.message;
-            resendBtn.disabled = false;
+            // ❌ Error: keep Add Account modal open, don’t open OTP modal
+            showModal(data.message, "error");
         }
     })
     .catch(err => {
-        otpStatus.innerText = "Fetch error: " + err.message;
-        resendBtn.disabled = false;
+        showModal("Fetch error: " + err.message, "error");
     });
 });
+
+
+    // --- OTP Modal ---
+    const otpModal = document.getElementById('otp-modal');
+    const otpCancel1 = document.getElementById('cancel-otp-btn');
+    const otpCancel2 = document.getElementById('cancel-otp-btn-2');
+    const resendBtn = document.getElementById('resend-otp-btn');
+    const otpStatus = document.getElementById('otp-status'); // make sure <p id="otp-status"></p> exists in modal
+
+    let resendTimer; // timer reference
+
+    function openOtpModal() {
+        otpModal.style.display = 'flex';
+        if (otpStatus) otpStatus.innerText = "We sent a 6-digit code to your email.";
+
+        // Disable resend button initially
+        resendBtn.disabled = true;
+        resendBtn.textContent = "Resend OTP (5:00)";
+
+        // Start 5-minute countdown
+        let timeLeft = 5 * 60; // 5 minutes in seconds
+        resendTimer = setInterval(() => {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const seconds = (timeLeft % 60).toString().padStart(2, '0');
+            resendBtn.textContent = `Resend OTP (${minutes}:${seconds})`;
+
+            if (timeLeft <= 0) {
+                clearInterval(resendTimer);
+                resendBtn.disabled = false;
+                resendBtn.textContent = "Resend OTP";
+            }
+        }, 1000);
+    }
+
+    function closeOtpModal() {
+        otpModal.style.display = 'none';
+        clearInterval(resendTimer);
+    }
+
+    otpCancel1.addEventListener('click', closeOtpModal);
+    otpCancel2.addEventListener('click', closeOtpModal);
+
+    // Submit OTP
+    document.getElementById('otp-form').addEventListener('submit', e => {
+        e.preventDefault();
+        const otp = document.getElementById('otp-code').value.trim();
+
+        if (!otp) {
+            showModal("Please enter the OTP.", "error");
+            return;
+        }
+
+        fetch(BASE_URL + "backend/admin/verify_account_otp.php", {
+                method: "POST",
+                body: new URLSearchParams({
+                    otp
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showModal("Account verified and created!", "success");
+                    closeOtpModal();
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    showModal("Error: " + data.message, "error");
+                }
+            })
+            .catch(err => showModal("Fetch error: " + err.message, "error"));
+    });
+
+    // Resend OTP handler
+    resendBtn.addEventListener('click', () => {
+        resendBtn.disabled = true;
+        resendBtn.textContent = "Sending...";
+
+        const formData = new FormData(document.getElementById('admin-form'));
+
+        fetch(BASE_URL + "backend/admin/request_account_otp.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.otp_required) {
+                    otpStatus.innerText = "New OTP sent to your email!";
+                    openOtpModal(); // restart 5-min countdown
+                } else {
+                    otpStatus.innerText = "Error: " + data.message;
+                    resendBtn.disabled = false;
+                }
+            })
+            .catch(err => {
+                otpStatus.innerText = "Fetch error: " + err.message;
+                resendBtn.disabled = false;
+            });
+    });
 
 
 

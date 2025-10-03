@@ -8,16 +8,18 @@
     transform: translate(-50%, -50%);
     display: flex;
     justify-content: center;
-    background-color: white;
-    padding: 40px 50px;
+    background-color: rgb(255, 255, 255);
+    padding: 40px 10px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    width: fit-content;
+    max-width: 400px;  
+    width: 80%;       
     border-radius: 20px;
     font-family: Arial, sans-serif;
     z-index: 1000;
     margin-top: 40px;
-    
+    word-wrap: break-word;
 }
+
 
 /* Close button */
 #close-btn {
@@ -102,7 +104,7 @@ button.login-btn:hover {
 
 /* Continue with Google button */
 button.google-btn {
-    width: 100%;
+    width: 75%;
     padding: 5px;
     background-color: white;
     color: #444;
@@ -163,6 +165,33 @@ button.google-btn:hover {
 .signup button:hover {
     text-decoration: underline;
 }
+/* Error messages */
+#login-error-container.error-messages {
+    width: 75%;
+    color: red;
+    font-size: 13px;
+    margin-top: 3px;
+    white-space: normal;       
+    overflow-wrap: break-word;  /* ✅ break long text */
+    word-break: break-word;     /* ✅ fallback */
+    line-height: 1.4;
+    text-align: center;
+}
+
+
+#login-error-container.error-messages p {
+    margin: 4px 0;
+    padding: 2px;
+    background: #ffe5e5;
+    border-radius: 5px;
+}
+
+#spinner:empty,
+#login-error-container.error-messages:empty {
+    display: none;   /* Hide completely when empty */
+}
+
+
 
 /* Responsive adjustments for mobile */
 @media (max-width: 480px) {

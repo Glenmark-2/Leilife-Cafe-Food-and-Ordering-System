@@ -3,7 +3,7 @@
 return [
     'home'            => __DIR__ . '/../../pages/home.php',
     'thankyou'        => __DIR__ . '/../../pages/thankyou.php', 
-    'menu'            => __DIR__ . '/../../pages/menu.php',
+    'menu'            => __DIR__ . '/../../pages/menu.php', '/../../components/order_button.php',
     'orders'          => __DIR__ . '/../../pages/orders.php',
     'signUp'          => __DIR__ . '/../../pages/signUp.php',
     'login'           => __DIR__ . '/../../pages/login.php',
@@ -20,6 +20,8 @@ return [
     'verify_expired'  => __DIR__ . '/../../pages/verify_expired.php',
     'resend_verification' => __DIR__ . '/../resend_verification.php', // ✅ add this
     'change_password' => __DIR__ . '/../../components/change_password.php',
+    'order_button'   => __DIR__ . '/../../components/order_button.php',
+
 
     // Optional 404 page; router will fall back to it
     '404'             => __DIR__ . '/../../pages/404.php',

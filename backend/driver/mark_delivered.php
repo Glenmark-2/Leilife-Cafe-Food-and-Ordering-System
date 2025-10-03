@@ -43,7 +43,7 @@ try {
 
     echo json_encode([
         "success" => true,
-        "message" => "Order #{$orderId} marked as delivered"
+        "message" => "marked as delivered"
     ]);
 
 } catch (Exception $e) {

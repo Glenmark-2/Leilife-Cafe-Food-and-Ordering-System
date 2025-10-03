@@ -168,36 +168,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openMapModal() {
     mapModal.style.display = "block";
-
+  
     // initialize map first time
     if (!map) {
       map = L.map('map', { zoomControl: true }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
       }).addTo(map);
-
+    
       // When user clicks map, set or move marker
       map.on('click', function (e) {
         placeMarker(e.latlng.lat, e.latlng.lng);
       });
     } else {
-      // fix rendering when reopening modal
       setTimeout(() => { map.invalidateSize(); }, 200);
     }
-
-    // If inputs already have coords, show them
+  
+    // Check if inputs already have coords
     const existingLat = parseFloat(latInput.value) || null;
     const existingLng = parseFloat(lngInput.value) || null;
-
+  
     if (existingLat && existingLng) {
+      // If already pinned before, restore that pin
       placeMarker(existingLat, existingLng, true);
       map.setView([existingLat, existingLng], 16);
     } else {
-      // center to default city or keep current view
-      map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+      // Try geolocation first
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function (pos) {
+            const userLat = pos.coords.latitude;
+            const userLng = pos.coords.longitude;
+            map.setView([userLat, userLng], 16);
+            placeMarker(userLat, userLng); // auto-pin at user location
+          },
+          function (err) {
+            console.warn("Geolocation failed:", err.message);
+            map.setView(DEFAULT_CENTER, DEFAULT_ZOOM); // fallback
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      } else {
+        // fallback if no geolocation support
+        map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+      }
     }
   }
-
   function placeMarker(lat, lng, skipInputUpdate=false) {
     const latlng = { lat: parseFloat(lat), lng: parseFloat(lng) };
     if (marker) {

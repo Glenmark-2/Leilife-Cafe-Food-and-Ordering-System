@@ -54,16 +54,20 @@ if (placeOrderBtn) {
     // 3. Handle response
     if (result.success) {
       if (paymentMethod === "gcash" && result.checkout_url) {
-        // Redirect to PayMongo checkout page
+        // ✅ GCash: redirect to PayMongo checkout page
         window.location.replace(result.checkout_url);
       } else {
-        // COD → redirect to order success page
-        window.location.replace("/Leilife/public/index.php?page=menu");
+        // ✅ COD: redirect to tracking page using order_number
+        if (result.order_number) {
+          window.location.replace(`/Leilife/public/index.php?page=order-tracking&num=${encodeURIComponent(result.order_number)}`);
+        } else {
+          // fallback if backend forgot to return order_number
+          window.location.replace("/Leilife/public/index.php?page=orders");
+        }
       }
     } else {
       alert(result.message || "Something went wrong.");
-    }
-    
+    }    
     } catch (err) {
       console.error("Place order error:", err);
       alert("Error placing order.");

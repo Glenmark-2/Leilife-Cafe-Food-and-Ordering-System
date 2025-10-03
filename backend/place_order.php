@@ -26,6 +26,15 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit;
 }
 
+// Function to generate best-practice order number
+function generateOrderNumber() {
+    $prefix = "ORD";
+    $date = date("Ymd");
+    $random = strtoupper(substr(bin2hex(random_bytes(3)), 0, 6)); // 6 random chars
+    return "$prefix-$date-$random";
+}
+
+
 try {
     $pdo->beginTransaction();
 
@@ -40,22 +49,21 @@ try {
         exit;
     }
 
-    // Get user details for billing
-    $userStmt = $pdo->prepare("SELECT first_name, last_name, email, phone_number FROM users WHERE user_id = :uid");
-    $userStmt->execute([':uid' => $user_id]);
-    $user = $userStmt->fetch(PDO::FETCH_ASSOC);
+    // Generate secure order number
+    $order_number = generateOrderNumber();
 
     // Insert into orders
     $orderStmt = $pdo->prepare("
-        INSERT INTO orders (user_id, total, payment_method, payment_status)
-        VALUES (:uid, :total, :payment, :status)
+        INSERT INTO orders (user_id, total, payment_method, payment_status, order_number)
+        VALUES (:uid, :total, :payment, :status, :order_number)
     ");
   
     $orderStmt->execute([
-        ':uid'     => $user_id,
-        ':total'   => $cart['total'],
-        ':payment' => $payment_method,
-        ':status'  => ($payment_method === 'cod') ? 'unpaid' : 'unpaid'
+        ':uid'          => $user_id,
+        ':total'        => $cart['total'],
+        ':payment'      => $payment_method,
+        ':status'       => ($payment_method === 'cod') ? 'unpaid' : 'unpaid',
+        ':order_number' => $order_number
     ]);
     $order_id = $pdo->lastInsertId();
 
@@ -102,6 +110,7 @@ try {
                 "success" => true,
                 "message" => "Order created, redirecting to PayMongo.",
                 "order_id" => $order_id,
+                "order_number" => $order_number,
                 "checkout_url" => $pi['checkout_url'] ?? null
             ]);
         } catch (Exception $e) {
@@ -118,7 +127,8 @@ try {
         echo json_encode([
             "success" => true,
             "message" => "Order created successfully.",
-            "order_id" => $order_id
+            "order_id" => $order_id,
+            "order_number" => $order_number
         ]);
     }
 

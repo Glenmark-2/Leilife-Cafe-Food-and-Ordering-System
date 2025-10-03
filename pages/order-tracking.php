@@ -1,34 +1,56 @@
 <?php
 require_once "../components/buttonTemplate.php";
 require_once __DIR__ . '/../backend/db_script/db.php';
+require_once __DIR__ . '/../backend/db_script/appData.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 $appData = new AppData($pdo);
 
+// ✅ Ensure user is logged in
 $user_id = $_SESSION['user_id'] ?? null;
-$userAddress = $appData->loadUserAddress($user_id);
+if (!$user_id) {
+    echo "<p>You must be logged in to view orders.</p>";
+    exit;
+}
 
-// get the latest order with items
-$order = $appData->getOrderOfUser($user_id);
+// ✅ Fetch order number from router (?num=ORD-...)
+$orderNumber = $_GET['num'] ?? null;
+if (!$orderNumber) {
+    echo "<p>No order selected.</p>";
+    exit;
+}
+
+// ✅ Fetch the order with items, making sure it belongs to this user
+$order = $appData->getOrderByNumber($user_id, $orderNumber);
+
+if (!$order || count($order) === 0) {
+    echo "<p>Order not found or access denied.</p>";
+    exit;
+}
+
+// First row contains general order info
+$orderInfo = $order[0];
+
+// ✅ Fetch user address
+$userAddress = $appData->loadUserAddress($user_id);
 ?>
 
 <div class="tracking">
     <div class="your_order_title">
-        <h3>Your Order</h3>
+        <h3>Your Order #<?= htmlspecialchars($orderInfo['order_number']) ?></h3>
     </div>
 
     <!-- Progress steps -->
     <div class="progress-container">
         <?php
-        // figure out which step is active based on order status
         $steps = [
             'pending'            => 1,
             'preparing'          => 2,
             'ready_for_delivery' => 3,
             'delivered'          => 4,
         ];
-        $activeStep = isset($order[0]['status']) ? ($steps[$order[0]['status']] ?? 1) : 1;
+        $activeStep = $steps[$orderInfo['status']] ?? 1;
         ?>
         <div class="step <?= $activeStep >= 1 ? 'active' : '' ?>">
             <div class="circle">1</div>
@@ -54,15 +76,13 @@ $order = $appData->getOrderOfUser($user_id);
         <div class="left-details">
             <p style="color: #8f8d8dff;">Estimated time of delivery</p>
             <p><strong>15 - 20 mins</strong></p>
-            <img id="motor" src="\Leilife\public\assests\emojione_motorcycle.png" alt="Logo">
+            <img id="motor" src="/Leilife/public/assests/emojione_motorcycle.png" alt="Logo">
         </div>
 
         <!-- Right -->
         <div class="right-details">
-            <!-- Section title -->
+            <!-- Delivery details -->
             <p style="color: #8f8d8dff;">Delivery details</p>
-
-            <!-- Section content (left-aligned) -->
             <div class="right-content">
                 <div class="info-row">
                     <img src="../public/assests/pin.png" alt="location">
@@ -80,34 +100,28 @@ $order = $appData->getOrderOfUser($user_id);
                 <div class="info-row">
                     <img src="../public/assests/credit-card.png" alt="cc">
                     <p style="margin:0;">
-                        <?= isset($order[0]['payment_method']) 
-                            ? ucfirst($order[0]['payment_method']) 
+                        <?= $orderInfo['payment_method'] 
+                            ? ucfirst($orderInfo['payment_method']) 
                             : "N/A" ?>
                     </p>
                 </div>
             </div>
 
-            <!-- Order details title -->
+            <!-- Order details -->
             <p style="color: #8f8d8dff;">Order details</p>
-
-            <!-- Products (left-aligned) -->
             <div class="right-content">
-                <?php if ($order && count($order) > 0): ?>
-                    <?php foreach ($order as $item): ?>
-                        <p style="margin:0;">
-                            <?= (int)$item['quantity'] ?> × <?= htmlspecialchars($item['product_name']) ?>
-                            — ₱<?= number_format($item['price'], 2) ?>
-                        </p>
-                    <?php endforeach; ?>
-                    <hr>
-                    <p><strong>Total:</strong> ₱<?= number_format($order[0]['total'], 2) ?></p>
-                <?php else: ?>
-                    <p>No active orders.</p>
-                <?php endif; ?>
+                <?php foreach ($order as $item): ?>
+                    <p style="margin:0;">
+                        <?= (int)$item['quantity'] ?> × <?= htmlspecialchars($item['product_name']) ?>
+                        — ₱<?= number_format($item['price'], 2) ?>
+                    </p>
+                <?php endforeach; ?>
+                <hr>
+                <p><strong>Total:</strong> ₱<?= number_format($orderInfo['total'], 2) ?></p>
             </div>
 
             <!-- Cancel Order button -->
-            <?php if ($order && count($order) > 0 && $order[0]['status'] !== 'delivered' && $order[0]['status'] !== 'cancelled'): ?>
+            <?php if ($orderInfo['status'] !== 'delivered' && $orderInfo['status'] !== 'cancelled'): ?>
                 <div class="submit">
                     <?php echo createButton(45, 150, "Cancel Order"); ?>
                 </div>

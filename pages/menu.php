@@ -4,6 +4,8 @@ include "../components/buttonTemplate.php";
 // --- Load categories and only active products ---
 $appData->loadCategories();
 $appData->adminloadProducts(false); // false = only active products
+include '../components/order_button.php';
+
 ?>
 
 <div class="menu">
@@ -58,6 +60,7 @@ $appData->adminloadProducts(false); // false = only active products
     </div>
   <?php endforeach; ?>
 </div>
+
 
 <!-- JS for filtering subcategories by main category -->
 <script>

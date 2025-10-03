@@ -4,48 +4,67 @@ declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/db_script/db.php';
-require __DIR__ .'/send_mail.php';
-
-$data = json_decode(file_get_contents("php://input"),true);
+require __DIR__ . '/send_mail.php';
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    
-    return;
+    echo json_encode(["success" => false, "message" => "Invalid request."]);
+    exit;
 }
 
-if (isset($_POST["email"])) {
-    $email = trim($_POST["email"] ?? NULL);
+$email = trim($_POST["email"] ?? '');
 
-    $stmt = $pdo->prepare("SELECT user_id FROM users WHERE email = :email");
+if (empty($email)) {
+    echo json_encode(["success" => false, "message" => "Email is required."]);
+    exit;
+}
+
+$pdo->exec("DELETE FROM password_resets WHERE expires_at < NOW() OR used = 1");
+// Tables to check with user_type mapping
+$tables = [
+    ["table" => "users", "id_field" => "user_id", "type" => "user"],
+    ["table" => "admin_accounts", "id_field" => "admin_id", "type" => "admin"],
+    ["table" => "driver_accounts", "id_field" => "driver_id", "type" => "driver"]
+];
+
+$found = null;
+
+foreach ($tables as $t) {
+    $stmt = $pdo->prepare("SELECT {$t['id_field']} AS id FROM {$t['table']} WHERE email = :email LIMIT 1");
     $stmt->execute([':email' => $email]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-
-    if ($result) {
-        // email exists
-        $token = bin2hex(random_bytes(32));
-        
-        date_default_timezone_set('UTC');
-        $expiresAt = gmdate("Y-m-d H:i:s", time() + 3600);
-
-        $insrt = $pdo->prepare("INSERT INTO password_resets (user_id, token, expires_at) 
-                                VALUES (:user_id, :token, :expires_at)");
-        $insrt->execute([
-            ':user_id' => $result['user_id'],
-            ':token' => $token,
-            ':expires_at' => $expiresAt,
-        ]);
-
-        $link = "http://localhost/Leilife/public/index.php?page=forgot-password&token=" . urlencode($token);
-        sendResetLink($email, $token,$link);
-
-        //TODO: insert password_resets
-        //TODO: call the send mail to send the token
-        echo '{"success": true}';
-    } else {
-    
-        // email not found
+    if ($row) {
+        $found = [
+            "id" => $row['id'],
+            "user_type" => $t['type']
+        ];
+        break;
     }
+}
+
+if ($found) {
+    // Generate reset token
+    $token = bin2hex(random_bytes(32));
+    $expiresAt = gmdate("Y-m-d H:i:s", time() + 3600);
+
+    // Insert reset record
+    $insrt = $pdo->prepare("
+        INSERT INTO password_resets (user_id, token, expires_at, user_type) 
+        VALUES (:user_id, :token, :expires_at, :user_type)
+    ");
+    $insrt->execute([
+        ':user_id'   => $found['id'],
+        ':token'     => $token,
+        ':expires_at'=> $expiresAt,
+        ':user_type' => $found['user_type'], 
+    ]);
+
+    // Send reset email
+    $link = "http://localhost/Leilife/public/index.php?page=forgot-password&token=" . urlencode($token);
+    sendResetLink($email, $token, $link);
+
+    echo json_encode(["success" => true, "message" => "Reset link sent."]);
+} else {
+    echo json_encode(["success" => false, "message" => "Email not found in any account."]);
 }
 ?>

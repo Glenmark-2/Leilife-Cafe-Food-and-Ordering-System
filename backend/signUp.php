@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 error_reporting(E_ALL);
@@ -11,7 +12,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-function wants_json(): bool {
+function wants_json(): bool
+{
     if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
         return true;
     }
@@ -21,14 +23,16 @@ function wants_json(): bool {
     return false;
 }
 
-function json_response(array $data, int $status = 200): void {
+function json_response(array $data, int $status = 200): void
+{
     header('Content-Type: application/json; charset=utf-8');
     http_response_code($status);
     echo json_encode($data);
     exit;
 }
 
-function respond(bool $success, array $errors = [], ?string $redirect = null): void {
+function respond(bool $success, array $errors = [], ?string $redirect = null): void
+{
     if (wants_json()) {
         if ($success) {
             json_response(['success' => true, 'redirect' => $redirect]);
@@ -51,7 +55,8 @@ function respond(bool $success, array $errors = [], ?string $redirect = null): v
  * After this function returns, the script can continue doing background work
  * (like sending email). Uses fastcgi_finish_request() when available.
  */
-function send_immediate_success_and_continue(?string $redirect = null): void {
+function send_immediate_success_and_continue(?string $redirect = null): void
+{
     if (wants_json()) {
         header('Content-Type: application/json; charset=utf-8');
         http_response_code(200);
@@ -131,7 +136,8 @@ if (!empty($errors)) {
 $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
 // --- 6) Unique username generator (keeps your original approach)
-function make_unique_username(PDO $pdo, string $base): string {
+function make_unique_username(PDO $pdo, string $base): string
+{
     $username = $base;
     $i = 1;
     $stmt = $pdo->prepare("
@@ -157,12 +163,35 @@ $base_username = strtolower(preg_replace('/\s+/', '', $fname . '.' . $lname));
 
 // --- 7) Database ops
 try {
-    // Check if email exists in users
-    $stmt = $pdo->prepare("SELECT user_id FROM users WHERE email = :email LIMIT 1");
-    $stmt->execute([':email' => $email]);
-    if ($stmt->fetch()) {
-        respond(false, ["Email already registered. Please log in or reset your password."]);
+    function emailExists(PDO $pdo, string $email, string $table, string $column = 'email'): bool
+    {
+        $allowedTables = [
+            'users'  => 'email',
+            'admin_accounts'  => 'email',
+            'driver_accounts' => 'email'
+        ];
+
+        if (!isset($allowedTables[$table])) {
+            throw new Exception("Invalid table name.");
+        }
+
+        $column = $allowedTables[$table]; // ensures correct column
+        $stmt = $pdo->prepare("SELECT 1 FROM {$table} WHERE {$column} = :email LIMIT 1");
+        $stmt->execute([':email' => $email]);
+        return (bool) $stmt->fetchColumn();
     }
+
+    if (emailExists($pdo, $email, 'users')) {
+        respond(false, ["Email already registered in Users. Please log in or reset your password."]);
+    }
+    if (emailExists($pdo, $email, 'admin_accounts')) {
+        respond(false, ["Email already registered as Admin."]);
+    }
+    if (emailExists($pdo, $email, 'driver_accounts')) {
+        respond(false, ["Email already registered as Driver."]);
+    }
+
+
 
     // Check pending registrations (lock the row if DB supports it)
     // This doesn't start an explicit transaction, but using FOR UPDATE requires a transaction in many DBs.
@@ -202,7 +231,7 @@ try {
             ':token'       => $token,
             ':sent_at'     => $sent_at,
             ':expires_at'  => $expires_at,
-            ':password_hash'=> $password_hash,
+            ':password_hash' => $password_hash,
             ':fname'       => $fname,
             ':lname'       => $lname,
             ':phone'       => $phone,
@@ -259,7 +288,6 @@ try {
 
     // done
     exit;
-
 } catch (PDOException $e) {
     error_log("Signup DB error: " . $e->getMessage());
     respond(false, ["A database error occurred. Please try again later."]);

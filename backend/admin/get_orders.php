@@ -23,6 +23,7 @@ try {
         FROM orders o
         LEFT JOIN users u ON o.user_id = u.user_id
         LEFT JOIN order_items oi ON o.order_id = oi.order_id
+        WHERE DATE(o.order_date) = CURDATE()
         GROUP BY o.order_id
         ORDER BY o.$sort DESC
     ");

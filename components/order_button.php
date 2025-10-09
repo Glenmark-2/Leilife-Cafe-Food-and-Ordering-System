@@ -9,8 +9,13 @@ if (!isset($appData)) {
     $appData = new AppData($pdo);
 }
 
+
+
+
+
 $user_id = $_SESSION['user_id'] ?? null;
 $orders_raw = $user_id ? $appData->getActiveOrdersOfUser($user_id) : [];
+
 
 // ✅ Group by order_id
 $orders = [];

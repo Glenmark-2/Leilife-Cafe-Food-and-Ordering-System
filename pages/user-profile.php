@@ -11,6 +11,8 @@ $user_id = $_SESSION['user_id'] ?? null;
 $userInfo = $appData->loadUserInfo($user_id);
 $userAddress = $appData->loadUserAddress($user_id);
 $userFavorites = $appData->loadUsersFave($user_id);
+$orders = $appData->loadUserOrders($user_id) ?? [];
+
 
 // $orders = $appData->loadUserOrders($user_id) ?? [];
 
@@ -199,36 +201,37 @@ $activeTab = $_GET['tab'] ?? 'personal';
 
 
 
+<!-- Order History -->
+<section id="orders" class="tab-content white-box <?= $activeTab === 'orders' ? 'active' : '' ?>">
+    <h3>Order History</h3>
+    <hr>
+    <?php if (!empty($orders)): ?>
+        <table class="order-table">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($orders as $order): ?>
+                    <tr class="order-row" 
+                        data-order='<?= json_encode($order, JSON_HEX_APOS | JSON_HEX_QUOT) ?>'>
+                        <td>#<?= htmlspecialchars($order["order_number"]) ?></td>
+                        <td><?= htmlspecialchars(substr($order["date"], 0, 10)) ?></td>
+                        <td><?= htmlspecialchars($order["status"] ?? 'Undefined') ?></td>
+                        <td>₱<?= number_format($order["total"] ?? 0, 2) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php else: ?>
+        <p class="no-orders">You have not placed any orders yet.</p>
+    <?php endif; ?>
+</section>
 
-        <!-- Order History -->
-        <section id="orders" class="tab-content white-box <?= $activeTab === 'orders' ? 'active' : '' ?>">
-            <h3>Order History</h3>
-            <hr>
-            <?php if (!empty($orders)): ?>
-                <table class="order-table">
-                    <thead>
-                        <tr>
-                            <th>Order #</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($orders as $order): ?>
-                            <tr>
-                                <td>#<?= htmlspecialchars($order["id"]) ?></td>
-                                <td><?= htmlspecialchars($order["date"]) ?></td>
-                                <td><?= htmlspecialchars($order["status"]) ?></td>
-                                <td>₱<?= htmlspecialchars(number_format($order["total"], 2)) ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p>No orders yet.</p>
-            <?php endif; ?>
-        </section>
 
         <!-- Settings -->
         <section id="settings" class="tab-content white-box <?= $activeTab === 'settings' ? 'active' : '' ?>">
@@ -258,198 +261,249 @@ $activeTab = $_GET['tab'] ?? 'personal';
 
 <?php include "../components/admin/set-address-modal.php"; ?>
 
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
+<!-- Order Details Modal -->
+<div id="orderDetailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000;">
+    <div style="background:white; padding:20px; border-radius:10px; width:90%; max-width:500px; position:relative;">
+        <button onclick="closeOrderModal()" style="position:absolute; top:10px; right:10px; font-size:18px; background:none; border:none; cursor:pointer;">&times;</button>
+        <div id="modalOrderContent"></div>
+    </div>
+</div>
 
-        // -------------------------
-        // Toast notification
-        // -------------------------
-        function showToast(message, type = "success", duration = 2500) {
-            let toast = document.getElementById("toast-notif");
-            if (!toast) {
-                toast = document.createElement("div");
-                toast.id = "toast-notif";
-                toast.style.cssText = `
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    // -------------------------
+    // Toast notification
+    // -------------------------
+    function showToast(message, type = "success", duration = 2500) {
+        let toast = document.getElementById("toast-notif");
+        if (!toast) {
+            toast = document.createElement("div");
+            toast.id = "toast-notif";
+            toast.style.cssText = `
                 position: fixed; bottom: 20px; right: 20px;
                 padding: 12px 20px; border-radius: 8px;
                 color: white; font-size: 14px; opacity: 0;
                 transition: opacity 0.3s ease; z-index: 10000;
             `;
-                document.body.appendChild(toast);
+            document.body.appendChild(toast);
+        }
+
+        toast.textContent = message;
+        if (type === "success") toast.style.background = "#4caf50";
+        else if (type === "error") toast.style.background = "#f44336";
+        else if (type === "warning") toast.style.background = "#ff9800";
+
+        toast.style.opacity = 1;
+        setTimeout(() => toast.style.opacity = 0, duration);
+    }
+
+    // -------------------------
+    // Tab switching
+    // -------------------------
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    function activateTab(tabId) {
+        tabButtons.forEach(btn => btn.classList.remove("active"));
+        tabContents.forEach(content => content.classList.remove("active"));
+
+        const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+        const activeContent = document.getElementById(tabId);
+
+        if (activeBtn) activeBtn.classList.add("active");
+        if (activeContent) activeContent.classList.add("active");
+
+        const url = new URL(window.location.href);
+        url.searchParams.set("tab", tabId);
+        window.history.replaceState({}, "", url);
+    }
+
+    tabButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            activateTab(btn.dataset.tab);
+        });
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    activateTab(urlParams.get("tab") || "personal");
+
+    // -------------------------
+    // Personal Info Edit/Save
+    // -------------------------
+    const editBtn = document.getElementById("edit-info");
+    const personalForm = document.getElementById("personal-form");
+
+    if (editBtn && personalForm) {
+        editBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            const state = editBtn.getAttribute("data-state");
+            const infos = personalForm.querySelectorAll(".info");
+
+            if (state === "edit") {
+                editBtn.textContent = "Save";
+                editBtn.style.backgroundColor = "#28a745";
+                editBtn.setAttribute("data-state", "save");
+                infos.forEach(info => {
+                    const disp = info.querySelector(".display-value");
+                    const input = info.querySelector(".edit-input");
+                    if (disp && input) {
+                        disp.style.display = "none";
+                        input.style.display = "block";
+                    }
+                });
+                return;
             }
 
-            toast.textContent = message;
-            if (type === "success") toast.style.background = "#4caf50";
-            else if (type === "error") toast.style.background = "#f44336";
-            else if (type === "warning") toast.style.background = "#ff9800";
+            const fd = new FormData(personalForm);
+            try {
+                const resp = await fetch(personalForm.action, {
+                    method: "POST",
+                    body: fd
+                });
+                const result = await resp.json();
 
-            toast.style.opacity = 1;
-            setTimeout(() => toast.style.opacity = 0, duration);
-        }
+                if (result.success) {
+                    showToast(result.message || "Profile updated!", "success");
 
-        // -------------------------
-        // Tab switching
-        // -------------------------
-        const tabButtons = document.querySelectorAll(".tab-btn");
-        const tabContents = document.querySelectorAll(".tab-content");
-
-        function activateTab(tabId) {
-            tabButtons.forEach(btn => btn.classList.remove("active"));
-            tabContents.forEach(content => content.classList.remove("active"));
-
-            const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
-            const activeContent = document.getElementById(tabId);
-
-            if (activeBtn) activeBtn.classList.add("active");
-            if (activeContent) activeContent.classList.add("active");
-
-            const url = new URL(window.location.href);
-            url.searchParams.set("tab", tabId);
-            window.history.replaceState({}, "", url);
-        }
-
-        tabButtons.forEach(btn => {
-            btn.addEventListener("click", () => {
-                activateTab(btn.dataset.tab);
-            });
-        });
-
-        const urlParams = new URLSearchParams(window.location.search);
-        activateTab(urlParams.get("tab") || "personal");
-
-        // -------------------------
-        // Personal Info Edit/Save
-        // -------------------------
-        const editBtn = document.getElementById("edit-info");
-        const personalForm = document.getElementById("personal-form");
-
-        if (editBtn && personalForm) {
-            editBtn.addEventListener("click", async (e) => {
-                e.preventDefault();
-                const state = editBtn.getAttribute("data-state");
-                const infos = personalForm.querySelectorAll(".info");
-
-                if (state === "edit") {
-                    editBtn.textContent = "Save";
-                    editBtn.style.backgroundColor = "#28a745";
-                    editBtn.setAttribute("data-state", "save");
+                    // update displayed values
                     infos.forEach(info => {
                         const disp = info.querySelector(".display-value");
                         const input = info.querySelector(".edit-input");
                         if (disp && input) {
-                            disp.style.display = "none";
-                            input.style.display = "block";
+                            disp.textContent = input.value;
+                            input.style.display = "none";
+                            disp.style.display = "block";
                         }
                     });
-                    return;
-                }
 
-                const fd = new FormData(personalForm);
-                try {
-                    const resp = await fetch(personalForm.action, {
-                        method: "POST",
-                        body: fd
+                    editBtn.textContent = "Edit";
+                    editBtn.style.backgroundColor = "";
+                    editBtn.setAttribute("data-state", "edit");
+                } else {
+                    showToast(result.error || "Save failed", "error");
+                }
+            } catch (err) {
+                showToast("Request error: " + err.message, "error");
+            }
+        });
+    }
+
+    // -------------------------
+    // Address Edit Modal
+    // -------------------------
+    const addressBtn = document.getElementById("edit-address");
+    const modalOverlay = document.getElementById("modalOverlay");
+    const addressModalForm = modalOverlay?.querySelector("form");
+
+    if (addressBtn && modalOverlay) {
+        addressBtn.addEventListener("click", e => {
+            e.preventDefault();
+            modalOverlay.style.display = "flex";
+        });
+    }
+
+    if (addressModalForm) {
+        addressModalForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const fd = new FormData(addressModalForm);
+
+            try {
+                const resp = await fetch(addressModalForm.action, {
+                    method: "POST",
+                    body: fd
+                });
+                const result = await resp.json();
+
+                if (result.success) {
+                    showToast(result.message || "Address updated!", "success");
+                    modalOverlay.style.display = "none";
+
+                    // update displayed address
+                    const fields = ["street_address", "barangay", "city", "province", "region"];
+                    fields.forEach(f => {
+                        const input = document.querySelector(`#address .info input[name="${f}"]`);
+                        if (input) {
+                            const displayElem = input.closest(".info").querySelector(".display-value");
+                            displayElem.textContent = input.value;
+                        }
                     });
-                    const result = await resp.json();
-
-                    if (result.success) {
-                        showToast(result.message || "Profile updated!", "success");
-
-                        // update displayed values
-                        infos.forEach(info => {
-                            const disp = info.querySelector(".display-value");
-                            const input = info.querySelector(".edit-input");
-                            if (disp && input) {
-                                disp.textContent = input.value;
-                                input.style.display = "none";
-                                disp.style.display = "block";
-                            }
-                        });
-
-                        editBtn.textContent = "Edit";
-                        editBtn.style.backgroundColor = "";
-                        editBtn.setAttribute("data-state", "edit");
-                    } else {
-                        showToast(result.error || "Save failed", "error");
-                    }
-                } catch (err) {
-                    showToast("Request error: " + err.message, "error");
+                } else {
+                    showToast(result.error || "Save failed", "error");
                 }
-            });
-        }
+            } catch (err) {
+                showToast("Request error: " + err.message, "error");
+            }
+        });
+    }
 
-        // -------------------------
-        // Address Edit Modal
-        // -------------------------
-        const addressBtn = document.getElementById("edit-address");
-        const modalOverlay = document.getElementById("modalOverlay");
-        const addressModalForm = modalOverlay?.querySelector("form");
+    // -------------------------
+    // Profile photo upload
+    // -------------------------
+    const profileBtn = document.getElementById("profile-btn");
+    const profileInput = document.getElementById("profile-input");
 
-        if (addressBtn && modalOverlay) {
-            addressBtn.addEventListener("click", e => {
-                e.preventDefault();
-                modalOverlay.style.display = "flex";
-            });
-        }
+    if (profileBtn && profileInput) {
+        profileBtn.addEventListener("click", () => profileInput.click());
+        profileInput.addEventListener("change", () => {
+            if (!profileInput.files.length) return;
+            document.getElementById("submit-photo").click();
+        });
+    }
 
-        if (addressModalForm) {
-            addressModalForm.addEventListener("submit", async (e) => {
-                e.preventDefault();
-                const fd = new FormData(addressModalForm);
+    // -------------------------
+    // Profile hover effect
+    // -------------------------
+    const profilePic = document.querySelector(".profile-pic");
+    if (profilePic) {
+        profilePic.addEventListener("mouseenter", () => {
+            profilePic.setAttribute("title", "Click to change photo");
+        });
+    }
 
-                try {
-                    const resp = await fetch(addressModalForm.action, {
-                        method: "POST",
-                        body: fd
-                    });
-                    const result = await resp.json();
+    // -------------------------
+    // Order Row Click
+    // -------------------------
+    const orderRows = document.querySelectorAll('.order-row');
+    orderRows.forEach(row => {
+        row.style.cursor = "pointer"; // show pointer
+        row.addEventListener('click', () => {
+            const order = JSON.parse(row.getAttribute('data-order'));
+            const modalContent = document.getElementById('modalOrderContent');
 
-                    if (result.success) {
-                        showToast(result.message || "Address updated!", "success");
-                        modalOverlay.style.display = "none";
+            const items = Array.isArray(order.items) ? order.items : [];
 
-                        // update displayed address
-                        const fields = ["street_address", "barangay", "city", "province", "region"];
-                        fields.forEach(f => {
-                            const input = document.querySelector(`#address .info input[name="${f}"]`);
-                            if (input) {
-                                const displayElem = input.closest(".info").querySelector(".display-value");
-                                displayElem.textContent = input.value;
-                            }
-                        });
-                    } else {
-                        showToast(result.error || "Save failed", "error");
-                    }
-                } catch (err) {
-                    showToast("Request error: " + err.message, "error");
-                }
-            });
-        }
+            modalContent.innerHTML = `
+                <p><strong>Order #:</strong> ${order.order_number || 'Undefined'}</p>
+                <p><strong>Date:</strong> ${order.date ? order.date.slice(0,10) : 'Undefined'}</p>
+                <p><strong>Status:</strong> ${order.status || 'Undefined'}</p>
+                <p><strong>Payment:</strong> ${order.payment_method || 'Undefined'}</p>
+                <p><strong>Total:</strong> ₱${parseFloat(order.total || 0).toFixed(2)}</p>
+                <p><strong>Items:</strong></p>
+                <ul>
+                    ${items.map(i => `<li>${i.product_name || 'Undefined'} × ${i.quantity || 1}</li>`).join('')}
+                </ul>
+            `;
 
-        // -------------------------
-        // Profile photo upload
-        // -------------------------
-        const profileBtn = document.getElementById("profile-btn");
-        const profileInput = document.getElementById("profile-input");
-
-        if (profileBtn && profileInput) {
-            profileBtn.addEventListener("click", () => profileInput.click());
-            profileInput.addEventListener("change", () => {
-                if (!profileInput.files.length) return;
-                document.getElementById("submit-photo").click();
-            });
-        }
-
-        // -------------------------
-        // Profile hover effect
-        // -------------------------
-        const profilePic = document.querySelector(".profile-pic");
-        if (profilePic) {
-            profilePic.addEventListener("mouseenter", () => {
-                profilePic.setAttribute("title", "Click to change photo");
-            });
-        }
+            document.getElementById('orderDetailsModal').style.display = 'flex';
+        });
     });
+
+});
+
+// Close modal function
+function closeOrderModal() {
+    document.getElementById('orderDetailsModal').style.display = 'none';
+}
+
+// Close modal when clicking outside content
+window.addEventListener('click', e => {
+    const modal = document.getElementById('orderDetailsModal');
+    if (e.target === modal) modal.style.display = 'none';
+});
+
+
 </script>
 
 

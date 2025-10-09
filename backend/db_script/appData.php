@@ -137,6 +137,14 @@ if (!class_exists('AppData')) {
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
+        public function loadMessagesToday($archived = 0)
+        {
+            $stmt = $this->db->prepare("SELECT * FROM inbox WHERE is_archived = :archived AND DATE(created_at) = CURDATE() ORDER BY created_at DESC");
+            $stmt->bindParam(":archived", $archived, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
         public function loadFeaturedProducts()
         {
             $stmt = $this->db->prepare("
@@ -177,11 +185,11 @@ if (!class_exists('AppData')) {
             ");
             $stmt->execute(['user_id' => $user_id]);
             $latestOrderId = $stmt->fetchColumn();
-        
+
             if (!$latestOrderId) {
                 return []; // no orders
             }
-        
+
             // Step 2: get all items of that order
             $stmt = $this->db->prepare("
                 SELECT 
@@ -204,7 +212,7 @@ if (!class_exists('AppData')) {
                 'user_id' => $user_id,
                 'order_id' => $latestOrderId
             ]);
-        
+
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
         public function getActiveOrdersOfUser($user_id)
@@ -225,12 +233,14 @@ if (!class_exists('AppData')) {
                 LEFT JOIN order_items oi ON o.order_id = oi.order_id
                 LEFT JOIN products p ON oi.product_id = p.product_id
                 WHERE o.user_id = :uid
+          
                 ORDER BY o.order_date DESC
             ");
             $stmt->execute([':uid' => $user_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
-        public function getOrderById($order_id, $user_id) {
+        public function getOrderById($order_id, $user_id)
+        {
             $stmt = $this->db->prepare("
                 SELECT o.*, 
                        oi.product_id, oi.quantity, oi.price, 
@@ -246,7 +256,8 @@ if (!class_exists('AppData')) {
             ]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
-        public function getOrderByNumber($user_id, $order_number) {
+        public function getOrderByNumber($user_id, $order_number)
+        {
             $stmt = $this->db->prepare("
                 SELECT o.*, 
                        oi.product_id, oi.quantity, oi.price, 
@@ -263,5 +274,249 @@ if (!class_exists('AppData')) {
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
+        //getting sales today
+        public function getSalesToday()
+        {
+            $stmt = $this->db->prepare("
+                SELECT IFNULL(SUM(total), 0) AS total_sales_today
+                FROM orders
+                WHERE DATE(order_date) = CURDATE() AND status = 'delivered'");
+            $stmt->execute();
+            return (float)$stmt->fetchColumn();
+        }
+
+
+        // getting sales this week
+        public function getSalesThisWeek()
+        {
+            $stmt = $this->db->prepare("
+        SELECT SUM(total) AS total_sales_week
+        FROM orders
+        WHERE YEARWEEK(order_date, 1) = YEARWEEK(CURDATE(), 1)
+        AND status = 'delivered'
+    ");
+            $stmt->execute();
+            return (float)$stmt->fetchColumn();
+        }
+
+        // getting sales this month
+        public function getSalesThisMonth()
+        {
+            $stmt = $this->db->prepare("
+        SELECT SUM(total) AS total_sales_month
+        FROM orders
+        WHERE YEAR(order_date) = YEAR(CURDATE())
+        AND MONTH(order_date) = MONTH(CURDATE())
+        AND status = 'delivered'
+    ");
+            $stmt->execute();
+            return (float)$stmt->fetchColumn();
+        }
+
+        // getting sales this year
+        public function getSalesThisYear()
+        {
+            $stmt = $this->db->prepare("
+        SELECT SUM(total) AS total_sales_year
+        FROM orders
+        WHERE YEAR(order_date) = YEAR(CURDATE())
+        AND status = 'delivered'
+    ");
+            $stmt->execute();
+            return (float)$stmt->fetchColumn();
+        }
+
+        //getting the top 3 sold products
+
+        public function topProducts()
+        {
+            $stmt = $this->db->prepare("
+                SELECT 
+                    p.product_name,
+                    SUM(oi.quantity) AS total_sold
+                FROM 
+                    order_items oi
+                JOIN 
+                    products p ON oi.product_id = p.product_id
+                JOIN 
+                    orders o ON oi.order_id = o.order_id
+                WHERE 
+                    o.status = 'delivered'
+                GROUP BY 
+                    p.product_id, p.product_name
+                ORDER BY 
+                    total_sold DESC
+                LIMIT 3
+            ");
+
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        //total orders per day depending on sttatus
+        public function getTodayOrdersByStatus()
+        {
+            $stmt = $this->db->prepare("
+        SELECT 
+            status,
+            COUNT(*) AS total_orders
+        FROM orders
+        WHERE DATE(order_date) = CURDATE()
+        GROUP BY status
+    ");
+
+            $stmt->execute();
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Prepare default counts to ensure all statuses exist even if 0
+            $counts = [
+                'pending' => 0,
+                'preparing' => 0,
+                'ready_for_delivery' => 0,
+                'delivered' => 0,
+                'cancelled' => 0
+            ];
+
+            foreach ($results as $row) {
+                $counts[$row['status']] = $row['total_orders'];
+            }
+
+            return $counts;
+        }
+
+        //total active admin
+        public function activeAdmin()
+        {
+            $stmt = $this->db->prepare("
+            select sum(is_active) as total_active_admin
+            from admin_accounts
+            where is_active = 1;");
+            $stmt->execute();
+            return  $stmt->fetchColumn();
+        }
+
+        //total active driver
+        public function activeDriver()
+        {
+            $stmt = $this->db->prepare("
+            select sum(is_active) as total_active_driver
+            from driver_accounts
+            where is_active = 1;");
+            $stmt->execute();
+            return  $stmt->fetchColumn();
+        }
+
+
+        //cancel order
+        public function cancelOrder($order_number)
+        {
+            $stmt = $this->db->prepare("
+            UPDATE orders
+            SET status = 'cancelled'
+            WHERE order_number =:order_number");
+
+            $stmt->execute([':order_number' => $order_number]);
+        }
+
+
+        /**
+         * Get orders filtered by status, payment method, and date range
+         * 
+         * @param int|null $userId Optional. If provided, filter orders for this user only.
+         * @param string $status "All" or specific status like "Pending", "Delivered"
+         * @param string $payment "All" or "Cash", "Gcash", etc.
+         * @param string|null $fromDate Format "YYYY-MM-DD"
+         * @param string|null $toDate Format "YYYY-MM-DD"
+         * @return array
+         */
+        public function getOrdersByFilters($userId = null, $status = 'All', $payment = 'All', $fromDate = null, $toDate = null)
+        {
+            $params = [];
+            $where = [];
+
+            if ($userId !== null) {
+                $where[] = "o.user_id = :user_id";
+                $params[':user_id'] = $userId;
+            }
+
+            if ($status !== 'All') {
+                $where[] = "o.status = :status";
+                $params[':status'] = $status;
+            }
+
+            if ($payment !== 'All') {
+                $where[] = "o.payment_method = :payment";
+                $params[':payment'] = $payment;
+            }
+
+            if ($fromDate) {
+                $where[] = "DATE(o.order_date) >= :fromDate";
+                $params[':fromDate'] = $fromDate;
+            }
+            if ($toDate) {
+                $where[] = "DATE(o.order_date) <= :toDate";
+                $params[':toDate'] = $toDate;
+            }
+
+            // Join users table for customer name
+            $sql = "SELECT o.order_id, o.order_number, o.status, o.payment_method, o.total, 
+                   o.order_date AS date, 
+                   CONCAT(u.first_name, ' ', u.last_name) AS customer_name
+            FROM orders o
+            LEFT JOIN users u ON o.user_id = u.user_id";
+
+            if (!empty($where)) {
+                $sql .= " WHERE " . implode(" AND ", $where);
+            }
+
+            $sql .= " ORDER BY o.order_date DESC";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+
+            $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Fetch order items with product name
+            foreach ($orders as &$order) {
+                $stmtItems = $this->db->prepare("
+            SELECT p.product_name, oi.quantity
+            FROM order_items oi
+            LEFT JOIN products p ON oi.product_id = p.product_id
+            WHERE oi.order_id = :order_id
+        ");
+                $stmtItems->execute([':order_id' => $order['order_id']]);
+                $order['items'] = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
+            }
+
+            return $orders;
+        }
+
+
+        public function loadUserOrders($userId)
+        {
+            if (!$userId) return [];
+
+            $stmt = $this->db->prepare("
+        SELECT o.order_id, o.order_number, o.status, o.payment_method, o.total, o.order_date AS date
+        FROM orders o
+        WHERE o.user_id = :user_id
+        ORDER BY o.order_date DESC
+    ");
+            $stmt->execute([':user_id' => $userId]);
+            $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($orders as &$order) {
+                $stmtItems = $this->db->prepare("
+            SELECT p.product_name, oi.quantity
+            FROM order_items oi
+            LEFT JOIN products p ON oi.product_id = p.product_id
+            WHERE oi.order_id = :order_id
+        ");
+                $stmtItems->execute([':order_id' => $order['order_id']]);
+                $order['items'] = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
+            }
+
+            return $orders;
+        }
     }
 }

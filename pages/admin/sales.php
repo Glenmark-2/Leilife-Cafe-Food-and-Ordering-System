@@ -1,181 +1,26 @@
+<?php
+session_start();
 
+require_once __DIR__ . '/../../backend/db_script/db.php';
+require_once __DIR__ . '/../../backend/db_script/appData.php';
 
-<style>
-  :root {
-    --bg-light: #f5f1eb;
-    --primary: #8b6f47;
-    --secondary: #d2b48c;
-    --accent: #a67c52;
-    --text-dark: #3e2f1c;
-    --white: #fff;
-  }
+if (!isset($_SESSION['admin_id'])) {
+    header('Location: /Leilife/pages/admin/login-x9P2kL7zQ.php');
+    exit;
+}
 
+$appData = new AppData($pdo);
 
+// Optional welcome message
+$showWelcome = false;
+if (isset($_SESSION['show_welcome']) && $_SESSION['show_welcome'] === true) {
+    $showWelcome = true;
+    unset($_SESSION['show_welcome']);
+}
 
-  h2 {
-    color: var(--primary);
-    margin-bottom: 20px;
-  }
-
-  /* Filters */
-  .filters {
-    background-color: var(--white);
-    padding: 15px 20px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 15px;
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-
-  .filter-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .filter-group label {
-    font-weight: 600;
-  }
-
-  select, input[type="date"] {
-    padding: 7px 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-  }
-
-  /* Table */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: var(--white);
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-
-  th, td {
-    padding: 12px;
-    text-align: left;
-  }
-
-  th {
-    background-color: var(--primary);
-    color: var(--white);
-  }
-
-  tr:nth-child(even) {
-    background-color: #f9f6f1;
-  }
-
-  tr:hover {
-    background-color: #f1e9df;
-  }
-
-  .actions button {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: 600;
-  }
-
-  .view-btn {
-    background-color: var(--secondary);
-    color: var(--text-dark);
-  }
-
-  .update-btn {
-    background-color: var(--accent);
-    color: var(--white);
-  }
-
-  .cancel-btn {
-    background-color: #b84a39;
-    color: var(--white);
-  }
-
-  /* Chart Section */
-  .chart-section {
-    margin-top: 40px;
-    background-color: var(--white);
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-
-  .chart-container {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 30px;
-  }
-
-  canvas {
-    max-width: 600px;
-    height: 300px;
-  }
-
-  .export-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 15px;
-  }
-
-  .export-buttons button {
-    padding: 8px 14px;
-    background-color: var(--primary);
-    color: var(--white);
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-  }
-
-  .export-buttons button:hover {
-    background-color: var(--accent);
-  }
-
-  /* Modal */
-  .modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    justify-content: center;
-    align-items: center;
-  }
-
-  .modal-content {
-    background: var(--white);
-    padding: 20px;
-    border-radius: 10px;
-    width: 400px;
-    position: relative;
-  }
-
-  .modal-content h3 {
-    color: var(--primary);
-    margin-bottom: 10px;
-  }
-
-  .close-btn {
-    position: absolute;
-    top: 10px; right: 10px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-  }
-</style>
-</head>
-<body>
+// Fetch orders from database with default filters (All)
+$orders = $appData->getOrdersByFilters(null, 'All', 'All', null, null);
+?>
 
 <h2>Sales Management</h2>
 
@@ -200,8 +45,14 @@
     <label>Driver:</label>
     <select id="driverFilter">
       <option value="All">All</option>
-      <option value="Driver 1">Driver 1</option>
-      <option value="Driver 2">Driver 2</option>
+      <?php
+      // Get unique drivers from orders
+      $drivers = array_unique(array_map(fn($o) => $o['driver_name'] ?? 'Undefined', $orders));
+      foreach ($drivers as $d) {
+          $val = htmlspecialchars($d ?: 'Undefined');
+          echo "<option value=\"$val\">$val</option>";
+      }
+      ?>
     </select>
   </div>
 
@@ -209,9 +60,14 @@
     <label>Payment:</label>
     <select id="paymentFilter">
       <option value="All">All</option>
-      <option value="Cash">Cash</option>
-      <option value="Card">Card</option>
-      <option value="Gcash">Gcash</option>
+      <?php
+      // Get unique payment methods
+      $payments = array_unique(array_map(fn($o) => $o['payment_method'] ?? 'Undefined', $orders));
+      foreach ($payments as $p) {
+          $val = htmlspecialchars($p ?: 'Undefined');
+          echo "<option value=\"$val\">$val</option>";
+      }
+      ?>
     </select>
   </div>
 </div>
@@ -239,8 +95,6 @@
   <button onclick="alert('Exported to PDF')">Export PDF</button>
 </div>
 
-
-
 <!-- Modal -->
 <div class="modal" id="detailsModal">
   <div class="modal-content">
@@ -250,53 +104,60 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // Fake order data
-  const orders = [
-    { id: 1001, customer: "Maria Santos", driver: "Driver 1", total: 450, status: "Delivered", payment: "Cash", date: "2025-10-09", items: ["Iced Latte", "Brownie"] },
-    { id: 1002, customer: "Juan Dela Cruz", driver: "Driver 2", total: 320, status: "Pending", payment: "Card", date: "2025-10-09", items: ["Burger", "Iced Tea"] },
-    { id: 1003, customer: "Liza Dizon", driver: "Driver 1", total: 280, status: "Delivered", payment: "Gcash", date: "2025-10-08", items: ["Cappuccino", "Muffin"] },
-    { id: 1004, customer: "Mark Reyes", driver: "Driver 2", total: 400, status: "Cancelled", payment: "Cash", date: "2025-10-07", items: ["Espresso", "Donut"] },
-    { id: 1005, customer: "Anna Cruz", driver: "Driver 1", total: 500, status: "Delivered", payment: "Card", date: "2025-10-06", items: ["Mocha", "Cookie"] }
-  ];
+  // Pass PHP orders to JS
+  const orders = <?= json_encode($orders) ?>;
 
   const tbody = document.getElementById("ordersTableBody");
 
   function renderTable(filtered = orders) {
     tbody.innerHTML = "";
     filtered.forEach(order => {
+      const driver = order.driver_name || 'Undefined';
+      const payment = order.payment_method || 'Undefined';
+      const date = order.date ? order.date.slice(0,10) : 'Undefined';
+      const total = parseFloat(order.total || 0).toFixed(2);
+      const customer = order.customer_name || 'Undefined';
+      const orderNumber = order.order_number || 'Undefined';
+
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td>#${order.id}</td>
-        <td>${order.customer}</td>
-        <td>${order.driver}</td>
-        <td>₱${order.total.toFixed(2)}</td>
-        <td>${order.status}</td>
-        <td>${order.payment}</td>
-        <td>${order.date}</td>
+        <td>#${orderNumber}</td>
+        <td>${customer}</td>
+        <td>${driver}</td>
+        <td>₱${total}</td>
+        <td>${order.status || 'Undefined'}</td>
+        <td>${payment}</td>
+        <td>${date}</td>
         <td class="actions">
-          <button class="view-btn" onclick="viewDetails(${order.id})">View</button>
-          <button class="update-btn">Update</button>
-          <button class="cancel-btn">Cancel</button>
+          <button class="view-btn" onclick="viewDetails('${orderNumber}')">View</button>
         </td>`;
       tbody.appendChild(row);
     });
   }
 
-  function viewDetails(id) {
-    const order = orders.find(o => o.id === id);
+  function viewDetails(orderNumber) {
+    const order = orders.find(o => o.order_number === orderNumber);
+    if (!order) return;
     const modal = document.getElementById("detailsModal");
     const details = document.getElementById("orderDetails");
+
+    const driver = order.driver_name || 'Undefined';
+    const payment = order.payment_method || 'Undefined';
+    const date = order.date ? order.date.slice(0,10) : 'Undefined';
+    const customer = order.customer_name || 'Undefined';
+
+    const items = Array.isArray(order.items) ? order.items : [];
+
     details.innerHTML = `
-      <p><strong>Customer:</strong> ${order.customer}</p>
-      <p><strong>Driver:</strong> ${order.driver}</p>
-      <p><strong>Total:</strong> ₱${order.total}</p>
-      <p><strong>Status:</strong> ${order.status}</p>
-      <p><strong>Payment:</strong> ${order.payment}</p>
-      <p><strong>Date:</strong> ${order.date}</p>
+      <p><strong>Customer:</strong> ${customer}</p>
+      <p><strong>Driver:</strong> ${driver}</p>
+      <p><strong>Total:</strong> ₱${parseFloat(order.total || 0).toFixed(2)}</p>
+      <p><strong>Status:</strong> ${order.status || 'Undefined'}</p>
+      <p><strong>Payment:</strong> ${payment}</p>
+      <p><strong>Date:</strong> ${date}</p>
       <p><strong>Items:</strong></p>
-      <ul>${order.items.map(i => `<li>${i}</li>`).join('')}</ul>
+      <ul>${items.map(i => `<li>${i.product_name || 'Undefined'} × ${i.quantity || 1}</li>`).join('')}</ul>
     `;
     modal.style.display = "flex";
   }
@@ -310,50 +171,28 @@
     .forEach(el => el.addEventListener('change', filterOrders));
 
   function filterOrders() {
-    const status = document.getElementById('statusFilter').value;
-    const driver = document.getElementById('driverFilter').value;
-    const payment = document.getElementById('paymentFilter').value;
+    const status = document.getElementById('statusFilter').value.toLowerCase();
+    const driver = document.getElementById('driverFilter').value.toLowerCase();
+    const payment = document.getElementById('paymentFilter').value.toLowerCase();
     const from = document.getElementById('fromDate').value;
     const to = document.getElementById('toDate').value;
 
     const filtered = orders.filter(o => {
-      const matchStatus = (status === "All" || o.status === status);
-      const matchDriver = (driver === "All" || o.driver === driver);
-      const matchPayment = (payment === "All" || o.payment === payment);
-      const matchDate = (!from || o.date >= from) && (!to || o.date <= to);
+      const orderDate = o.date ? o.date.slice(0,10) : '';
+      const orderStatus = (o.status || 'Undefined').toLowerCase();
+      const orderDriver = (o.driver_name || 'Undefined').toLowerCase();
+      const orderPayment = (o.payment_method || 'Undefined').toLowerCase();
+
+      const matchStatus = (status === "all" || orderStatus === status);
+      const matchDriver = (driver === "all" || orderDriver === driver);
+      const matchPayment = (payment === "all" || orderPayment === payment);
+      const matchDate = (!from || orderDate >= from) && (!to || orderDate <= to);
+
       return matchStatus && matchDriver && matchPayment && matchDate;
     });
+
     renderTable(filtered);
   }
 
   renderTable();
-
-  // Charts
-  const revCtx = document.getElementById('revenueChart');
-  new Chart(revCtx, {
-    type: 'bar',
-    data: {
-      labels: ['Oct 3', 'Oct 4', 'Oct 5', 'Oct 6', 'Oct 7', 'Oct 8', 'Oct 9'],
-      datasets: [{
-        label: 'Revenue (₱)',
-        data: [400, 350, 500, 700, 400, 800, 950],
-        backgroundColor: '#a67c52'
-      }]
-    },
-    options: { responsive: true }
-  });
-
-  const payCtx = document.getElementById('paymentChart');
-  new Chart(payCtx, {
-    type: 'pie',
-    data: {
-      labels: ['Cash', 'Card', 'Gcash'],
-      datasets: [{
-        data: [3, 2, 1],
-        backgroundColor: ['#d2b48c', '#8b6f47', '#a67c52']
-      }]
-    },
-    options: { responsive: true }
-  });
 </script>
-

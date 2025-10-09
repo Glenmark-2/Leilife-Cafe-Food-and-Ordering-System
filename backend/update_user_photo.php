@@ -18,7 +18,24 @@ if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0777, true);
 }
 
-// Generate safe file name
+// -------------------------
+// Delete last photo if exists
+// -------------------------
+$sql = "SELECT profile_picture FROM users WHERE user_id = :user_id";
+$stmt = $pdo->prepare($sql);
+$stmt->execute([':user_id' => $user_id]);
+$oldPhoto = $stmt->fetchColumn();
+
+if ($oldPhoto && file_exists($uploadDir . $oldPhoto)) {
+    // Avoid deleting a default placeholder if you have one
+    if ($oldPhoto !== 'default.jpg') { 
+        unlink($uploadDir . $oldPhoto);
+    }
+}
+
+// -------------------------
+// Handle new upload
+// -------------------------
 $fileTmp = $_FILES['profile_photo']['tmp_name'];
 $fileName = basename($_FILES['profile_photo']['name']);
 $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));

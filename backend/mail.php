@@ -2,16 +2,19 @@
 session_start();
 require_once __DIR__ . '/db_script/db.php';
 
-header('Content-Type: application/json'); // Important!
+// Clear any output before sending JSON
+if (ob_get_length()) ob_clean();
+header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
-    $type    = "mail";
+    $type    = trim($_POST['type'] ?? 'mail');
     $name    = trim($_POST['name']);
     $email   = trim($_POST['email']);
     $subject = trim($_POST['subject'] ?? '');
     $message = trim($_POST['message']);
     $user_id = $_SESSION['user_id'] ?? null;
 
+    // Validation
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         echo json_encode(['success' => false, 'message' => 'Invalid email address.']);
         exit;
@@ -22,9 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
         exit;
     }
 
-    // -------------------------------
     // Run Python Sentiment Analyzer
-    // -------------------------------
     $tempFile = __DIR__ . "/ML/temp_input.txt";
     file_put_contents($tempFile, $message);
 
@@ -32,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     $scriptPath = __DIR__ . "\\ML\\sentiment_analyzer.py";
 
     $command = "\"$pythonExe\" \"$scriptPath\" \"$tempFile\"";
-    $output  = shell_exec($command . " 2>&1");
+    $output  = trim(shell_exec($command . " 2>&1"));
 
     $result = json_decode($output, true);
 
@@ -58,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
 
         echo json_encode([
             'success'   => true,
-            'message'   => 'Your message has been sent!',
+            'message'   => 'Your review has been sent!',
             'sentiment' => $sentiment,
             'score'     => $score
         ]);
@@ -69,3 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
         exit;
     }
 }
+
+// Fallback if POST request is invalid
+echo json_encode(['success' => false, 'message' => 'Invalid request.']);
+exit;

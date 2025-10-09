@@ -175,3 +175,55 @@
     gap: 10px;
 }
 }
+/* Review Section */
+.review-section {
+    width: 100%;
+    max-width: 500px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.review-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    text-align: center;
+    color: #24343c;
+}
+
+/* Review textarea */
+.review-section textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    resize: none;
+    font-size: 14px;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+}
+
+/* Review label */
+.review-section label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    display: block;
+    color: #555;
+}
+
+/* Submit button container inside review */
+.review-section .submit {
+    display: flex;
+    justify-content: center;
+    margin: 0;
+}
+
+/* Optional: Hover effect for disabled cancel button */
+button[disabled] {
+    cursor: not-allowed;
+    opacity: 0.6;
+}

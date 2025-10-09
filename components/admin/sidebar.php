@@ -15,8 +15,8 @@ sidebarButton("public/assests/sales.png", "Sales", "sales", "Sales logo");
 sidebarButton("public/assests/fast-food.png", "Products", "products", "Products logo");
 sidebarButton("public/assests/people.png", "Staffs", "roles", "Roles logo");
 sidebarButton("public/assests/messages.png", "Inbox", "inbox", "Inbox logo");
-sidebarButton("public/assests/messages.png", "Analytics", "reports", "Reports logo");
-sidebarButton("public/assests/messages.png", "Activity logs", "audit", "audit logo");
+sidebarButton("public/assests/analytics.png", "Analytics", "reports", "Reports logo");
+sidebarButton("public/assests/history.png", "Activity logs", "audit", "audit logo");
 sidebarButton("public/assests/logout.png", "Sign out", "logout", "Sign out logo");
 
 ?>

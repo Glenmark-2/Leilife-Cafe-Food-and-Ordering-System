@@ -1,14 +1,22 @@
 <?php
 require_once __DIR__ . '/../db_script/db.php';
 
+// Mark message as read
 if (isset($_POST['mark_read'], $_POST['id'])) {
+    $id = intval($_POST['id']);
     $stmt = $pdo->prepare("UPDATE inbox SET status = 1 WHERE sender_id = ?");
-    $stmt->execute([$_POST['id']]);
+    $success = $stmt->execute([$id]);
+
+    echo json_encode([
+        'success' => $success,
+        'id' => $id
+    ]);
     exit;
 }
 
+// Toggle archive state
 if (isset($_POST['toggle_archive'])) {
-    $id = $_POST['toggle_archive'];
+    $id = intval($_POST['toggle_archive']);
 
     // Get current archive state
     $stmt = $pdo->prepare("SELECT is_archived FROM inbox WHERE sender_id = ?");
@@ -24,4 +32,3 @@ if (isset($_POST['toggle_archive'])) {
     header("Location: /Leilife/public/admin.php?page=inbox&archived=" . ($newState ?? 0));
     exit;
 }
-?>

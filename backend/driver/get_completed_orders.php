@@ -22,7 +22,6 @@ try {
             a.city,
             a.region,
             a.province,
-            a.postal_code,
             a.note_to_rider,
             a.pickup_location,
             a.latitude,

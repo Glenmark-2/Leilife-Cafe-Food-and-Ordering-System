@@ -13,8 +13,10 @@ include "sidebar-button.php"; // make sure the path is correct
 sidebarButton("public/assests/home.png", "Dashboard", "dashboard", "Dashboard logo");
 sidebarButton("public/assests/sales.png", "Sales", "sales", "Sales logo");
 sidebarButton("public/assests/fast-food.png", "Products", "products", "Products logo");
-sidebarButton("public/assests/people.png", "Roles", "roles", "Roles logo");
+sidebarButton("public/assests/people.png", "Staffs", "roles", "Roles logo");
 sidebarButton("public/assests/messages.png", "Inbox", "inbox", "Inbox logo");
+sidebarButton("public/assests/messages.png", "Analytics", "reports", "Reports logo");
+sidebarButton("public/assests/messages.png", "Activity logs", "audit", "audit logo");
 sidebarButton("public/assests/logout.png", "Sign out", "logout", "Sign out logo");
 
 ?>

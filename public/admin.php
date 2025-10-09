@@ -10,7 +10,7 @@ $page = $currentPage;
 
     <div id="content-wrapper">
         <?php
-        $allowed_pages = ['dashboard', 'sales', 'products', 'roles', 'inbox', 'driver'];
+        $allowed_pages = ['dashboard', 'sales', 'products', 'roles', 'inbox','reports','audit'];
         if (in_array($currentPage, $allowed_pages)) {
             include"../pages/admin/$currentPage.php";
         } else {

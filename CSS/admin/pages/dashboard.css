@@ -50,7 +50,7 @@
    THIRD ROW (TABLE SECTION)
 --------------------------------*/
 #third-row {
-    width: 100%;
+    width: 97%;
     padding: 20px;
     background: #fff;
     border-radius: 15px;
@@ -101,7 +101,7 @@
 #table-title {
     background: #a8927b;
     color: #fff;
-    border-radius: 15px 15px 0 0;
+    /* border-radius: 15px 15px 0 0; */
     font-weight: 500;
 }
 
@@ -306,4 +306,261 @@
         font-size: 12px;
         padding: 6px 12px;
     }
+}
+
+
+
+
+    /* === General Layout === */
+    #first-row h2 {
+        font-size: 26px;
+        margin-bottom: 15px;
+        color: #3d2b1f;
+    }
+
+    .dashboard-row {
+        display: flex;
+        gap: 20px;
+        flex-wrap: nowrap;
+        margin-bottom: 20px;
+    }
+
+    .dashboard-box {
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        color: #3d2b1f;
+        flex: 1;
+    }
+
+    h3, p { margin: 0; }
+
+    /* === Row 1 Colors === */
+    .sales-box {
+        background: linear-gradient(135deg, #d2b48c, #c9a574);
+        color: #fff;
+    }
+
+    .top-products-box {
+        background: linear-gradient(135deg, #a67b5b, #8b5e3c);
+        color: #fff;
+    }
+
+    /* === Row 2 Earthy Colors === */
+    .pending-box {
+        background: #c2a878;
+        color: #fff;
+        flex: 1.3;
+    }
+
+    .preparing-box {
+        background: #a47551;
+        color: #fff;
+        flex: 1.3;
+    }
+
+    .ready-box {
+        background: #6b705c;
+        color: #fff;
+        flex: 1.3;
+    }
+
+    .admin-box {
+        background: #b08968;
+        color: #fff;
+        flex: 0.7;
+    }
+
+    .driver-box {
+        background: #a98467;
+        color: #fff;
+        flex: 0.7;
+    }
+
+    /* === Row 3 & 4 Boxes === */
+    #table, #inbox {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        padding: 20px;
+    }
+
+    #table-title, #table-body p {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 10px;
+        /* border-bottom: 1px solid #ffffff; */
+    }
+
+    #table-body p:last-child {
+        border-bottom: none;
+    }
+
+    #inbox {
+        margin-top: 20px;
+    }
+
+    #inbox h3 {
+        margin-bottom: 10px;
+    }
+
+    #inbox ul {
+        padding-left: 20px;
+        margin: 0;
+    }
+
+    /* === Sales Section === */
+    .sales-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .sales-header select {
+        border: none;
+        background: rgba(255,255,255,0.3);
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    /* -------------------------------
+   INBOX TABLE SECTION (EARTHY THEME)
+--------------------------------*/
+#table-container {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    padding: 20px 25px;
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+#table-container h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #3d2b1f;
+}
+
+.staff-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 0.95rem;
+}
+
+.staff-table thead {
+    background: linear-gradient(135deg, #a67b5b, #8b5e3c);
+    color: #fff;
+}
+
+.staff-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.staff-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e6d9c8;
+    color: #3d2b1f;
+}
+
+
+
+.staff-table tr.unread {
+    background-color: #fff7e6;
+    font-weight: 600;
+}
+
+/* === Actions Column === */
+.actions {
+    text-align: center;
+}
+
+.actions button {
+    background-color: #b08968;
+    border: none;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    margin: 0 3px;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.actions button:hover {
+    background-color: #8b5e3c;
+    transform: translateY(-2px);
+}
+
+/* Archive Button Image */
+.archiveBtn img {
+    vertical-align: middle;
+    transition: transform 0.2s ease;
+}
+
+.archiveBtn:hover img {
+    transform: scale(1.1);
+}
+
+/* === Responsive Adjustments === */
+@media (max-width: 800px) {
+    .staff-table th, .staff-table td {
+        padding: 10px 8px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 500px) {
+    #table-container {
+        padding: 10px 15px;
+    }
+    .staff-table th, .staff-table td {
+        font-size: 0.8rem;
+        padding: 8px 6px;
+    }
+    .actions button {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+}
+
+/* === Modal for message === */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+  animation: popIn 0.3s ease;
+}
+.close-btn {
+  float: right;
+  font-size: 20px;
+  cursor: pointer;
+  color: #a1866f;
+}
+.close-btn:hover {
+  color: #7a5e46;
+}
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }

@@ -71,7 +71,6 @@ $subCategories = array_values($subCategories);
                                 <div>
                                     <input type="text" id="pname" class="inputData"
                                         value="<?= htmlspecialchars($product['product_name']) ?>" disabled>
-                                    <p class="product-id">#<?= htmlspecialchars($product['product_id']) ?></p>
                                 </div>
                             </div>
                         </td>

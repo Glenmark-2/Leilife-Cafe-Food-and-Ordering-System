@@ -518,5 +518,145 @@ if (!class_exists('AppData')) {
 
             return $orders;
         }
+
+        //for sales report
+public function getSalesSummary($fromDate = null, $toDate = null, $status = null, $payment = null)
+{
+    $params = [];
+    $where = [];
+
+    // 📅 Date filters
+    if ($fromDate) {
+        $where[] = "DATE(o.order_date) >= :fromDate";
+        $params[':fromDate'] = $fromDate;
+    }
+    if ($toDate) {
+        $where[] = "DATE(o.order_date) <= :toDate";
+        $params[':toDate'] = $toDate;
+    }
+
+    // 🟢 Status filter
+    if ($status && strtolower($status) !== 'all') {
+        $where[] = "LOWER(o.status) = :status";
+        $params[':status'] = strtolower($status);
+    }
+
+    // 🟢 Payment filter
+    if ($payment && strtolower($payment) !== 'all') {
+        $where[] = "LOWER(o.payment_method) = :payment";
+        $params[':payment'] = strtolower($payment);
+    }
+
+    $whereSQL = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
+
+    // === 🧾 SALES SUMMARY ===
+$sqlSummary = "
+    SELECT 
+        COUNT(*) AS total_orders,
+        COALESCE(SUM(o.total), 0) AS total_revenue, -- includes other charges
+        COALESCE((
+            SELECT SUM(oi.quantity * oi.price)
+            FROM order_items oi
+            WHERE oi.order_id = o.order_id
+        ), 0) AS total_product_revenue -- only products
+    FROM orders o
+    $whereSQL
+";
+
+
+    $stmt = $this->db->prepare($sqlSummary);
+    $stmt->execute($params);
+    $summary = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // === 🏆 TOP 5 PRODUCTS ===
+    $sqlTop5 = "
+        SELECT 
+            p.product_name,
+            COUNT(oi.order_id) AS orders,
+            SUM(oi.quantity * oi.price) AS revenue
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.product_id
+        JOIN orders o ON o.order_id = oi.order_id
+        $whereSQL
+        GROUP BY p.product_id
+        ORDER BY revenue DESC
+        LIMIT 5
+    ";
+    $stmtTop5 = $this->db->prepare($sqlTop5);
+    $stmtTop5->execute($params);
+    $topProducts = $stmtTop5->fetchAll(PDO::FETCH_ASSOC);
+
+    // === 🗂 MAIN CATEGORIES (correct revenue per filtered orders) ===
+    $sqlMain = "
+        SELECT 
+            mc.main_category_name AS category,
+            COUNT(DISTINCT o.order_id) AS total_orders,
+            COALESCE(SUM(oi.price * oi.quantity), 0) AS total_revenue
+        FROM orders o
+        JOIN order_items oi ON o.order_id = oi.order_id
+        JOIN products p ON oi.product_id = p.product_id
+        JOIN categories sc ON p.category_id = sc.category_id
+        JOIN (
+            SELECT main_category_id, main_category_name
+            FROM categories
+            GROUP BY main_category_id, main_category_name
+        ) mc ON sc.main_category_id = mc.main_category_id
+        $whereSQL
+        GROUP BY mc.main_category_id, mc.main_category_name
+        ORDER BY total_revenue DESC
+    ";
+    $stmtMain = $this->db->prepare($sqlMain);
+    $stmtMain->execute($params);
+    $mainCategories = $stmtMain->fetchAll(PDO::FETCH_ASSOC);
+
+    // === 📊 SUBCATEGORIES (TABLE PER CATEGORY, PRODUCT LISTED WITH SOLD PRICE) ===
+    $sqlSub = "
+        SELECT 
+            sc.category_id,
+            sc.category_name,
+            p.product_name,
+            oi.price AS sold_price,
+            SUM(oi.quantity) AS total_quantity,
+            COUNT(DISTINCT o.order_id) AS total_orders,
+            SUM(oi.quantity * oi.price) AS total_revenue
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.product_id
+        JOIN categories sc ON p.category_id = sc.category_id
+        JOIN orders o ON o.order_id = oi.order_id
+        $whereSQL
+        GROUP BY sc.category_id, sc.category_name, p.product_id, p.product_name, oi.price
+        ORDER BY sc.category_name, total_revenue DESC
+    ";
+    $stmtSub = $this->db->prepare($sqlSub);
+    $stmtSub->execute($params);
+    $rows = $stmtSub->fetchAll(PDO::FETCH_ASSOC);
+
+    // 🧩 Group products under their subcategory
+    $subCategories = [];
+    foreach ($rows as $r) {
+        $cat = $r['category_name'] ?? 'Uncategorized';
+        if (!isset($subCategories[$cat])) {
+            $subCategories[$cat] = [];
+        }
+        $subCategories[$cat][] = [
+            'product_name' => $r['product_name'],
+            'sold_price' => $r['sold_price'],
+            'total_quantity' => $r['total_quantity'],
+            'total_orders' => $r['total_orders'],
+            'total_revenue' => $r['total_revenue']
+        ];
+    }
+
+    return [
+        'summary' => $summary,
+        'top_products' => $topProducts,
+        'main_categories' => $mainCategories,
+        'sub_categories' => $subCategories
+    ];
+}
+
+
+
+
     }
 }

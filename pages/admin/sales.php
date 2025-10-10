@@ -4,6 +4,7 @@ session_start();
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
+
 if (!isset($_SESSION['admin_id'])) {
     header('Location: /Leilife/pages/admin/login-x9P2kL7zQ.php');
     exit;
@@ -92,7 +93,8 @@ $orders = $appData->getOrdersByFilters(null, 'All', 'All', null, null);
 <div class="export-buttons">
   <button onclick="alert('Exported to CSV')">Export CSV</button>
   <button onclick="alert('Exported to Excel')">Export Excel</button>
-  <button onclick="alert('Exported to PDF')">Export PDF</button>
+  <button onclick="exportPDF()">Export PDF</button>
+
 </div>
 
 <!-- Modal -->
@@ -105,6 +107,28 @@ $orders = $appData->getOrdersByFilters(null, 'All', 'All', null, null);
 </div>
 
 <script>
+
+function exportPDF() {
+  const fromDate = document.getElementById('fromDate').value;
+  const toDate = document.getElementById('toDate').value;
+  const status = document.getElementById('statusFilter').value;
+  const payment = document.getElementById('paymentFilter').value;
+
+  let url = '/leilife/pages/admin/sales-report-pdf.php';
+  const params = [];
+
+  if (fromDate) params.push(`fromDate=${encodeURIComponent(fromDate)}`);
+  if (toDate) params.push(`toDate=${encodeURIComponent(toDate)}`);
+  if (status && status !== 'All') params.push(`status=${encodeURIComponent(status)}`);
+  if (payment && payment !== 'All') params.push(`payment=${encodeURIComponent(payment)}`);
+
+  if (params.length > 0) url += '?' + params.join('&');
+
+  window.open(url, '_blank');
+}
+
+
+
   // Pass PHP orders to JS
   const orders = <?= json_encode($orders) ?>;
 

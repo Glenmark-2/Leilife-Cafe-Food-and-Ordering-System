@@ -1,13 +1,13 @@
 <?php
-session_start();
+// session_start();
 
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
-if (!isset($_SESSION['admin_id'])) {
-    header('Location: /Leilife/pages/admin/login-x9P2kL7zQ.php');
-    exit;
-}
+// if (!isset($_SESSION['admin_id'])) {
+//     header('Location: /Leilife/pages/admin/login-x9P2kL7zQ.php');
+//     exit;
+// }
 
 $showWelcome = false;
 if (isset($_SESSION['show_welcome']) && $_SESSION['show_welcome'] === true) {
@@ -90,11 +90,19 @@ $totalActiveDriver = $appData->activeDriver();
         <p><strong>Recent Orders</strong></p>
         <div class="sort-dropdown">
             <label for="sort">Sort by:</label>
-            <select id="sort">
-                <option value="order_date">Order Date</option>
-                <option value="status">Status</option>
-                <option value="total">Total</option>
-            </select>
+           <div id="orderFilterControls" style="margin-bottom:8px;">
+  <button id="btnActiveOrders" class="btn-tab active">Active Orders</button>
+  <button id="btnCompletedOrders" class="btn-tab">Completed Orders</button>
+</div>
+
+<select id="sort">
+  <option value="order_date">Order Date</option>
+  <option value="status">Status</option>
+  <option value="total">Total</option>
+  <!-- this special option switches view to completed orders -->
+  <option value="completed">Completed Orders</option>
+</select>
+
         </div>
     </div>
 

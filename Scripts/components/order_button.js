@@ -12,11 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   orderBtn.addEventListener("click", () => {
-    if (orderCount === 1 && orders.length > 0) {
-      const orderId = orders[0].order_id;
-      window.location.href = `/order-tracking.php?id=${encodeURIComponent(orderId)}`;
-      return;
+    if (orderCount === 1) {
+      // ✅ Use the href from the PHP-rendered anchor
+      const firstLink = document.querySelector('#orders-list a.order-link');
+      if (firstLink && firstLink.href) {
+        window.location.href = firstLink.href;
+        return;
+      }
     }
+
     modal.classList.remove("hidden");
     modal.setAttribute('aria-hidden', 'false');
   });

@@ -210,3 +210,49 @@ body {
     height: 260px;
   }
 }
+
+/* --- Mobile-first fixes --- */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+#orderList, #availableOrderList {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 600px) {
+  #orderList, #availableOrderList {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  #orderList, #availableOrderList {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .summary {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Fullscreen modal on small devices */
+@media (max-width: 600px) {
+  .modal-content {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    max-width: none;
+    max-height: none;
+  }
+}
+
+.bottom-nav a.active {
+  color: #007bff;
+  font-weight: 700;
+}
+

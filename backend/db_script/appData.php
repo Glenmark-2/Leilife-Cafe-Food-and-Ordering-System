@@ -215,30 +215,21 @@ if (!class_exists('AppData')) {
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
-        public function getActiveOrdersOfUser($user_id)
-        {
-            $stmt = $this->db->prepare("
-                SELECT 
-                    o.order_id,
-                    o.order_number,
-                    o.order_date,          -- ✅ include this
-                    o.status,
-                    o.payment_method,
-                    o.payment_status,
-                    o.total,
-                    oi.quantity,
-                    oi.price,
-                    p.product_name
-                FROM orders o
-                LEFT JOIN order_items oi ON o.order_id = oi.order_id
-                LEFT JOIN products p ON oi.product_id = p.product_id
-                WHERE o.user_id = :uid
-          
-                ORDER BY o.order_date DESC
-            ");
-            $stmt->execute([':uid' => $user_id]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
+public function getActiveOrdersOfUser($user_id)
+{
+    $stmt = $this->db->prepare("
+        SELECT o.order_id, o.order_number, o.order_date, o.status,
+               o.payment_method, o.total, p.product_name
+        FROM orders o
+        JOIN order_items oi ON o.order_id = oi.order_id
+        JOIN products p ON oi.product_id = p.product_id
+        WHERE o.user_id = :uid
+          AND o.status != 'delivered'
+        ORDER BY o.order_date DESC
+    ");
+    $stmt->execute(['uid' => $user_id]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
         public function getOrderById($order_id, $user_id)
         {
             $stmt = $this->db->prepare("

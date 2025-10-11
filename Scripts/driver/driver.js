@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadDeliveredOrders() {
   try {
     // ✅ Fixed path
-    const res = await fetch("/Leilife/backend/driver/get_completed_orders.php");
+    const res = await fetch("/Leilife/backend/driver/get_my_orders.php");
     const data = await res.json();
 
     if (!data.success) throw new Error(data.message || "Failed to load");

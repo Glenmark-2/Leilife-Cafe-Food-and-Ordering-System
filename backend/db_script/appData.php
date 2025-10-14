@@ -646,6 +646,72 @@ $sqlSummary = "
     ];
 }
 
+public function reorder($order_id, $user_id, $session_id, $option_type = 'delivery') {
+
+    $stmt = $this->db->prepare("
+        SELECT oi.*
+        FROM order_items oi
+        JOIN orders o ON oi.order_id = o.order_id
+        WHERE oi.order_id = :oid
+    ");
+    $stmt->execute([':oid' => $order_id]);
+    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (!$products) return;
+
+    $sub_total = 0;
+    foreach ($products as $item) {
+        $price = $item['size'] === 'large' && isset($item['price_large']) ? $item['price_large'] : $item['price'];
+        $sub_total += ($price * $item['quantity']);
+    }
+
+    $stmtCart = $this->db->prepare("
+        SELECT cart_id FROM carts
+        WHERE user_id = :user_id
+           OR session_id = :session_id
+        LIMIT 1
+    ");
+    $stmtCart->execute([
+        ':user_id'    => $user_id,
+        ':session_id' => $session_id
+    ]);
+    $cart = $stmtCart->fetch(PDO::FETCH_ASSOC);
+
+    if ($cart) {
+        $cart_id = $cart['cart_id'];
+        // Optional: update totals now, final totals will be recalculated in get_cart
+    } else {
+        $stmtNewCart = $this->db->prepare("
+            INSERT INTO carts (user_id, session_id, option_type, sub_total, total)
+            VALUES (:user_id, :session_id, :option_type, :sub_total, :total)
+        ");
+        $stmtNewCart->execute([
+            ':user_id'    => $user_id,
+            ':session_id' => $session_id,
+            ':option_type'=> $option_type,
+            ':sub_total'  => $sub_total,
+            ':total'      => $sub_total
+        ]);
+        $cart_id = $this->db->lastInsertId();
+    }
+
+    $stmtItem = $this->db->prepare("
+        INSERT INTO cart_items (cart_id, product_id, quantity, size, flavor_ids)
+        VALUES (:cart_id, :product_id, :quantity, :size, :flavor_ids)
+    ");
+
+    foreach ($products as $item) {
+        $stmtItem->execute([
+            ':cart_id'    => $cart_id,
+            ':product_id' => $item['product_id'],
+            ':quantity'   => $item['quantity'],
+            ':size'       => $item['size'] ?? null,
+            ':flavor_ids' => $item['flavor_ids'] ?? null
+        ]);
+    }
+}
+
+
 
 
 

@@ -1,5 +1,5 @@
 <?php
-// session_start();
+session_start();
 require_once __DIR__ . '/../../backend/db_script/db.php';
 // if (!isset($_SESSION['admin_id'])) {
 //     header('Location: /leilife/pages/admin/login-x9P2kL7zQ.php');

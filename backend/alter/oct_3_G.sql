@@ -1,1 +1,2 @@
 ALTER TABLE orders ADD order_number VARCHAR(50) UNIQUE NOT NULL;
+-- done nobi

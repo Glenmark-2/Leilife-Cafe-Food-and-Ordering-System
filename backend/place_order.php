@@ -10,6 +10,8 @@ if (session_status() === PHP_SESSION_NONE) {
 $data = json_decode(file_get_contents("php://input"), true);
 $payment_method = $data['payment_method'] ?? null;
 $user_id = $_SESSION['user_id'] ?? null;
+$delivery_method = $data['delivery_method'] ?? null;
+
 
 if (!$user_id) {
     echo json_encode(["success" => false, "message" => "User not logged in."]);
@@ -54,8 +56,8 @@ try {
 
     // Insert into orders
     $orderStmt = $pdo->prepare("
-        INSERT INTO orders (user_id, total, payment_method, payment_status, order_number)
-        VALUES (:uid, :total, :payment, :status, :order_number)
+        INSERT INTO orders (user_id, total, payment_method, payment_status, order_number, delivery_method)
+        VALUES (:uid, :total, :payment, :status, :order_number, :delivery_method)
     ");
   
     $orderStmt->execute([
@@ -63,7 +65,8 @@ try {
         ':total'        => $cart['total'],
         ':payment'      => $payment_method,
         ':status'       => ($payment_method === 'cod') ? 'unpaid' : 'unpaid',
-        ':order_number' => $order_number
+        ':order_number' => $order_number,
+        ':delivery_method' => $delivery_method
     ]);
     $order_id = $pdo->lastInsertId();
 

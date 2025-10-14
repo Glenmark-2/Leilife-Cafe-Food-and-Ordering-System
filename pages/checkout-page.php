@@ -4,6 +4,8 @@ if (session_status() === PHP_SESSION_NONE) {
   session_start();
 }
 include "../components/buttonTemplate.php";
+include "../components/modal.php";
+createModal();
 ?>
 <div class="checkout-container">
   <!-- LEFT COLUMN -->
@@ -141,7 +143,7 @@ include "../components/buttonTemplate.php";
               40,
               300,
               "Place Order",
-              "place-order-bt",
+              "place-order-btn",
               16,
               "button",
               ['data-state' => 'edit']
@@ -157,7 +159,7 @@ include "../components/buttonTemplate.php";
 <script src="../Scripts/pages/checkout-page.js"></script>
 
 
-<script>
+<!-- <script>
   // -------------------------
   // Address Edit (Open Modal)
   // -------------------------
@@ -200,6 +202,36 @@ include "../components/buttonTemplate.php";
       }
     });
   }
-</script>
+
+  document.addEventListener("DOMContentLoaded", () => {
+  const placeOrderBtn = document.getElementById("place-order-btn");
+
+  placeOrderBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+
+    const delivery = document.querySelector('input[name="delivery"]:checked');
+    if (!delivery) {
+      showModal("Please select a delivery option before placing your order.", "warning");
+      return;
+    }
+
+    if (delivery.value === "home") {
+      const address = document.getElementById("full-address").value.trim();
+      if (address === "") {
+        showModal("Please provide your full delivery address.", "warning");
+        return;
+      }
+    }
+
+    const payment = document.querySelector('input[name="payment_method"]:checked');
+    if (!payment) {
+      showModal("Please select a payment method before placing your order.", "warning");
+      return;
+    }
+
+    showModal("Order placed successfully!", "success");
+  });
+});
+</script> -->
 
 

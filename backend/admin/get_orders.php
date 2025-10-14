@@ -4,29 +4,52 @@ require_once __DIR__ . '/../db_script/db.php';
 
 try {
     $sort = $_GET['sort'] ?? 'order_date';
-    $allowed = ['order_date', 'status', 'total'];
+    $allowed = ['order_date', 'status', 'total', 'pickup', 'home_delivery'];
     if (!in_array($sort, $allowed)) $sort = 'order_date';
 
-    // ✅ New parameter: view (active | completed)
     $view = $_GET['view'] ?? 'active';
+    $orderNumber = $_GET['order_number'] ?? '';
 
-    // ✅ Build base condition (no default CURDATE filter yet)
+    // Base WHERE
     $where = "1=1";
+    $params = [];
 
     if ($view === 'active') {
-        // Show ALL ongoing orders (no date restriction)
         $where .= " AND o.status IN ('pending', 'preparing', 'ready_for_delivery')";
     } elseif ($view === 'completed') {
-        // Show only today's finished or cancelled orders
         $where .= " AND o.status IN ('delivered', 'cancelled') 
                     AND DATE(o.order_date) = CURDATE()";
-    } else {
-        // fallback: show everything
-        $where .= "";
     }
 
-    // ✅ Dynamic query
-    $stmt = $pdo->query("
+    if ($orderNumber !== '') {
+        $where .= " AND o.order_number LIKE :order_number";
+        $params['order_number'] = "%$orderNumber%";
+    }
+
+    // ORDER BY
+    $orderBy = '';
+    switch ($sort) {
+        case 'order_date':
+            $orderBy = "o.order_date " . ($view === 'active' ? "ASC" : "DESC");
+            break;
+        case 'status':
+            $orderBy = "o.status ASC";
+            break;
+        case 'total':
+            $orderBy = "o.total DESC";
+            break;
+        case 'pickup':
+            $orderBy = "CASE WHEN o.delivery_method = 'pickup' THEN 0 ELSE 1 END, o.order_date ASC";
+            break;
+        case 'home_delivery':
+            $orderBy = "CASE WHEN o.delivery_method = 'home' THEN 0 ELSE 1 END, o.order_date ASC";
+            break;
+        default:
+            $orderBy = "o.order_date ASC";
+            break;
+    }
+
+    $stmt = $pdo->prepare("
         SELECT 
             o.order_id,
             o.order_number,
@@ -37,19 +60,20 @@ try {
             o.total,
             o.payment_method,
             o.payment_status,
+            o.delivery_method,
             COUNT(oi.order_item_id) AS items_count
         FROM orders o
         LEFT JOIN users u ON o.user_id = u.user_id
         LEFT JOIN order_items oi ON o.order_id = oi.order_id
         WHERE $where
         GROUP BY o.order_id
-        ORDER BY o.$sort " . ($view === 'active' ? "ASC" : "DESC")
-    );
+        ORDER BY $orderBy
+    ");
 
+    $stmt->execute($params);
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode(["success" => true, "orders" => $orders]);
 
+    echo json_encode(["success" => true, "orders" => $orders]);
 } catch (PDOException $e) {
     echo json_encode(["success" => false, "error" => $e->getMessage()]);
 }
-?>

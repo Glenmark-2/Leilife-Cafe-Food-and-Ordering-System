@@ -13,7 +13,7 @@ $data = json_decode(file_get_contents("php://input"), true);
 $order_id = $data['order_id'] ?? null;
 $new_status = $data['status'] ?? null;
 
-$valid_status = ['pending', 'preparing', 'ready_for_delivery', 'delivered', 'cancelled'];
+$valid_status = ['pending', 'preparing', 'ready_for_delivery', 'delivered', 'cancelled','picked_up'];
 
 if (!$order_id || !in_array($new_status, $valid_status)) {
     echo json_encode(["success" => false, "error" => "Invalid input"]);

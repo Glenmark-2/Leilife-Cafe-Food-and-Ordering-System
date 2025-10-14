@@ -7,3 +7,4 @@ CREATE TABLE driver_orders (
   delivered_at TIMESTAMP NULL,
   UNIQUE KEY unique_order (order_id)
 );
+-- done nobi

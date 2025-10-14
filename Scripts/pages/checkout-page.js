@@ -1,76 +1,141 @@
-// Scripts/pages/checkout-page.js
+// ============================
+// CONSTANTS
+// ============================
 const USER_API = '../backend/checkout-page.php';
 const CART_API = '../backend/get_cart.php';
 
+// ============================
+// MAIN INITIALIZER
+// ============================
 document.addEventListener('DOMContentLoaded', async () => {
   await bindPhoneEdit();
   await fetchUserData();
-  await fetchCartData(); // fetch cart items + totals
+  await fetchCartData();
 
-  // ✅ Listen for global cart updates (from update_cart or other components)
+  bindAddressModal();      // ✅ merged modal logic
+  bindPlaceOrderHandler(); // ✅ merged place order + showModal validation
+
+  // ✅ Listen for global cart updates
   document.addEventListener("cart:updated", async (e) => {
     console.log("🔔 Cart updated event received, re-fetching cart...");
-    
-    // If cart data is passed with the event, use it directly
     if (e.detail?.cart) {
       cp_renderCart(e.detail.cart || []);
       updateTotals(e.detail.totals || {});
     } else {
-      // Otherwise, re-fetch from backend
       await fetchCartData();
     }
   });
 });
 
-const placeOrderBtn = document.getElementById("place-order-bt");
+// ============================
+// ADDRESS MODAL HANDLING
+// ============================
+function bindAddressModal() {
+  const addressBtn = document.getElementById("edit-address");
+  const modalOverlay = document.getElementById("modalOverlay");
+  const addressModalForm = modalOverlay?.querySelector("form");
 
-if (placeOrderBtn) {
-  placeOrderBtn.addEventListener("click", async () => {
+  if (addressBtn && modalOverlay) {
+    addressBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      modalOverlay.style.display = "flex";
+    });
+  }
 
-        // prevent multiple clicks
-    placeOrderBtn.disabled = true;
-    placeOrderBtn.textContent = "Processing...";
+  if (addressModalForm) {
+    addressModalForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fd = new FormData(addressModalForm);
 
-    // 1. Get selected payment method (from radio value)
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
+      try {
+        const resp = await fetch(addressModalForm.action, { method: "POST", body: fd });
+        const result = await resp.json();
 
-    if (!paymentMethod) {
-      alert("Please select a payment method.");
+        if (result.success) {
+          showModal(result.message || "Address updated!", "success");
+          modalOverlay.style.display = "none";
+          setTimeout(() => {
+            window.location.href = "index.php?page=checkout-page";
+          }, 1000);
+        } else {
+          showModal(result.error || "Failed to save address.", "error");
+        }
+      } catch (err) {
+        showModal("Error updating address.", "error");
+      }
+    });
+  }
+}
+
+// ============================
+// PLACE ORDER HANDLER (Updated)
+// ============================
+function bindPlaceOrderHandler() {
+  const placeOrderBtn = document.getElementById("place-order-btn");
+  if (!placeOrderBtn) return;
+
+  placeOrderBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    // --- Validate delivery option ---
+    const delivery = document.querySelector('input[name="delivery"]:checked');
+    if (!delivery) {
+      showModal("Please select a delivery option before placing your order.", "warning");
       return;
     }
 
+    // --- Get delivery method ---
+    const deliveryMethod = delivery.value; // 'pickup' or 'home'
+
+    // --- Validate address for home delivery ---
+    if (deliveryMethod === "home") {
+      const address = document.getElementById("full-address").value.trim();
+      if (address === "") {
+        showModal("Please provide your full delivery address.", "warning");
+        return;
+      }
+    }
+
+    // --- Validate payment method ---
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
+    if (!paymentMethod) {
+      showModal("Please select a payment method before placing your order.", "warning");
+      return;
+    }
+
+    // --- Prevent multiple clicks ---
+    placeOrderBtn.disabled = true;
+    placeOrderBtn.textContent = "Processing...";
+
     try {
-      // 2. Send to backend
       const response = await fetch("../backend/place_order.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          payment_method: paymentMethod
+          payment_method: paymentMethod,
+          delivery_method: deliveryMethod
         })
       });
 
       const result = await response.json();
 
-    // 3. Handle response
-    if (result.success) {
-      if (paymentMethod === "gcash" && result.checkout_url) {
-        // ✅ GCash: redirect to PayMongo checkout page
-        window.location.replace(result.checkout_url);
-      } else {
-        // ✅ COD: redirect to tracking page using order_number
-        if (result.order_number) {
+      if (result.success) {
+        if (paymentMethod === "gcash" && result.checkout_url) {
+          window.location.replace(result.checkout_url);
+        } else if (result.order_number) {
           window.location.replace(`/Leilife/public/index.php?page=order-tracking&num=${encodeURIComponent(result.order_number)}`);
         } else {
-          // fallback if backend forgot to return order_number
           window.location.replace("/Leilife/public/index.php?page=orders");
         }
+      } else {
+        showModal(result.message || "Something went wrong.", "error");
       }
-    } else {
-      alert(result.message || "Something went wrong.");
-    }    
     } catch (err) {
       console.error("Place order error:", err);
-      alert("Error placing order.");
+      showModal("Error placing order.", "error");
+    } finally {
+      placeOrderBtn.disabled = false;
+      placeOrderBtn.textContent = "Place Order";
     }
   });
 }
@@ -80,10 +145,7 @@ if (placeOrderBtn) {
 // ============================
 async function fetchUserData() {
   try {
-    const res = await fetch(USER_API, {
-      method: 'GET',
-      credentials: 'same-origin'
-    });
+    const res = await fetch(USER_API, { method: 'GET', credentials: 'same-origin' });
     const payload = await res.json();
     if (!payload.success) {
       console.error('API error:', payload.message);
@@ -112,22 +174,20 @@ function populateFields(data) {
   document.getElementById('note').value = data.note_to_rider ?? '';
 }
 
-
 // ============================
 // CART RENDER
 // ============================
 function cp_renderCart(items) {
   const container = document.getElementById('order-items');
-  container.innerHTML = ''; // clear placeholder
+  container.innerHTML = '';
 
-if (!items.length) {
-  container.innerHTML = '<p>Your cart is empty. Redirecting to menu...</p>';
-  setTimeout(() => {
-    window.location.replace("/Leilife/public/index.php?page=menu");
-  }, 2000); // wait 2s before redirect
-  return;
-}
-
+  if (!items.length) {
+    container.innerHTML = '<p>Your cart is empty. Redirecting to menu...</p>';
+    setTimeout(() => {
+      window.location.replace("/Leilife/public/index.php?page=menu");
+    }, 2000);
+    return;
+  }
 
   items.forEach(item => {
     const div = document.createElement('div');
@@ -158,16 +218,12 @@ if (!items.length) {
   });
 }
 
-
 // ============================
 // FETCH CART DATA
 // ============================
 async function fetchCartData() {
   try {
-    const res = await fetch(CART_API, {
-      method: 'GET',
-      credentials: 'same-origin'
-    });
+    const res = await fetch(CART_API, { method: 'GET', credentials: 'same-origin' });
     const payload = await res.json();
     console.log("Cart payload:", payload);
 
@@ -181,7 +237,6 @@ async function fetchCartData() {
     console.error('Cart fetch error:', err);
   }
 }
-
 
 // ============================
 // DELIVERY TOGGLE
@@ -207,7 +262,6 @@ function toggleDelivery() {
     home.style.display = 'block';
   }
 }
-
 
 // ============================
 // PHONE EDIT
@@ -244,20 +298,12 @@ function bindPhoneEdit() {
         phone.setAttribute('readonly', true);
         phone.style.background = '#f5f5f5';
         btn.textContent = 'Edit';
-        showTempMessage('Phone updated');
+        showModal('Phone number updated successfully!', 'success');
       } else {
-        showTempMessage('Failed to update phone: ' + (data.message || ''), true);
+        showModal('Failed to update phone: ' + (data.message || ''), 'error');
       }
     } catch (err) {
-      showTempMessage('Network error while updating phone', true);
+      showModal('Network error while updating phone', 'error');
     }
   });
-}
-
-
-// ============================
-// UTILS
-// ============================
-function showTempMessage(msg, isError = false) {
-  alert(msg); // Replace with custom toast/notification if you want
 }

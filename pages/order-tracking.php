@@ -261,7 +261,7 @@ $delivery = isset($orderInfo['delivery_option']) && $orderInfo['delivery_option'
                     </div>
                 </div>
                 <!-- Review Section (only for delivered orders) -->
-                <?php if ($orderInfo['status'] === 'delivered' || $orderInfo['status'] === 'delivered'): ?>
+                <?php if ($orderInfo['status'] === 'delivered' || $orderInfo['status'] === 'picked_up'): ?>
                     <div class="review-section">
                         <h3>Leave a Review</h3>
                         <form id="reviewForm" method="POST">

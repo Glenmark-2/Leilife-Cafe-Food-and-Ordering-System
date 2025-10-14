@@ -32,12 +32,7 @@ $rider = ["name" => $_SESSION['driver_name'] ?? "Driver", "shift" => "9:00 AM - 
   </div>
 </div>
 
-<!-- Bottom Navigation -->
-<nav class="bottom-nav">
-  <a href="/Leilife/public/driver.php?page=available">📦 Available</a>
-  <a href="/Leilife/public/driver.php?page=driver" class="active">🚗 My Deliveries</a>
-  <a href="/Leilife/public/driver.php?page=dashboard">🏠 Dashboard</a>
-</nav>
+
 
 <!-- Scripts -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>

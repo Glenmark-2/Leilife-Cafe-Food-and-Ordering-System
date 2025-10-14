@@ -121,24 +121,14 @@ $userAddress = $appData->loadUserAddress($user_id);
                 <p><strong>Total:</strong> ₱<?= number_format($orderInfo['total'], 2) ?></p>
             </div>
 
-            <!-- Cancel Order button -->
-            <?php if ($orderInfo['status'] !== 'delivered' && $orderInfo['status'] !== 'cancelled'): ?>
+            <!-- Cancel Order button (only visible if status is strictly pending) -->
+            <?php if ($orderInfo['status'] === 'pending'): ?>
                 <div class="submit">
                     <?php
-                    $attrs = [];
-                    // Disable button if status is preparing
-                    if ($orderInfo['status'] === 'preparing') {
-                        $attrs['disabled'] = 'disabled';
-                        $attrs['title'] = 'Cannot cancel while preparing';
-                    }
-                    echo createButton(45, 150, "Cancel Order", "cancelOrderBtn", 16, "button", $attrs);
+                    echo createButton(45, 150, "Cancel Order", "cancelOrderBtn", 16, "button");
                     ?>
                 </div>
             <?php endif; ?>
-
-
-
-
         </div>
     </div>
     <!-- Review Section (only for delivered orders) -->
@@ -166,61 +156,87 @@ $userAddress = $appData->loadUserAddress($user_id);
 </div>
 
 <script>
-const reviewForm = document.getElementById("reviewForm");
-const submitBtn = document.getElementById("submitReviewBtn");
+document.addEventListener("DOMContentLoaded", function () {
+    // REVIEW SUBMIT (only attach if form/button exist)
+    const reviewForm = document.getElementById("reviewForm");
+    const submitBtn = document.getElementById("submitReviewBtn");
 
-submitBtn.addEventListener('click', function(e) {
-    e.preventDefault();
+    if (submitBtn && reviewForm) {
+        submitBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const formData = new FormData(reviewForm);
 
-    const formData = new FormData(reviewForm);
+            fetch("/Leilife/backend/mail.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.text())
+            .then(text => {
+                console.log("Mail response:", text);
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (err) {
+                    console.error("Invalid JSON from mail.php:", err, text);
+                    showModal("Server error sending review. Try again later.", "error");
+                    return;
+                }
+                if (data.success) {
+                    showModal(data.message || "Review submitted", "success");
+                    setTimeout(() => window.location.href = "/Leilife/public/index.php?page=home", 2000);
+                } else {
+                    showModal(data.message || "Your review did not send!", "error");
+                }
+            })
+            .catch(err => {
+                console.error("Fetch error (mail):", err);
+                showModal("Network error. Please try again.", "error");
+            });
+        });
+    }
 
-    fetch("/leilife/backend/mail.php", {
-        method: "POST",
-        body: formData
-    })
-    .then(res => res.text())  // get as text first to debug
-    .then(text => {
-        console.log("Mail response:", text); // check response
-        return JSON.parse(text); // parse JSON
-    })
-    .then(data => {
-        if (data.success) {
-            showModal(data.message, "success");
+    // CANCEL ORDER (attach only if the button exists)
+    const cancelBtn = document.getElementById("cancelOrderBtn");
+    if (cancelBtn) {
+        cancelBtn.addEventListener("click", function () {
+            const orderId = "<?= $orderInfo['order_id'] ?>";
+            if (!confirm("Are you sure you want to cancel this order?")) return;
 
-            // Redirect after 2 seconds
-            setTimeout(() => {
-                window.location.href = "/leilife/public/index.php?page=home";
-            }, 2000);
+            cancelBtn.disabled = true;
 
-        } else {
-            showModal(data.message || "Your review did not send!", "error");
-        }
-    })
-    .catch(err => {
-        console.error("Fetch error:", err);
-        showModal("Network error. Please try again.", "error");
-    });
-});
-
-document.getElementById("cancelOrderBtn").addEventListener("click", function() {
-    const orderNumber = "<?= $orderInfo['order_number'] ?>";
-
-    fetch("/leilife/backend/cancel_order.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: "order_number=" + encodeURIComponent(orderNumber)
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        if(data.success) window.location.reload(); 
-    })
-    .catch(err => console.error(err));
-});
-
-
+            fetch("/Leilife/backend/cancel_order.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: "order_id=" + encodeURIComponent(orderId)
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error("Network response was not ok: " + res.status);
+                }
+                return res.json();
+            })
+            .then(data => {
+                cancelBtn.disabled = false;
+                if (data.success) {
+                    showModal(data.message || "Order cancelled", "success");
+                    setTimeout(() => {
+                        window.location.replace("/Leilife/public/index.php?page=menu");
+                    }, 1500);
+                } else {
+                    showModal(data.error || data.message || "Failed to cancel order.", "error");
+                }
+            })
+            .catch(err => {
+                cancelBtn.disabled = false;
+                console.error("Cancel error:", err);
+                showModal("An unexpected error occurred. Please try again.", "error");
+            });
+        });
+    }
+});  // ✅ closing the DOMContentLoaded properly
 
 </script>
+
 
 
 

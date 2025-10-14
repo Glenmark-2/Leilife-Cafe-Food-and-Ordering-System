@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['show_welcome'] = true;
 
             // ✅ Redirect to driver section inside admin.php
-            header('Location: /leilife/public/driver.php?page=driver');
+            header('Location: /leilife/public/driver.php?page=dashboard');
             exit;
         }
     }

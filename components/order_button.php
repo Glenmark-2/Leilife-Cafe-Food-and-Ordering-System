@@ -16,10 +16,13 @@ if (!isset($appData)) {
 $user_id = $_SESSION['user_id'] ?? null;
 $orders_raw = $user_id ? $appData->getActiveOrdersOfUser($user_id) : [];
 
-
-// ✅ Group by order_id
+// ✅ Group by order_id and exclude cancelled
 $orders = [];
 foreach ($orders_raw as $row) {
+    if ($row['status'] === 'cancelled') {
+        continue; // ❌ skip cancelled entirely
+    }
+
     $oid = $row['order_id'];
     if (!isset($orders[$oid])) {
         $orders[$oid] = [
@@ -32,11 +35,13 @@ foreach ($orders_raw as $row) {
             'items' => [],
         ];
     }
-    // add item names (for preview)
+
+    // add item names (for preview, max 2)
     if (count($orders[$oid]['items']) < 2) {
         $orders[$oid]['items'][] = $row['product_name'];
     }
 }
+
 $orders = array_values($orders); // reset to numeric index
 $orderCount = count($orders);
 

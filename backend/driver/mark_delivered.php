@@ -3,8 +3,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 header('Content-Type: application/json; charset=utf-8');
-
-require_once __DIR__ . '/../db_script/db.php'; // $pdo is here
+require_once __DIR__ . '/../db_script/db.php';
 
 try {
     $data = json_decode(file_get_contents("php://input"), true);
@@ -27,23 +26,27 @@ try {
 
     // Build query depending on payment method
     if ($order['payment_method'] === 'cash' && $order['payment_status'] !== 'paid') {
-        // COD (cash) not yet paid → mark paid + delivered
         $sql = "UPDATE orders 
                 SET status = 'delivered', payment_status = 'paid' 
                 WHERE order_id = :order_id";
     } else {
-        // Already paid (gcash OR cash already paid) → just mark delivered
         $sql = "UPDATE orders 
                 SET status = 'delivered' 
                 WHERE order_id = :order_id";
     }
 
+    // ✅ Update orders table
     $stmt = $pdo->prepare($sql);
     $stmt->execute(['order_id' => $orderId]);
 
+    // ✅ ALSO update driver_orders table
+    $driverSql = "UPDATE driver_orders SET status = 'completed' WHERE order_id = :order_id";
+    $driverStmt = $pdo->prepare($driverSql);
+    $driverStmt->execute(['order_id' => $orderId]);
+
     echo json_encode([
         "success" => true,
-        "message" => "marked as delivered"
+        "message" => "Order marked as delivered."
     ]);
 
 } catch (Exception $e) {

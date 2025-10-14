@@ -25,12 +25,6 @@ $rider = ["name" => $_SESSION['driver_name'] ?? "Driver"];
   </div>
 </div>
 
-<!-- Bottom Navigation -->
-<nav class="bottom-nav">
-  <a href="/Leilife/public/driver.php?page=available" class="active">📦 Available</a>
-  <a href="/Leilife/public/driver.php?page=driver">🚗 My Deliveries</a>
-  <a href="/Leilife/public/driver.php?page=dashboard">🏠 Dashboard</a>
-</nav>
 
 <!-- Scripts -->
 <script src="/Leilife/Scripts/driver/available-orders.js"></script>

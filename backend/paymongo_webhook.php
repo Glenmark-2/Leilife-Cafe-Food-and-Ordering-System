@@ -64,19 +64,34 @@ $orderId = null;
 if (is_array($metadata)) {
     $orderId = $metadata['order_id'] ?? $metadata['reference_number'] ?? null;
 }
-file_put_contents(__DIR__ . "/paymongo_webhook.log", date("Y-m-d H:i:s") . " Extracted orderId={$orderId}" . PHP_EOL, FILE_APPEND);
+file_put_contents(__DIR__ . "/paymongo_webhook.log", date("Y-m-d H:i:s") . " Extracted orderId=" . ($orderId ?? 'NULL') . PHP_EOL, FILE_APPEND);
 
+// status extracted from inner
 $status = $inner['status'] ?? null; // e.g. "paid" or "succeeded"
-file_put_contents(__DIR__ . "/paymongo_webhook.log", date("Y-m-d H:i:s") . " Extracted status={$status}" . PHP_EOL, FILE_APPEND);
+file_put_contents(__DIR__ . "/paymongo_webhook.log", date("Y-m-d H:i:s") . " Extracted status=" . ($status ?? 'NULL') . PHP_EOL, FILE_APPEND);
 
-if (!$orderId) {
-    file_put_contents(__DIR__ . "/paymongo_webhook_error.log", date("Y-m-d H:i:s") . " Missing order_id in payload: " . $rawPayload . PHP_EOL, FILE_APPEND);
-    http_response_code(400);
-    echo json_encode(["success" => false, "message" => "Missing order identifier in webhook"]);
-    exit;
+// ----------------------
+// Robust payment id extraction:
+// prefer resource id (pay_xxx) from inner or attributes.data.id,
+// fall back to event data id (evt_xxx) only if necessary.
+// ----------------------
+$paymentId = null;
+// common: inner['id'] holds pay_xxx for direct payment object
+if (!empty($inner['id'])) {
+    $paymentId = $inner['id'];
+}
+// wrapped event: attributes.data.id often contains pay_xxx
+elseif (!empty($event['data']['attributes']['data']['id'])) {
+    $paymentId = $event['data']['attributes']['data']['id'];
+}
+// last resort: event id (evt_xxx) — keep for logging but avoid using for refunds
+elseif (!empty($event['data']['id'])) {
+    $paymentId = $event['data']['id'];
 }
 
-// Decide success/failure robustly
+file_put_contents(__DIR__ . "/paymongo_webhook.log", date("Y-m-d H:i:s") . " Extracted paymentId=" . ($paymentId ?? 'NULL') . PHP_EOL, FILE_APPEND);
+
+// Decide success/failure/refund robustly
 $paidStatuses = ['paid', 'succeeded'];
 $failedStatuses = ['failed', 'cancelled', 'canceled'];
 
@@ -86,18 +101,22 @@ $isSuccess = in_array(strtolower($status ?? ''), $paidStatuses)
 $isFailure = in_array(strtolower($status ?? ''), $failedStatuses)
              || in_array(strtolower($eventType ?? ''), ['payment.failed', 'payment_intent.payment_failed']);
 
-file_put_contents(__DIR__ . "/paymongo_webhook.log", date("Y-m-d H:i:s") . " Condition check: isSuccess=" . ($isSuccess ? 'yes' : 'no') . ", isFailure=" . ($isFailure ? 'yes' : 'no') . PHP_EOL, FILE_APPEND);
+$isRefund = in_array(strtolower($eventType ?? ''), ['refund.succeeded', 'refund.created']);
+
+file_put_contents(__DIR__ . "/paymongo_webhook.log", date("Y-m-d H:i:s") . " Condition check: isSuccess=" . ($isSuccess ? 'yes' : 'no') . ", isFailure=" . ($isFailure ? 'yes' : 'no'). ", isRefund=" . ($isRefund ? 'yes' : 'no') . PHP_EOL, FILE_APPEND);
 
 // Update DB accordingly
 try {
     $pdo->beginTransaction();
 
     if ($isSuccess) {
+        // Use the robust $paymentId (prefer pay_xxx); store it in orders.payment_id
         $stmt = $pdo->prepare("UPDATE orders 
-                               SET payment_status = 'paid', status = 'preparing' 
+                               SET payment_status = 'paid', payment_id = :pid 
                                WHERE order_id = :oid");
-        $stmt->execute([':oid' => $orderId]);
+        $stmt->execute([':pid' => $paymentId, ':oid' => $orderId]);
 
+        // Clear cart (unchanged)
         $clearCartStmt = $pdo->prepare("
             DELETE ci FROM cart_items ci
             JOIN carts c ON ci.cart_id = c.cart_id
@@ -106,14 +125,85 @@ try {
         ");
         $clearCartStmt->execute([':oid' => $orderId]);
 
-        file_put_contents(__DIR__ . "/paymongo_webhook.log", date("Y-m-d H:i:s") . " ✅ Order {$orderId} marked paid and cart cleared" . PHP_EOL, FILE_APPEND);
+        // Also log transaction with external_id = payment resource id (preferred)
+        $logTxn = $pdo->prepare("INSERT INTO transactions 
+                                 (order_id, external_id, transaction_name, transaction_status, transaction_value)
+                                 VALUES (:oid, :ext, 'payment', 'success', :val)");
+        $logTxn->execute([
+            ':oid' => $orderId,
+            ':ext' => $paymentId,
+            ':val' => ($inner['amount'] ?? 0) / 100
+        ]);
+
+        file_put_contents(__DIR__ . "/paymongo_webhook.log", date("Y-m-d H:i:s") . " ✅ Order {$orderId} marked paid and cart cleared (paymentId={$paymentId})" . PHP_EOL, FILE_APPEND);
 
     } elseif ($isFailure) {
         $stmt = $pdo->prepare("UPDATE orders 
                                SET payment_status = 'failed' 
                                WHERE order_id = :oid");
         $stmt->execute([':oid' => $orderId]);
-        file_put_contents(__DIR__ . "/paymongo_webhook.log", date("Y-m-d H:i:s") . " ❌ Order {$orderId} marked failed" . PHP_EOL, FILE_APPEND);
+
+        $txn = $pdo->prepare("INSERT INTO transactions (order_id, external_id, transaction_name, transaction_status, transaction_value)
+                              VALUES (:oid, :ext, 'payment', 'failed', 0)");
+        $txn->execute([
+            ':oid' => $orderId,
+            ':ext' => $paymentId
+        ]);
+
+        file_put_contents(__DIR__ . "/paymongo_webhook.log", date("Y-m-d H:i:s") . " ❌ Order {$orderId} marked failed (paymentId={$paymentId})" . PHP_EOL, FILE_APPEND);
+
+    } elseif ($isRefund) {
+        // Refund handling (unchanged logic) — amount is in centavos in $inner['amount']
+        $refundId = $event['data']['id'] ?? null;
+        $refundAmount = $inner['amount'] ?? null; // in centavos
+        $refundStatus = $inner['status'] ?? null;
+        // payment_id inside refund object (resource that was refunded)
+        $refPaymentId = $inner['payment_id'] ?? $paymentId;
+
+        $itemId = $metadata['item_id'] ?? null;
+
+        // Always log refund details into refunds table
+        $logRefund = $pdo->prepare("INSERT INTO refunds (order_id, refund_id, payment_id, amount, status, created_at)
+                                    VALUES (:oid, :rid, :pid, :amt, :st, NOW())");
+        $logRefund->execute([
+            ':oid' => $orderId,
+            ':rid' => $refundId,
+            ':pid' => $refPaymentId,
+            ':amt' => ($refundAmount / 100),
+            ':st'  => $refundStatus
+        ]);
+
+        // Also log into transactions ledger
+        $logTxn = $pdo->prepare("INSERT INTO transactions (order_id, external_id, transaction_name, transaction_status, transaction_value)
+                                 VALUES (:oid, :ext, 'refund', :st, :amt)");
+        $logTxn->execute([
+            ':oid' => $orderId,
+            ':ext' => $refundId,
+            ':st'  => $refundStatus,
+            ':amt' => ($refundAmount / 100)
+        ]);
+
+        // If item_id provided in refund metadata, cancel only that item
+        if (!empty($itemId)) {
+            $upd = $pdo->prepare("UPDATE order_items 
+                                  SET status = 'cancelled' 
+                                  WHERE order_item_id = :iid AND order_id = :oid");
+            $upd->execute([':iid' => $itemId, ':oid' => $orderId]);
+        }
+
+        // If all items cancelled, mark order cancelled + refunded
+        $check = $pdo->prepare("SELECT COUNT(*) FROM order_items WHERE order_id = :oid AND status != 'cancelled'");
+        $check->execute([':oid' => $orderId]);
+        $remaining = (int)$check->fetchColumn();
+        if ($remaining === 0) {
+            $pdo->prepare("UPDATE orders SET status = 'cancelled', payment_status = 'refunded' WHERE order_id = :oid")
+                ->execute([':oid' => $orderId]);
+        }
+
+        file_put_contents(__DIR__ . "/paymongo_webhook.log",
+            date("Y-m-d H:i:s") . " 💸 Refund processed for order {$orderId}, itemId=" . ($itemId ?? 'NULL') . ", refundId=" . ($refundId ?? 'NULL') . ", amount=" . ($refundAmount !== null ? ($refundAmount/100) : 'NULL') . PHP_EOL,
+            FILE_APPEND
+        );
     } else {
         file_put_contents(__DIR__ . "/paymongo_webhook.log", date("Y-m-d H:i:s") . " ℹ️ Non-terminal webhook for order {$orderId}: eventType={$eventType}, status={$status}" . PHP_EOL, FILE_APPEND);
     }

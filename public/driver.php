@@ -28,6 +28,8 @@ $cssFiles = $styleConfig[$page] ?? [];
   <meta charset="utf-8">
   <title>Driver Dashboard</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
   <?php foreach ($cssFiles as $css): ?>
     <link rel="stylesheet" href="/Leilife/<?php echo htmlspecialchars($css); ?>">
   <?php endforeach; ?>
@@ -37,6 +39,13 @@ $cssFiles = $styleConfig[$page] ?? [];
 <div id="driverPageContent">
   <?php include $target; ?>
 </div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+  <a href="/Leilife/public/driver.php?page=available" class="active">📦 Available</a>
+  <a href="/Leilife/public/driver.php?page=driver">🚗 My Deliveries</a>
+  <a href="/Leilife/public/driver.php?page=dashboard">🏠 Dashboard</a>
+</nav>
 
 <script>
   window.currentDriverPage = "<?php echo htmlspecialchars($page); ?>";

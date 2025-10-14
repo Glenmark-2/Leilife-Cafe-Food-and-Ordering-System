@@ -2,3 +2,4 @@ ALTER TABLE addresses
 ADD COLUMN latitude DECIMAL(10,8) NULL,
 ADD COLUMN longitude DECIMAL(11,8) NULL;
 ALTER TABLE orders ADD COLUMN delivered_at TIMESTAMP NULL;
+-- done nobi

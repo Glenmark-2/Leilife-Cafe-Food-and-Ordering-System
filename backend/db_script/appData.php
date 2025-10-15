@@ -483,32 +483,46 @@ public function getActiveOrdersOfUser($user_id)
         }
 
 
-        public function loadUserOrders($userId)
-        {
-            if (!$userId) return [];
+public function loadUserOrders($userId)
+{
+    if (!$userId) return [];
 
-            $stmt = $this->db->prepare("
+    $stmt = $this->db->prepare("
         SELECT o.order_id, o.order_number, o.status, o.payment_method, o.total, o.order_date AS date
         FROM orders o
         WHERE o.user_id = :user_id
         ORDER BY o.order_date DESC
     ");
-            $stmt->execute([':user_id' => $userId]);
-            $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt->execute([':user_id' => $userId]);
+    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            foreach ($orders as &$order) {
-                $stmtItems = $this->db->prepare("
+    foreach ($orders as &$order) {
+        // Fetch order items
+        $stmtItems = $this->db->prepare("
             SELECT p.product_name, oi.quantity
             FROM order_items oi
             LEFT JOIN products p ON oi.product_id = p.product_id
             WHERE oi.order_id = :order_id
         ");
-                $stmtItems->execute([':order_id' => $order['order_id']]);
-                $order['items'] = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
-            }
+        $stmtItems->execute([':order_id' => $order['order_id']]);
+        $order['items'] = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
 
-            return $orders;
-        }
+        // Fetch review for this order
+        $stmtReview = $this->db->prepare("
+            SELECT message 
+            FROM inbox 
+            WHERE subject = :subject
+            LIMIT 1
+        ");
+        $subject = "Order Review #{$order['order_number']}";
+        $stmtReview->execute([':subject' => $subject]);
+        $review = $stmtReview->fetch(PDO::FETCH_ASSOC);
+        $order['review'] = $review['message'] ?? null;
+    }
+
+    return $orders;
+}
+
 
         //for sales report
 public function getSalesSummary($fromDate = null, $toDate = null, $status = null, $payment = null)
@@ -710,9 +724,6 @@ public function reorder($order_id, $user_id, $session_id, $option_type = 'delive
         ]);
     }
 }
-
-
-
 
 
     }

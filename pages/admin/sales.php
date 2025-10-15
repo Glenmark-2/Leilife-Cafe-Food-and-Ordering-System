@@ -109,13 +109,6 @@ $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: nul
   <tbody id="ordersTableBody"></tbody>
 </table>
 
-<!-- Pagination -->
-<div class="pagination">
-  <button id="prevPage" disabled>Previous</button>
-  <span id="pageInfo">Page 1</span>
-  <button id="nextPage">Next</button>
-</div>
-
 <div class="export-buttons">
   <button onclick="exportFile('csv')">Export CSV</button>
   <button onclick="exportFile('excel')">Export Excel</button>
@@ -217,39 +210,10 @@ $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: nul
     `;
     modal.style.display = "flex";
   }
-});
 
-nextBtn.addEventListener("click", () => {
-  if (currentPage < Math.ceil(filteredOrders.length / rowsPerPage)) {
-    currentPage++;
-    renderTable(currentPage);
+  function closeModal() {
+    document.getElementById("detailsModal").style.display = "none";
   }
-});
-
-function viewDetails(orderNumber) {
-  const order = orders.find(o => o.order_number === orderNumber);
-  if (!order) return;
-  const modal = document.getElementById("detailsModal");
-  const details = document.getElementById("orderDetails");
-
-  const driver = order.driver_name || 'Undefined';
-  const payment = order.payment_method || 'Undefined';
-  const date = order.date ? order.date.slice(0,10) : 'Undefined';
-  const customer = order.customer_name || 'Undefined';
-  const items = Array.isArray(order.items) ? order.items : [];
-
-  details.innerHTML = `
-    <p><strong>Customer:</strong> ${customer}</p>
-    <p><strong>Driver:</strong> ${driver}</p>
-    <p><strong>Total:</strong> ₱${parseFloat(order.total || 0).toFixed(2)}</p>
-    <p><strong>Status:</strong> ${order.status || 'Undefined'}</p>
-    <p><strong>Payment:</strong> ${payment}</p>
-    <p><strong>Date:</strong> ${date}</p>
-    <p><strong>Items:</strong></p>
-    <ul>${items.map(i => `<li>${i.product_name || 'Undefined'} × ${i.quantity || 1}</li>`).join('')}</ul>
-  `;
-  modal.style.display = "flex";
-}
 
   // FILTER CHANGE HANDLING — RELOAD WITH GET PARAMS
   document.querySelectorAll('#statusFilter, #driverFilter, #paymentFilter, #fromDate, #toDate')

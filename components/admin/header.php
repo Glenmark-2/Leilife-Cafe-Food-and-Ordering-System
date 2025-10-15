@@ -1,11 +1,18 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dashboard</title>
+    <title>Leilife's Admin</title>
+    <link rel="icon" type="image/png" href="/leilife/public/assests/Mask%20group.png">
+<link rel="shortcut icon" type="image/png" href="/leilife/public/assests/Mask%20group.png">
+
+
+    
+
+
+
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -36,8 +43,3 @@
     <div id="sidebar-wrapper">
         <?php include __DIR__ . "/sidebar.php"; ?>
     </div>
-
-
-
-
-

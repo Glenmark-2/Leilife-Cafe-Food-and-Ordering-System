@@ -92,8 +92,8 @@ $orders = $appData->getOrdersByFilters(null, 'All', 'All', null, null);
 
 <div class="export-buttons">
   <button onclick="alert('Exported to CSV')">Export CSV</button>
-  <button onclick="alert('Exported to Excel')">Export Excel</button>
-  <button onclick="exportPDF()">Export PDF</button>
+  <button onclick="exportFile('excel')">Export Excel</button>
+  <button onclick="exportFile('pdf')">Export PDF</button>
 
 </div>
 
@@ -108,24 +108,28 @@ $orders = $appData->getOrdersByFilters(null, 'All', 'All', null, null);
 
 <script>
 
-function exportPDF() {
+function exportFile(type) {
   const fromDate = document.getElementById('fromDate').value;
   const toDate = document.getElementById('toDate').value;
   const status = document.getElementById('statusFilter').value;
   const payment = document.getElementById('paymentFilter').value;
 
-  let url = '/leilife/pages/admin/sales-report-pdf.php';
-  const params = [];
+  let url = '';
+  if (type === 'pdf') url = '/leilife/pages/admin/sales-report-pdf.php';
+  else if (type === 'excel') url = '/leilife/pages/admin/sales-report-excel.php';
+  else if (type === 'csv') url = '/leilife/pages/admin/sales-report-csv.php';
 
+  const params = [];
+  if (type === 'excel' || type === 'csv') params.push('download=1');
   if (fromDate) params.push(`fromDate=${encodeURIComponent(fromDate)}`);
   if (toDate) params.push(`toDate=${encodeURIComponent(toDate)}`);
-  if (status && status !== 'All') params.push(`status=${encodeURIComponent(status)}`);
-  if (payment && payment !== 'All') params.push(`payment=${encodeURIComponent(payment)}`);
+  if (status && status.toLowerCase() !== 'all') params.push(`status=${encodeURIComponent(status)}`);
+  if (payment && payment.toLowerCase() !== 'all') params.push(`payment=${encodeURIComponent(payment)}`);
 
-  if (params.length > 0) url += '?' + params.join('&');
-
+  if (params.length) url += '?' + params.join('&');
   window.open(url, '_blank');
 }
+
 
 
 

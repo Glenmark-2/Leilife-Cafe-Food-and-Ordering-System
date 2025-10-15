@@ -1,26 +1,40 @@
 <?php
-
-
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
+// Redirect if admin not logged in
+if (!isset($_SESSION['admin_id'])) {
+  header('Location: /leilife/public/index.php?page=home');
+  exit;
+}
 
-// if (!isset($_SESSION['admin_id'])) {
-//     header('Location: /Leilife/pages/admin/login-x9P2kL7zQ.php');
-//     exit;
-// }
+// Generate a new download token for this page load
+if (empty($_SESSION['download_token'])) {
+  $_SESSION['download_token'] = bin2hex(random_bytes(16));
+}
+$downloadToken = $_SESSION['download_token'];
 
 $appData = new AppData($pdo);
 
 // Optional welcome message
 $showWelcome = false;
 if (isset($_SESSION['show_welcome']) && $_SESSION['show_welcome'] === true) {
-    $showWelcome = true;
-    unset($_SESSION['show_welcome']);
+  $showWelcome = true;
+  unset($_SESSION['show_welcome']);
 }
 
-// Fetch orders from database with default filters (All)
-$orders = $appData->getOrdersByFilters(null, 'All', 'All', null, null);
+// Get filters from GET params (so they persist after reload)
+$status = $_GET['status'] ?? 'All';
+$driver = $_GET['driver'] ?? 'All';
+$payment = $_GET['payment'] ?? 'All';
+$fromDate = $_GET['fromDate'] ?? '';
+$toDate = $_GET['toDate'] ?? '';
+
+// Fetch orders based on filters
+$orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: null, $toDate ?: null);
 ?>
 
 <h2>Sales Management</h2>
@@ -30,28 +44,29 @@ $orders = $appData->getOrdersByFilters(null, 'All', 'All', null, null);
   <div class="filter-group">
     <label>Status:</label>
     <select id="statusFilter">
-      <option value="All">All</option>
-      <option value="Pending">Pending</option>
-      <option value="Delivered">Delivered</option>
-      <option value="Cancelled">Cancelled</option>
+      <option value="All" <?= $status === 'All' ? 'selected' : '' ?>>All</option>
+      <option value="Pending" <?= $status === 'Pending' ? 'selected' : '' ?>>Pending</option>
+      <option value="Delivered" <?= $status === 'Delivered' ? 'selected' : '' ?>>Delivered</option>
+      <option value="Cancelled" <?= $status === 'Cancelled' ? 'selected' : '' ?>>Cancelled</option>
     </select>
   </div>
 
   <div class="filter-group">
     <label>Date Range:</label>
-    <input type="date" id="fromDate"> - <input type="date" id="toDate">
+    <input type="date" id="fromDate" value="<?= htmlspecialchars($fromDate) ?>"> -
+    <input type="date" id="toDate" value="<?= htmlspecialchars($toDate) ?>">
   </div>
 
   <div class="filter-group">
     <label>Driver:</label>
     <select id="driverFilter">
-      <option value="All">All</option>
+      <option value="All" <?= $driver === 'All' ? 'selected' : '' ?>>All</option>
       <?php
-      // Get unique drivers from orders
       $drivers = array_unique(array_map(fn($o) => $o['driver_name'] ?? 'Undefined', $orders));
       foreach ($drivers as $d) {
-          $val = htmlspecialchars($d ?: 'Undefined');
-          echo "<option value=\"$val\">$val</option>";
+        $val = htmlspecialchars($d ?: 'Undefined');
+        $selected = ($val === $driver) ? 'selected' : '';
+        echo "<option value=\"$val\" $selected>$val</option>";
       }
       ?>
     </select>
@@ -60,15 +75,19 @@ $orders = $appData->getOrdersByFilters(null, 'All', 'All', null, null);
   <div class="filter-group">
     <label>Payment:</label>
     <select id="paymentFilter">
-      <option value="All">All</option>
+      <option value="All" <?= $payment === 'All' ? 'selected' : '' ?>>All</option>
       <?php
-      // Get unique payment methods
-      $payments = array_unique(array_map(fn($o) => $o['payment_method'] ?? 'Undefined', $orders));
-      foreach ($payments as $p) {
-          $val = htmlspecialchars($p ?: 'Undefined');
-          echo "<option value=\"$val\">$val</option>";
+      // Fetch all distinct payment methods directly from database
+      $stmt = $pdo->query("SELECT DISTINCT payment_method FROM orders WHERE payment_method IS NOT NULL AND payment_method <> ''");
+      $allPayments = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+      foreach ($allPayments as $p) {
+        $val = htmlspecialchars($p);
+        $selected = ($val === $payment) ? 'selected' : '';
+        echo "<option value=\"$val\" $selected>$val</option>";
       }
       ?>
+
     </select>
   </div>
 </div>
@@ -91,14 +110,13 @@ $orders = $appData->getOrdersByFilters(null, 'All', 'All', null, null);
 </table>
 
 <div class="export-buttons">
-  <button onclick="alert('Exported to CSV')">Export CSV</button>
+  <button onclick="exportFile('csv')">Export CSV</button>
   <button onclick="exportFile('excel')">Export Excel</button>
   <button onclick="exportFile('pdf')">Export PDF</button>
-
 </div>
 
 <!-- Modal -->
-<div class="modal" id="detailsModal">
+<div class="modal" id="detailsModal" style="display:none;">
   <div class="modal-content">
     <button class="close-btn" onclick="closeModal()">✖</button>
     <h3>Order Details</h3>
@@ -107,35 +125,37 @@ $orders = $appData->getOrdersByFilters(null, 'All', 'All', null, null);
 </div>
 
 <script>
-
-function exportFile(type) {
-  const fromDate = document.getElementById('fromDate').value;
-  const toDate = document.getElementById('toDate').value;
-  const status = document.getElementById('statusFilter').value;
-  const payment = document.getElementById('paymentFilter').value;
-
-  let url = '';
-  if (type === 'pdf') url = '/leilife/pages/admin/sales-report-pdf.php';
-  else if (type === 'excel') url = '/leilife/pages/admin/sales-report-excel.php';
-  else if (type === 'csv') url = '/leilife/pages/admin/sales-report-csv.php';
-
-  const params = [];
-  if (type === 'excel' || type === 'csv') params.push('download=1');
-  if (fromDate) params.push(`fromDate=${encodeURIComponent(fromDate)}`);
-  if (toDate) params.push(`toDate=${encodeURIComponent(toDate)}`);
-  if (status && status.toLowerCase() !== 'all') params.push(`status=${encodeURIComponent(status)}`);
-  if (payment && payment.toLowerCase() !== 'all') params.push(`payment=${encodeURIComponent(payment)}`);
-
-  if (params.length) url += '?' + params.join('&');
-  window.open(url, '_blank');
-}
-
-
-
-
-  // Pass PHP orders to JS
+  const downloadToken = '<?= $downloadToken ?>'; // single-use token for export
   const orders = <?= json_encode($orders) ?>;
 
+  function exportFile(type) {
+    const fromDate = document.getElementById('fromDate').value;
+    const toDate = document.getElementById('toDate').value;
+    const status = document.getElementById('statusFilter').value;
+    const payment = document.getElementById('paymentFilter').value;
+
+    let page = '';
+    if (type === 'pdf') page = 'sales-report-pdf';
+    else if (type === 'excel') page = 'sales-report-excel';
+    else if (type === 'csv') page = 'sales-report-csv';
+    else return alert('Invalid type');
+
+    const params = [];
+    params.push('page=' + encodeURIComponent(page));
+    params.push('download=1');
+    params.push('token=' + encodeURIComponent(downloadToken));
+
+    if (fromDate) params.push(`fromDate=${encodeURIComponent(fromDate)}`);
+    if (toDate) params.push(`toDate=${encodeURIComponent(toDate)}`);
+    if (status && status.toLowerCase() !== 'all') params.push(`status=${encodeURIComponent(status)}`);
+    if (payment && payment.toLowerCase() !== 'all') params.push(`payment=${encodeURIComponent(payment)}`);
+
+    const url = '/leilife/public/admin.php?' + params.join('&');
+    console.log("Export URL:", url);
+    window.open(url, '_blank');
+  }
+
+  // TABLE RENDER
   const tbody = document.getElementById("ordersTableBody");
 
   function renderTable(filtered = orders) {
@@ -143,27 +163,29 @@ function exportFile(type) {
     filtered.forEach(order => {
       const driver = order.driver_name || 'Undefined';
       const payment = order.payment_method || 'Undefined';
-      const date = order.date ? order.date.slice(0,10) : 'Undefined';
+      const date = order.date ? order.date.slice(0, 10) : 'Undefined';
       const total = parseFloat(order.total || 0).toFixed(2);
       const customer = order.customer_name || 'Undefined';
       const orderNumber = order.order_number || 'Undefined';
 
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td>#${orderNumber}</td>
-        <td>${customer}</td>
-        <td>${driver}</td>
-        <td>₱${total}</td>
-        <td>${order.status || 'Undefined'}</td>
-        <td>${payment}</td>
-        <td>${date}</td>
-        <td class="actions">
-          <button class="view-btn" onclick="viewDetails('${orderNumber}')">View</button>
-        </td>`;
+            <td>#${orderNumber}</td>
+            <td>${customer}</td>
+            <td>${driver}</td>
+            <td>₱${total}</td>
+            <td>${order.status || 'Undefined'}</td>
+            <td>${payment}</td>
+            <td>${date}</td>
+            <td class="actions"><button class="view-btn" onclick="viewDetails('${orderNumber}')">View</button></td>
+        `;
       tbody.appendChild(row);
     });
   }
 
+  renderTable();
+
+  // VIEW DETAILS MODAL
   function viewDetails(orderNumber) {
     const order = orders.find(o => o.order_number === orderNumber);
     if (!order) return;
@@ -172,9 +194,8 @@ function exportFile(type) {
 
     const driver = order.driver_name || 'Undefined';
     const payment = order.payment_method || 'Undefined';
-    const date = order.date ? order.date.slice(0,10) : 'Undefined';
+    const date = order.date ? order.date.slice(0, 10) : 'Undefined';
     const customer = order.customer_name || 'Undefined';
-
     const items = Array.isArray(order.items) ? order.items : [];
 
     details.innerHTML = `
@@ -194,33 +215,15 @@ function exportFile(type) {
     document.getElementById("detailsModal").style.display = "none";
   }
 
-  // Filters
+  // FILTER CHANGE HANDLING — RELOAD WITH GET PARAMS
   document.querySelectorAll('#statusFilter, #driverFilter, #paymentFilter, #fromDate, #toDate')
-    .forEach(el => el.addEventListener('change', filterOrders));
-
-  function filterOrders() {
-    const status = document.getElementById('statusFilter').value.toLowerCase();
-    const driver = document.getElementById('driverFilter').value.toLowerCase();
-    const payment = document.getElementById('paymentFilter').value.toLowerCase();
-    const from = document.getElementById('fromDate').value;
-    const to = document.getElementById('toDate').value;
-
-    const filtered = orders.filter(o => {
-      const orderDate = o.date ? o.date.slice(0,10) : '';
-      const orderStatus = (o.status || 'Undefined').toLowerCase();
-      const orderDriver = (o.driver_name || 'Undefined').toLowerCase();
-      const orderPayment = (o.payment_method || 'Undefined').toLowerCase();
-
-      const matchStatus = (status === "all" || orderStatus === status);
-      const matchDriver = (driver === "all" || orderDriver === driver);
-      const matchPayment = (payment === "all" || orderPayment === payment);
-      const matchDate = (!from || orderDate >= from) && (!to || orderDate <= to);
-
-      return matchStatus && matchDriver && matchPayment && matchDate;
-    });
-
-    renderTable(filtered);
-  }
-
-  renderTable();
+    .forEach(el => el.addEventListener('change', () => {
+      const params = new URLSearchParams(window.location.search);
+      params.set('status', document.getElementById('statusFilter').value);
+      params.set('driver', document.getElementById('driverFilter').value);
+      params.set('payment', document.getElementById('paymentFilter').value);
+      params.set('fromDate', document.getElementById('fromDate').value);
+      params.set('toDate', document.getElementById('toDate').value);
+      window.location.search = params.toString(); // refresh page with filters
+    }));
 </script>

@@ -555,18 +555,18 @@ public function getSalesSummary($fromDate = null, $toDate = null, $status = null
     $whereSQL = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
     // === 🧾 SALES SUMMARY ===
+
+
 $sqlSummary = "
     SELECT 
-        COUNT(*) AS total_orders,
+        COUNT(DISTINCT o.order_id) AS total_orders,
         COALESCE(SUM(o.total), 0) AS total_revenue, -- includes other charges
-        COALESCE((
-            SELECT SUM(oi.quantity * oi.price)
-            FROM order_items oi
-            WHERE oi.order_id = o.order_id
-        ), 0) AS total_product_revenue -- only products
+        COALESCE(SUM(oi.quantity * oi.price), 0) AS total_product_revenue -- only products
     FROM orders o
+    LEFT JOIN order_items oi ON o.order_id = oi.order_id
     $whereSQL
 ";
+
 
 
     $stmt = $this->db->prepare($sqlSummary);

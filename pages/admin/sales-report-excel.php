@@ -1,4 +1,27 @@
 <?php
+ob_start();
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (!isset($_SESSION['admin_id'])) {
+    die("Access denied. Please login first.");
+}
+
+if (!isset($_SESSION['download_token'])) {
+    die("Download token not found. Refresh the page and try again.");
+}
+
+$downloadToken = $_SESSION['download_token'];
+if (!isset($_GET['token']) || $_GET['token'] !== $downloadToken) {
+    die("Invalid download token. Please refresh the page and try again.");
+}
+
+// --- REGENERATE TOKEN after successful check ---
+$_SESSION['download_token'] = bin2hex(random_bytes(16));
+$downloadToken = $_SESSION['download_token'];
+
 require __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
@@ -253,5 +276,5 @@ if (isset($_GET['download'])) {
 $writer = new Html($spreadsheet);
 $writer->save('php://output');
 ?>
-<br>
-<a href="/leilife/public/admin.php?page=sales-report-excel&download=1">⬇️ Download Excel</a>
+<!-- <br>
+<a href="/leilife/public/admin.php?page=sales-report-excel&download=1">Download Excel</a> -->

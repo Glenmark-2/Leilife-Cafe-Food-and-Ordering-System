@@ -1,18 +1,40 @@
 <?php
 ob_start();
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (!isset($_SESSION['admin_id'])) {
+    die("Access denied. Please login first.");
+}
+
+if (!isset($_SESSION['download_token'])) {
+    die("Download token not found. Refresh the page and try again.");
+}
+
+$downloadToken = $_SESSION['download_token'];
+if (!isset($_GET['token']) || $_GET['token'] !== $downloadToken) {
+    die("Invalid download token. Please refresh the page and try again.");
+}
+
+// --- REGENERATE TOKEN after successful check ---
+$_SESSION['download_token'] = bin2hex(random_bytes(16));
+$downloadToken = $_SESSION['download_token'];
+
 require(__DIR__ . '/fpdf186/fpdf.php');
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
 $appData = new AppData($pdo);
 
-// === FILTERS ===
+// --- FILTERS ---
 $fromDate = $_GET['fromDate'] ?? null;
 $toDate = $_GET['toDate'] ?? null;
 $status = $_GET['status'] ?? 'all';
 $payment = $_GET['payment'] ?? 'all';
 
-// === FETCH SALES DATA ===
+// --- FETCH SALES DATA ---
 $salesData = $appData->getSalesSummary($fromDate, $toDate, $status, $payment);
 
 // Peso function (P only)

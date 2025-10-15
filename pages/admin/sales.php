@@ -82,6 +82,9 @@ $orders = $appData->getOrdersByFilters(null, 'All', 'All', null, null);
   <button onclick="alert('Exported to CSV')">Export CSV</button>
   <button onclick="alert('Exported to Excel')">Export Excel</button>
   <button onclick="exportPDF()">Export PDF</button>
+  <button onclick="exportFile('excel')">Export Excel</button>
+  <button onclick="exportFile('pdf')">Export PDF</button>
+
 </div>
 
 <!-- Modal -->
@@ -95,20 +98,30 @@ $orders = $appData->getOrdersByFilters(null, 'All', 'All', null, null);
 
 <script>
 function exportPDF() {
+
+function exportFile(type) {
   const fromDate = document.getElementById('fromDate').value;
   const toDate = document.getElementById('toDate').value;
   const status = document.getElementById('statusFilter').value;
   const payment = document.getElementById('paymentFilter').value;
 
-  let url = '/leilife/pages/admin/sales-report-pdf.php';
-  const params = [];
+  let url = '';
+  if (type === 'pdf') url = '/leilife/pages/admin/sales-report-pdf.php';
+  else if (type === 'excel') url = '/leilife/pages/admin/sales-report-excel.php';
+  else if (type === 'csv') url = '/leilife/pages/admin/sales-report-csv.php';
 
+  const params = [];
+  if (type === 'excel' || type === 'csv') params.push('download=1');
   if (fromDate) params.push(`fromDate=${encodeURIComponent(fromDate)}`);
   if (toDate) params.push(`toDate=${encodeURIComponent(toDate)}`);
   if (status && status !== 'All') params.push(`status=${encodeURIComponent(status)}`);
   if (payment && payment !== 'All') params.push(`payment=${encodeURIComponent(payment)}`);
 
   if (params.length > 0) url += '?' + params.join('&');
+  if (status && status.toLowerCase() !== 'all') params.push(`status=${encodeURIComponent(status)}`);
+  if (payment && payment.toLowerCase() !== 'all') params.push(`payment=${encodeURIComponent(payment)}`);
+
+  if (params.length) url += '?' + params.join('&');
   window.open(url, '_blank');
 }
 
@@ -126,6 +139,37 @@ let filteredOrders = [...orders];
 function renderTable(page = 1) {
   // Fully clear tbody
   while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+
+  // Pass PHP orders to JS
+  const orders = <?= json_encode($orders) ?>;
+
+  const tbody = document.getElementById("ordersTableBody");
+
+  function renderTable(filtered = orders) {
+    tbody.innerHTML = "";
+    filtered.forEach(order => {
+      const driver = order.driver_name || 'Undefined';
+      const payment = order.payment_method || 'Undefined';
+      const date = order.date ? order.date.slice(0,10) : 'Undefined';
+      const total = parseFloat(order.total || 0).toFixed(2);
+      const customer = order.customer_name || 'Undefined';
+      const orderNumber = order.order_number || 'Undefined';
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>#${orderNumber}</td>
+        <td>${customer}</td>
+        <td>${driver}</td>
+        <td>₱${total}</td>
+        <td>${order.status || 'Undefined'}</td>
+        <td>${payment}</td>
+        <td>${date}</td>
+        <td class="actions">
+          <button class="view-btn" onclick="viewDetails('${orderNumber}')">View</button>
+        </td>`;
+      tbody.appendChild(row);
+    });
+  }
 
   const start = (page - 1) * rowsPerPage;
   const end = start + rowsPerPage;

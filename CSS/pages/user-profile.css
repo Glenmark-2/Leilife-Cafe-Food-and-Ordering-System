@@ -353,3 +353,10 @@ button {
     font-size: 20px;
     cursor: pointer;
 }
+
+#reorder-receipt-btn{
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  justify-content: center;
+}

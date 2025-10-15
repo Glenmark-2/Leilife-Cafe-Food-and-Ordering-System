@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Leilife Cafe</title>
+  <title>Leilife Cafe & Resto</title>
+  <link rel="icon" type="image/png" href="../public/assests/Mask group.png">
+  
+
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="public/assests/global.css">
 

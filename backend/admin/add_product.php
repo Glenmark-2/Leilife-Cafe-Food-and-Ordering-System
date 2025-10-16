@@ -14,7 +14,7 @@ try {
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
         throw new Exception("Invalid request method.");
     }
-
+   
     // Raw inputs and trimming
     $rawName      = $_POST["product_name"] ?? null;
     $rawPrice     = $_POST["product_price"] ?? null;

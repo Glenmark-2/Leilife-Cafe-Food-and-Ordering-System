@@ -9,7 +9,7 @@ try {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         throw new Exception("Invalid request method");
     }
-
+     
     // Inputs
     $productId   = intval($_POST['product_id'] ?? 0);
     $productName = trim($_POST['product_name'] ?? '');

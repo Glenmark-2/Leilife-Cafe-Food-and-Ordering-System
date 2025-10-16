@@ -1,3 +1,7 @@
+<?php
+require_once __DIR__ . '../../../backend/admin/fetch_audit_logs.php'; // Fetch logs
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -134,7 +138,6 @@
       margin-bottom: 8px;
       color: #856404;
     }
-
   </style>
 </head>
 <body>
@@ -148,9 +151,12 @@
       <label for="userFilter">User:</label>
       <select id="userFilter">
         <option value="">All</option>
-        <option value="Admin1">Admin1</option>
-        <option value="Admin2">Admin2</option>
-        <option value="Driver1">Driver1</option>
+        <?php
+          $users = array_unique(array_column($logs, 'user'));
+          foreach ($users as $u) {
+              echo "<option value='".htmlspecialchars($u)."'>".htmlspecialchars($u)."</option>";
+          }
+        ?>
       </select>
     </div>
 
@@ -158,9 +164,12 @@
       <label for="actionFilter">Action Type:</label>
       <select id="actionFilter">
         <option value="">All</option>
-        <option value="Login">Login</option>
-        <option value="Delete">Delete</option>
-        <option value="Update">Update</option>
+        <?php
+          $actions = array_unique(array_column($logs, 'action'));
+          foreach ($actions as $a) {
+              echo "<option value='".htmlspecialchars($a)."'>".htmlspecialchars($a)."</option>";
+          }
+        ?>
       </select>
     </div>
 
@@ -196,52 +205,42 @@
 
   <!-- === EXPORT BUTTONS === -->
   <div class="export-section">
-    <button>Export CSV</button>
-    <button>Export Excel</button>
-    <button>Export PDF</button>
+    <button onclick="exportCSV()">Export CSV</button>
+    <button onclick="exportExcel()">Export Excel</button>
+    <button onclick="exportPDF()">Export PDF</button>
   </div>
 
   <!-- === ALERTS === -->
   <div class="alert-box">
     <h4>Suspicious Activity Alerts:</h4>
-    <ul id="alertList">
-      <li>⚠️ Failed login attempt by Admin2 on 2025-10-09 09:10 AM</li>
-      <li>⚠️ Product #23 deleted by Driver1 unexpectedly</li>
-    </ul>
+    <ul id="alertList"></ul>
   </div>
 </div>
 
 <script>
-  // === FAKE DATA ===
-  const logs = [
-    { user: "Admin1", action: "Login", target: "-", status: "Success", date: "2025-10-09 08:45 AM" },
-    { user: "Driver1", action: "Delete", target: "Product #23", status: "Failed", date: "2025-10-09 09:10 AM" },
-    { user: "Admin2", action: "Update", target: "Order #1023", status: "Success", date: "2025-10-08 04:32 PM" },
-    { user: "Admin1", action: "Delete", target: "User #12", status: "Success", date: "2025-10-08 01:05 PM" },
-    { user: "Driver1", action: "Login", target: "-", status: "Failed", date: "2025-10-07 07:50 AM" },
-  ];
+  const logs = <?php echo json_encode($logs); ?>;
 
   function loadLogs(data) {
     const tbody = document.getElementById("logTableBody");
     tbody.innerHTML = "";
-    if (data.length === 0) {
+    if (!data.length) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No logs found</td></tr>`;
       return;
     }
+
     data.forEach(log => {
       const statusClass =
-        log.status === "Success" ? "status-success" :
-        log.status === "Failed" ? "status-failed" : "status-warning";
+        log.status.toLowerCase() === "success" ? "status-success" :
+        log.status.toLowerCase() === "failed" ? "status-failed" : "status-warning";
 
-      const row = `
+      tbody.innerHTML += `
         <tr>
           <td>${log.user}</td>
           <td>${log.action}</td>
           <td>${log.target}</td>
           <td><span class="status-badge ${statusClass}">${log.status}</span></td>
-          <td>${log.date}</td>
+          <td>${log.datetime}</td>
         </tr>`;
-      tbody.innerHTML += row;
     });
   }
 
@@ -255,10 +254,11 @@
       return (
         (user === "" || log.user === user) &&
         (action === "" || log.action === action) &&
-        (date === "" || log.date.includes(date)) &&
-        (search === "" || Object.values(log).some(v => v.toLowerCase().includes(search)))
+        (date === "" || log.datetime.includes(date)) &&
+        (search === "" || Object.values(log).some(v => String(v).toLowerCase().includes(search)))
       );
     });
+
     loadLogs(filtered);
   }
 
@@ -270,8 +270,22 @@
     loadLogs(logs);
   }
 
-  // Initialize table
+  // Load initial data
   loadLogs(logs);
+
+  // Auto-detect suspicious logs
+  const alertList = document.getElementById("alertList");
+  const suspicious = logs.filter(log => log.status.toLowerCase() === "failed");
+  suspicious.forEach(s => {
+    const li = document.createElement("li");
+    li.textContent = `⚠️ ${s.action} by ${s.user} on ${s.datetime}`;
+    alertList.appendChild(li);
+  });
+
+  // Export placeholders (implement later)
+  function exportCSV() { alert("CSV export coming soon"); }
+  function exportExcel() { alert("Excel export coming soon"); }
+  function exportPDF() { alert("PDF export coming soon"); }
 </script>
 
 </body>

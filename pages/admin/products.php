@@ -2,10 +2,10 @@
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
-// if (!isset($_SESSION['admin_id'])) {
-//     header('Location: /leilife/pages/admin/login-x9P2kL7zQ.php');
-//     exit;
-// }
+if (!isset($_SESSION['admin_id'])) {
+    header('Location: /leilife/pages/admin/login-x9P2kL7zQ.php');
+    exit;
+}
 
 $appData = new AppData($pdo);
 $archived = $_GET['archived'] ?? 0;
@@ -544,6 +544,7 @@ $subCategories = array_values($subCategories);
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
+                        
                         showModal(isArchive ? "Product archived!" : "Product restored!", "success");
                         disableRow(row, row.querySelector('.editBtn'));
                         row.remove(); // remove from table since it no longer belongs in this view

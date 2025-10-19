@@ -1,127 +1,148 @@
+/* ========================= */
+/* 🟤 PRODUCT CARD BASE */
+/* ========================= */
 .product-card {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  background: #e8e5d7;
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
-  width: 100%;       /* fixed card width */
-  height: fit-content; 
+  background: #f4f1e3; /* light earthy tone */
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin: 0;          /* ✅ no margin */
 }
 
 .product-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 5px 14px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
 }
 
+/* ========================= */
+/* 🌾 IMAGE */
+/* ========================= */
 .product-image {
-  width: 120px;        /* 🔒 fixed image width */
-  height: 120px;       /* 🔒 fixed image height */
-  border-radius: 14px;
-  object-fit: cover;   /* ensures consistent crop */
-  background: #fff;
+  width: 110px;
+  height: 110px;
+  border-radius: 12px;
+  object-fit: cover;
   flex-shrink: 0;
+  background: #fff;
 }
 
+/* ========================= */
+/* 🌾 INFO SECTION */
+/* ========================= */
 .product-info {
   flex: 1;
-  margin-left: 14px;
+  margin-left: 12px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
-.info-wrapper {
-  flex-grow: 1;                /* ✅ pushes actions down consistently */
-  display: flex;
-  align-items: flex-start;      /* keep title at top */
-}
-
 .product-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   margin: 0;
   color: #222;
+  line-height: 1.3;
   text-align: left;
-  line-height: 1.2;
-  min-height: 40px;            /* ✅ force consistent title height */
+  word-break: break-word;
 }
 
 .product-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
-  width: 100%;
+  margin-top: 6px;
 }
-
 
 .product-price {
   font-size: 15px;
   font-weight: 600;
-  color: #111;
+  color: #1e1e1e;
+}
+
+/* ========================= */
+/* 🌿 BUTTONS */
+/* ========================= */
+.buy-btn,
+.unavailable-label {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .buy-btn {
-  padding: 6px 16px;
-  border: none;
-  border-radius: 20px;
   background: #293b42;
   color: #fff;
-  font-size: 14px;
-  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s ease;
-  margin-bottom: 0;
 }
 
 .buy-btn:hover {
   background: #1d2a2f;
 }
 
-/* 📱 Mobile layout: stack image on top */
-@media (max-width: 600px) {
+.unavailable-label {
+  background: #999;
+  color: #fff;
+}
+
+/* ========================= */
+/* 🚫 UNAVAILABLE STATE */
+/* ========================= */
+.product-card.unavailable {
+  filter: brightness(0.7);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ========================= */
+/* 📱 RESPONSIVE (MOBILE) */
+/* ========================= */
+@media (max-width: 700px) {
   .product-card {
     flex-direction: column;
-    width: 220px;    /* smaller card for mobile */
-    height: auto;    /* allow flexible height */
-    text-align: center;
+    align-items: center;
+    justify-content: flex-start;
+    width: 180px; /* fits 3 per row when scrolling horizontally */
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   }
 
   .product-image {
-    width: 100px;
-    height: 100px;
+    width: 90px;
+    height: 90px;
+    margin-bottom: 8px;
   }
 
   .product-info {
     margin-left: 0;
-    margin-top: 10px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .product-title {
+    font-size: 14px;
+    min-height: 36px;
   }
 
   .product-actions {
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
   }
-}
-.product-card.unavailable {
-    filter: brightness(0.6);   /* darken the card */
-    cursor: default;           /* remove pointer */
-    pointer-events: none;      /* disable click */
-    position: relative;
-}
 
-.unavailable-label {
-  padding: 6px 16px;
-  border: none;
-  border-radius: 20px;
-  background: #293b42;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  margin-bottom: 0;
+  .product-price {
+    font-size: 14px;
+  }
+
+  .buy-btn,
+  .unavailable-label {
+    font-size: 13px;
+    padding: 5px 12px;
+  }
 }

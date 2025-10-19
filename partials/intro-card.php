@@ -1,55 +1,42 @@
 <?php
-/**
- * InfoCard Component
- *
- * Usage:
- * echo infoCard("🍽️", "Fresh & Flavorful Dishes", "We use only the freshest ingredients...");
- * echo infoCard("☕", "Perfectly Brewed Coffee", "Our skilled baristas...");
- * echo infoCard("❤️", "A Taste to Remember", "Enjoy hearty meals...");
- *
- * @param string $logo - Emoji or <img> tag (logo/icon)
- * @param string $title - The heading text
- * @param string $text - The description text
- */
 function infoCard($logo, $title, $text) {
     return "
-    <div style=\"
+    <div class='info-card' style=\"
       display: flex; 
       flex-direction: column; 
       align-items: center; 
       text-align: center; 
-      background: #eaeaea; 
-      padding: clamp(16px, 4vw, 24px); 
+      background: #f9f9f9; 
+      padding: clamp(16px, 4vw, 22px); 
       border-radius: 16px; 
-      width: 100%; 
-      max-width: 280px; 
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      margin: 10px auto;
-      flex: 1 1 240px;
-    \">
-      <!-- Logo -->
-      <div style='
-        font-size: clamp(32px, 6vw, 48px); 
-        margin-bottom: clamp(10px, 3vw, 16px);
-      '>
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    \" 
+      onmouseover=\"this.style.transform='translateY(-4px)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.2)';\" 
+      onmouseout=\"this.style.transform='none'; this.style.boxShadow='0 2px 6px rgba(0,0,0,0.12)';\">
+      
+      <div style=\"
+        font-size: clamp(36px, 7vw, 50px); 
+        margin-bottom: clamp(12px, 3vw, 18px);
+      \">
         {$logo}
       </div>
 
-      <!-- Title -->
       <h3 style=\"
-        margin: 0 0 clamp(8px, 2vw, 12px) 0; 
-        font-size: clamp(16px, 2.5vw, 18px); 
-        color: #171717;
+        margin: 0 0 clamp(10px, 2.5vw, 14px) 0; 
+        font-size: clamp(18px, 3vw, 20px); 
+        font-weight: 600;
+        color: #222;
       \">
         {$title}
       </h3>
 
-      <!-- Text -->
       <p style=\"
         margin: 0; 
-        font-size: clamp(13px, 2.5vw, 14px); 
-        color: #333; 
-        line-height: 1.5;
+        font-size: clamp(14px, 2.5vw, 15px); 
+        color: #555; 
+        line-height: 1.6;
+        max-width: 90%;
       \">
         {$text}
       </p>

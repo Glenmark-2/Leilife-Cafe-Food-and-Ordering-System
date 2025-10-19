@@ -45,7 +45,7 @@ include "../backend/db_script/appData.php";
     <?php
     $appData = new AppData($pdo);
     include "../partials/card.php";
-    renderRandomFeaturedProducts($appData); 
+    renderRandomFeaturedProducts($appData);
     ?>
   </div>
 </div>
@@ -110,23 +110,16 @@ include "../backend/db_script/appData.php";
       </p>
     </div>
   </div>
-
-  <div class="info-cards" style="display: flex; flex-direction: row; justify-content: center; align-content: center;">
-    <?php
-    echo infoCard("🍽️", "Fresh & Flavorful Dishes", "We use only the freshest ingredients...");
-    echo infoCard("☕", "Perfectly Brewed Coffee", "Our skilled baristas ensure each cup...");
-    echo infoCard("❤️", "A Taste to Remember", "Enjoy hearty meals and comforting drinks...");
-    ?>
-  </div>
-
-
-
 </div>
-
+<div class="info-cards">
+  <?php echo infoCard("🍽️", "Fresh & Flavorful Dishes", "We use only the freshest ingredients...");
+  echo infoCard("☕", "Perfectly Brewed Coffee", "Our skilled baristas ensure each cup...");
+  echo infoCard("❤️", "A Taste to Remember", "Enjoy hearty meals and comforting drinks..."); ?>
+</div>
 <!-- about us part -->
 <div id="about-us">
   <h1>About us</h1>
-  <div style="width: 70%;">
+  <div>
     <p>
       At Leilife Cafe and Resto, we believe every meal should be a moment to savor.
       From freshly brewed coffee to hearty meals, we combine quality ingredients,
@@ -144,7 +137,9 @@ include "../backend/db_script/appData.php";
     </div>
 
     <div style="width: 40vw;">
-      <p>Enjoy the perfect blend of flavors in our menu — from aromatic coffee to delicious comfort food. Whether you're here for a quick coffee break or a full meal, our passion for great taste shines through in every bite and sip.</p>
+      <p>Enjoy the perfect blend of flavors in our menu — from aromatic coffee to delicious comfort food. Whether you're
+        here for a quick coffee break or a full meal, our passion for great taste shines through in every bite and sip.
+      </p>
     </div>
     <br>
 
@@ -154,7 +149,8 @@ include "../backend/db_script/appData.php";
       <!-- blue box overlapping -->
       <div style="position:absolute; top:-50%; left:00%; background-color:#355361; width:20vw; height: 7vh;"></div>
 
-      <h2 style="position: absolute; top:-20%; left: 10%; color:white; text-shadow: 1px 1px 3px black;">OPENING HOURS</h2>
+      <h2 style="position: absolute; top:-20%; left: 10%; color:white; text-shadow: 1px 1px 3px black;">OPENING HOURS
+      </h2>
     </div>
 
     <div style="width: 23vw;">
@@ -165,8 +161,7 @@ include "../backend/db_script/appData.php";
   <div id="right-about-us" style="position:relative;">
     <div style="width: 50%; height:80%; position:absolute; top:20%; left: 50%; background:#355362; z-index: 1;"></div>
 
-    <img src="../public/assests/about us.png"
-      alt="photo"
+    <img src="../public/assests/about us.png" alt="photo"
       style="width: 55%; margin-left:150px; position:relative; z-index: 2; left:10%; top:10%;">
   </div>
 
@@ -184,7 +179,8 @@ include "../backend/db_script/appData.php";
       <h5>Get In Touch</h5>
     </div>
     <p>
-      If you want, I can also design this in the same style and color layout as the sample image so it matches your website’s aesthetic. I can make it visually similar but with Leilife Cafe and Resto branding.
+      If you want, I can also design this in the same style and color layout as the sample image so it matches your
+      website’s aesthetic. I can make it visually similar but with Leilife Cafe and Resto branding.
     </p>
 
     <div class="info-item">
@@ -223,9 +219,10 @@ include "../backend/db_script/appData.php";
 
       <input class="contact-input" type="text" placeholder="Subject" class="form-control" name="subject">
 
-      <textarea style="width: max-width; height:100px" placeholder="Comments/Questions:" name="message" required></textarea>
+      <textarea style="width: max-width; height:100px" placeholder="Comments/Questions:" name="message"
+        required></textarea>
 
-      <div style="display: flex; justify-content:flex-end; margin-top:10px">
+      <div style="display: flex; justify-content:center; margin-top:10px">
         <?php
         echo createButton(40, 100, "Submit", "submitBtn", 16, "submit");
         ?>
@@ -238,7 +235,7 @@ include "../backend/db_script/appData.php";
   const contactForm = document.getElementById("contactForm");
   const submitBtn = document.getElementById("submitBtn");
 
-  contactForm.addEventListener("submit", function(e) {
+  contactForm.addEventListener("submit", function (e) {
     e.preventDefault(); // prevent default form submission
     const formData = new FormData(contactForm);
 
@@ -248,9 +245,9 @@ include "../backend/db_script/appData.php";
     submitBtn.textContent = "Sending...";
 
     fetch("../backend/mail.php", {
-        method: "POST",
-        body: formData
-      })
+      method: "POST",
+      body: formData
+    })
       .then(res => res.json())
       .then(data => {
         if (data.success) {

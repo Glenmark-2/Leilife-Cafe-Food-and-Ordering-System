@@ -159,11 +159,17 @@ setTimeout(() => {
         body: JSON.stringify({ order_id: id })
       });
       const data = await res.json();
-      if (data.success) {
-        alert(data.message);
-        document.getElementById("orderModal").style.display = "none";
-        loadDeliveredOrders();
-      } else {
+    if (data.success) {
+      alert(data.message);
+      document.getElementById("orderModal").style.display = "none";
+    
+      // 🔥 remove the order card immediately
+      const cardEl = document.querySelector(`.order-card[data-id="${id}"]`);
+      if (cardEl) cardEl.remove();
+    
+      // (optional) still reload to refresh data
+      loadDeliveredOrders();
+    } else {
         alert("❌ " + data.message);
       }
     } catch (err) {

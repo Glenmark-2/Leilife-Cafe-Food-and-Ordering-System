@@ -1,0 +1,128 @@
+/* Sidebar base */
+#db-container {
+    display: flex;
+    flex-direction: column;
+    padding: 10px; /* remove inner gap */
+    width: 100%;  
+    box-shadow: 3px 0 8px rgba(0,0,0,0.15);
+    height: 100vh;
+    transition: width 0.4s ease; /* smooth expand/collapse */
+    overflow: hidden;
+    background-color: #fefefe;
+    
+}
+
+/* Collapsed state (for mobile or when toggled) */
+#db-container.collapsed {
+    width: 70px; /* only icons */
+}
+
+#db-container.collapsed p {
+    display: none; /* hide text */
+}
+
+/* Top logo row */
+#top {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    
+    cursor: pointer;
+}
+
+#top p {
+    font-size: 1rem;
+    font-weight: bolder;
+    white-space: nowrap;
+    overflow: hidden;
+    border-right: 2px solid transparent; /* optional typing cursor */
+    display: inline-block;
+}
+
+/* Typing effect (animated when class is added) */
+.typing {
+    animation: typing 1.5s steps(20, end) forwards;
+}
+
+@keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+}
+
+
+#logo {
+    width: 50px;
+}
+
+/* Sidebar button */
+.sidebar-btn {
+    background-color: #fefefe;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    height: 45px;
+    padding-left: 15px;
+    padding-right: 15px;
+width: 100%;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.sidebar-btn img {
+    width: 25px;
+    filter: none;
+}
+
+.sidebar-btn p {
+    font-size: 1.2rem;
+    margin: 0;
+    color: black;
+}
+
+/* Hover */
+.sidebar-btn:hover {
+    background-color: #415863;
+}
+.sidebar-btn:hover p {
+    color: white;
+}
+.sidebar-btn:hover img {
+    filter: brightness(0) invert(1);
+}
+
+/* Active */
+.sidebar-btn.active {
+    background-color: #1a353c;
+}
+
+.sidebar-btn.active p {
+    color: white;
+}
+
+.sidebar-btn.active img {
+    filter: brightness(0) invert(1);
+}
+
+
+/* 📱 Mobile behavior */
+@media (max-width: 767px) {
+    #db-container {
+        width: 70px; /* collapsed by default */
+    }
+
+    #db-container p {
+        display: none; /* hide all text */
+    }
+
+    #logo {
+        width: 40px; /* smaller logo */
+    }
+
+    .sidebar-btn img {
+        width: 22px; /* smaller icons */
+    }
+}
+
+

@@ -1,120 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Leilife Cafe</title>
-  <link rel="stylesheet" href="../public/assets/css/global.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Leilife Cafe & Resto</title>
+  <link rel="icon" type="image/png" href="../public/assests/Mask group.png">
+  
 
-  <!-- Internal CSS -->
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-    }
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="public/assests/global.css">
 
-    .navbar {
-      background-color: #ece7e1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.5rem 2rem;
+  <!-- always needed -->
+  <link rel="stylesheet" href="../CSS/components/header.css">
+  <link rel="stylesheet" href="../CSS/components/footer.css">
+  <!-- cart and login modal are global, i still cant include this below, but it doesnt effect other displays -->
+  <link rel="stylesheet" href="../CSS/pages/cart.css">
+  <link rel="stylesheet" href="../CSS/pages/login.css">
+<!-- Page-Specific -->
+  <?php
+$page_styles = include __DIR__ . '/../backend/config/style_config.php';
+if (isset($page_styles[$page])) {
+    foreach ($page_styles[$page] as $css_file) {
+        echo '<link rel="stylesheet" href="' . $css_file . '">' . PHP_EOL;
     }
+}
 
-    /* Logo */
-    .navbar-brand img {
-      height: 50px;
-    }
+  // if (isset($page_styles[$page])) {
+  //     foreach ($page_styles[$page] as $css_file) {
+  //         echo '<link rel="stylesheet" href="' . $css_file . '">' . PHP_EOL;
+  //     }
+  // }
+  ?>
 
-    /* Center menu */
-    .navbar-nav {
-      list-style: none;
-      display: flex;
-      gap: 2rem;
-      margin: 0;
-      padding: 0;
-    }
 
-    .navbar-nav .nav-link {
-      text-decoration: none;
-      color: #2c2c2c;
-      font-weight: 600;
-      transition: color 0.3s ease;
-    }
-
-    .navbar-nav .nav-link:hover {
-      color: #6c5f46;
-    }
-
-    /* Right side buttons */
-    .navbar-actions {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .btn-link {
-      text-decoration: none;
-      color: #2c2c2c;
-      font-weight: 600;
-    }
-
-    .btn-link:hover {
-      color: #6c5f46;
-    }
-
-    .btn-dark {
-      background-color: #2c2c2c;
-      color: #fff;
-      text-decoration: none;
-      padding: 0.4rem 1rem;
-      border-radius: 50px;
-      font-weight: 600;
-      transition: background 0.3s ease;
-    }
-
-    .btn-dark:hover {
-      background-color: #6c5f46;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .navbar {
-        flex-wrap: wrap;
-      }
-      .navbar-nav {
-        width: 100%;
-        justify-content: center;
-        margin: 0.5rem 0;
-      }
-      .navbar-actions {
-        width: 100%;
-        justify-content: center;
-      }
-    }
-  </style>
 </head>
-<body>
+<body class="has-fixed-nav">
 
 <!-- Navbar -->
-<nav class="navbar">
+<nav class="navbar" id="siteNav">
   <!-- Logo -->
-  <a class="navbar-brand" href="index.php?page=home">
-    <img src="\Leilife\public\assests\Mask group.png" alt="Logo">
+  <a class="navbar-brand" id="logo" href="index.php?page=home">
+    <img src="/Leilife/public/assests/Mask group.png" alt="Logo">
   </a>
 
-  <!-- Center navigation -->
-  <ul class="navbar-nav">
+  <!-- Burger -->
+  <button class="burger" id="burger" aria-label="Toggle menu">
+    <div></div><div></div><div></div>
+  </button>
+
+  <!-- Desktop Menu -->
+  <ul class="navbar-nav desktop-menu">
     <li><a class="nav-link" href="index.php?page=menu">Menu</a></li>
-    <li><a class="nav-link" href="index.php?page=about">About</a></li>
-    <li><a class="nav-link" href="index.php?page=contact">Contact</a></li>
+    <li><a class="nav-link" href="index.php?page=home#about-us">About</a></li>
+    <li><a class="nav-link" href="index.php?page=home#contact-section">Contact</a></li>
   </ul>
 
-  <!-- Right side buttons -->
+  <!-- Right side buttons (dynamic desktop) -->
   <div class="navbar-actions">
-    <a href="index.php?page=login" class="btn-link">Login</a>
-    <a href="index.php?page=signup" class="btn-dark">Sign Up</a>
+    <?php if (isset($_SESSION['user_id'])): ?>
+        <a href="index.php?page=user-profile" class="btn-link">Profile</a>
+        <a href="../backend/logout.php"class="btn-dark">Sign out</a>
+        <a href="#" id="cartBtn">
+      <img src="../public/assests/cart.png" alt="cart" id="cartImg">
+    </a>
+    <?php else: ?>
+        <a href="#" id="loginBtn" class="btn-link">Login</a>
+        <a href="index.php?page=signUp" class="btn-dark">Sign Up</a>
+        
+    <a href="#" id="cartBtn">
+      <img src="../public/assests/cart.png" alt="cart" id="cartImg">
+    </a>
+    <?php endif; ?>
   </div>
 </nav>
 
-<div class="container">
+<!-- Mobile Dropdown Menu -->
+<div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+  <a href="index.php?page=menu">Menu</a>
+  <a href="index.php?page=home#about-us">About</a>
+  <a href="index.php?page=home#contact-section">Contact</a>
+  <a href="index.php?page=cart" id="cartBtnMobile">Cart</a>
+
+  <!-- Dynamic auth links (mobile) -->
+  <div class="auth-links">
+    <?php if (isset($_SESSION['user_id'])): ?>
+        <a href="index.php?page=user-profile">Profile</a>
+        <a href="index.php?page=cart" id="cartBtnMobile">Cart</a>
+        
+    <?php else: ?>
+        <a id="loginBtn" href="index.php?page=login">Login</a>
+        <a href="index.php?page=signUp">Sign Up</a>
+    <?php endif; ?>
+  </div>
+</div>
+
+<div id="loginModal" style="display: none;">
+  <?php include "../pages/login.php" ?>
+</div>
+
+<script src="../Scripts/components/header.js"></script>

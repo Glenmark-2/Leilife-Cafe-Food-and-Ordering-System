@@ -1,0 +1,170 @@
+#body-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 20px;
+}
+#title {
+  text-align: center;
+}
+
+#title h1 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+#subtitle {
+  font-size: 16px;
+  margin: 0 auto 20px auto;
+  max-width: 480px;
+  text-align: center;
+}
+
+#box {
+  background-color: white;
+  padding: 40px;
+  border-radius: 25px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 30px;
+}
+
+@media (max-width: 768px) {
+  #box {
+    padding: 20px;
+    border-radius: 20;
+    width: 80vw;
+    max-width: 80vw;
+    box-sizing: border-box;
+    margin: 30px;
+  }
+}
+
+.sign-up-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+}
+
+#box input:not([type="checkbox"]) {
+  flex: 1 1 calc(50% - 20px);
+  min-width: 300px;
+  width: 100%;
+  height: 52px;
+  background-color: #f4f4f4;
+  border: none;
+  border-radius: 5px;
+  padding: 0 15px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.label-input {
+  font-weight: bold;
+  margin: 20px 0 10px 0;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: flex-start;
+  margin: 20px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.checkbox-container input[type="checkbox"] {
+  margin-right: 10px;
+  margin-top: 3px;
+  height: 18px;
+  width: 18px;
+}
+
+.checkbox-container a,
+.checkbox-container span {
+  color: #243238;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.checkbox-container a:hover,
+.checkbox-container span:hover {
+  text-decoration: underline;
+}
+.error-messages {
+    background: #ffe6e6;
+    border: 1px solid #ff4d4d;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+.error {
+    color: #b30000;
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+legend {
+  margin: 0px 20px;
+}
+
+/* Modal background */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 1000; /* On top of everything */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+
+  /* Center content */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.modal-content {
+  background: #fff;
+  padding: 30px;
+  border-radius: 20px;
+  max-width: 600px;
+  width: 90%;
+  margin: auto;
+  margin-top: 30vh;
+  /* margin: 0 20px; default margin for breathing room */
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Close button */
+.modal .close {
+  color: #333;
+  float: right;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.modal .close:hover {
+  color: #000;
+}
+
+/* Smooth fade-in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 100%;
+    margin: 0 30px; /* more side margins on smaller screens */
+    padding: 20px;
+  }
+}

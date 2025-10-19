@@ -1,0 +1,2 @@
+ALTER TABLE products
+MODIFY COLUMN product_price DECIMAL(10,2) NULL;

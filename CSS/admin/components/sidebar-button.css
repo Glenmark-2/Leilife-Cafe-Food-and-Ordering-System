@@ -1,0 +1,54 @@
+.sidebar-btn {
+    background-color: transparent;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    width: 80%;
+    height: 50px;
+    padding-left: 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    
+    
+}
+
+/* default (black text, normal icon) */
+.sidebar-btn p {
+    font-size: 1rem;
+    margin: 0;
+    color: black;
+}
+
+.sidebar-btn img {
+    width: 30px;
+    margin: 0;
+    filter: none; /* keep original colors */
+}
+
+/* Hover effect */
+.sidebar-btn:hover {
+    background-color: #415863;
+}
+
+.sidebar-btn:hover p {
+    color: white; /* text turns white */
+}
+
+.sidebar-btn:hover img {
+    filter: brightness(0) invert(1); /* icon turns white */
+}
+
+/* Active (clicked) effect */
+.sidebar-btn:active {
+    background-color: #1a353c;
+}
+
+.sidebar-btn:active p {
+    color: white; /* keep white text */
+}
+
+.sidebar-btn:active img {
+    filter: brightness(0) invert(1); /* keep white icon */
+}

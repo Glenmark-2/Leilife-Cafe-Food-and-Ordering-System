@@ -1,15 +1,35 @@
 <?php
+// public/index.php
+
+// 1) Determine requested page
 $page = $_GET['page'] ?? 'home';
 
-include '../components/header.php';
+// 2) Load route map + middleware
+$routes = include __DIR__ . '/../backend/config/routes.php';
+require_once __DIR__ . '/../backend/middleware/auth.php';
 
-$allowed_pages = ['home', 'menu', 'orders'];
-if(in_array($page, $allowed_pages)){
-    include "../pages/$page.php";
-} else {
-    echo "<h1>Page not found</h1>";
-}
+// 3) Bootstrap data layer (so pages can use $appData without including init again)
+require_once __DIR__ . '/../backend/db_script/init.php';
 
-include '../components/footer.php';
+// 4) Resolve target file; fall back to 404 if unknown
+$target = $routes[$page] ?? $routes['404'];
 
+// 5) Enforce access control
+requireLogin($page);
 
+// 6) Render layout + page
+include __DIR__ . '/../components/header.php';
+
+echo '<div id="pageContent">';
+include $target;
+echo '</div>';
+
+// Expose current page to JS
+echo '<script>window.currentPage = "' . htmlspecialchars($page) . '";</script>';
+
+// Cart modal (global)
+echo '<div id="cartModal">';
+include __DIR__ . '/../pages/cart.php';
+echo '</div>';
+
+include __DIR__ . '/../components/footer.php';

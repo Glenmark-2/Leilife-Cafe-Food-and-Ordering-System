@@ -303,3 +303,21 @@ body { padding-bottom: env(safe-area-inset-bottom); }
   z-index: 1;
 }
 
+
+.summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.summary .box {
+  background: var(--card);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  border: 1px solid rgba(169,146,123,0.15);
+}
+.summary .box h2 { font-size: 17px; margin: 4px 0 0; color: var(--accent); }
+
+

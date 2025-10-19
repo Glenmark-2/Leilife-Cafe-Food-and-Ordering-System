@@ -91,7 +91,7 @@ try {
 
             echo json_encode([
                 "success"  => true,
-                "redirect" => "/Leilife/public/driver.php?page=driver"
+                "redirect" => "/Leilife/public/driver.php?page=dashboard"
             ]);
             exit;
         }

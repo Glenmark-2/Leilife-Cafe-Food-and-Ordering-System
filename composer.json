@@ -1,7 +1,8 @@
 {
     "require": {
         "google/apiclient": "^2.13",
-        "phpoffice/phpspreadsheet": "^1.28"
+        "phpoffice/phpspreadsheet": "^1.28",
+        "ezyang/htmlpurifier": "^4.18"
     },
     "config": {
         "platform": {

@@ -5,6 +5,7 @@
   color: #fff;
   padding: 30px 20px;
   text-align: center;
+  margin-top: 100px;
 }
 
 /* Logo centered */
@@ -119,6 +120,10 @@
 
 /* Extra small devices (phones portrait ≤480px) */
 @media (max-width: 480px) {
+  .site-footer {
+    padding: 20px 10px;
+    margin: 0;
+  }
   .footer-logo img {
     max-width: 100px;
   }

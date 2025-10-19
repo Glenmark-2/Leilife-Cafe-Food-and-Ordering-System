@@ -14,10 +14,16 @@ $rider = ["name" => $_SESSION['driver_name'] ?? "Driver", "shift" => "9:00 AM - 
     <p>Shift: <?= htmlspecialchars($rider["shift"]) ?></p>
   </div>
 
-  <div class="actions">
-    <a class="action-btn available" href="/Leilife/public/driver.php?page=available">📦 View Available Deliveries</a>
-    <a class="action-btn deliveries" href="/Leilife/public/driver.php?page=driver">🚗 View My Deliveries</a>
-  </div>
+ <div class="summary" role="region" aria-label="Delivery summary">
+        <div class="box">
+          <small>Delivered</small>
+          <h2 id="statAssigned">0</h2>
+        </div>
+        <div class="box">
+          <small>Today Earnings</small>
+          <h2 id="statEarnings">₱0.00</h2>
+        </div>
+      </div>
 </div>
 
 

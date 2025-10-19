@@ -24,23 +24,25 @@ try {
         throw new Exception("Order not found");
     }
 
-    // Build query depending on payment method
+    // ✅ Build update query for orders
     if ($order['payment_method'] === 'cash' && $order['payment_status'] !== 'paid') {
         $sql = "UPDATE orders 
-                SET status = 'delivered', payment_status = 'paid' 
+                SET status = 'delivered', payment_status = 'paid', delivered_at = NOW() 
                 WHERE order_id = :order_id";
     } else {
         $sql = "UPDATE orders 
-                SET status = 'delivered' 
+                SET status = 'delivered', delivered_at = NOW() 
                 WHERE order_id = :order_id";
     }
 
-    // ✅ Update orders table
+    // Update orders table
     $stmt = $pdo->prepare($sql);
     $stmt->execute(['order_id' => $orderId]);
 
-    // ✅ ALSO update driver_orders table
-    $driverSql = "UPDATE driver_orders SET status = 'completed' WHERE order_id = :order_id";
+    // ✅ Update driver_orders table with the same status
+    $driverSql = "UPDATE driver_orders 
+                  SET status = 'delivered' 
+                  WHERE order_id = :order_id";
     $driverStmt = $pdo->prepare($driverSql);
     $driverStmt->execute(['order_id' => $orderId]);
 

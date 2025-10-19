@@ -21,6 +21,8 @@ try {
         JOIN users u ON o.user_id = u.user_id
         LEFT JOIN addresses a ON o.user_id = a.user_id
         WHERE d.driver_id = ?
+          AND o.status NOT IN ('delivered', 'cancelled')
+          AND d.status NOT IN ('completed', 'cancelled')
         ORDER BY d.claimed_at DESC
     ";
     $stmt = $pdo->prepare($sql);

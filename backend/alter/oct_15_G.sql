@@ -24,3 +24,4 @@ MODIFY status ENUM('pending','preparing','finished','cancelled') NOT NULL DEFAUL
 ALTER TABLE orders 
 MODIFY payment_status ENUM('unpaid','paid','failed','refunded') 
 NOT NULL DEFAULT 'unpaid';
+-- done nobi

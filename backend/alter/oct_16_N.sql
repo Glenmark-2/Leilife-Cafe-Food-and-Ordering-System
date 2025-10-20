@@ -6,3 +6,4 @@ CREATE TABLE audit_logs (
   status VARCHAR(50),
   datetime DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+-- done nobi

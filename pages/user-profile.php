@@ -266,15 +266,6 @@ $activeTab = $_GET['tab'] ?? 'personal';
     <div style="background:white; padding:20px; border-radius:10px; width:90%; max-width:500px; position:relative;">
         <button onclick="closeOrderModal()" style="position:absolute; top:10px; right:10px; font-size:18px; background:none; border:none; cursor:pointer;">&times;</button>
         <div id="modalOrderContent"></div>
-        <div id="reorder-receipt-btn">
-
-            <form action="../backend/reorder.php" method="POST">
-                <input type="hidden" name="order_id" value="<?= htmlspecialchars($orderInfo['order_id']) ?>">
-                <?php echo createButton(35, 130, "Reorder", "reorderBtn", 16, "submit"); ?>
-            </form>
-            <?php echo createButton(35, 200, "Download Receipt", "dlReceipt", 16, "submit"); ?>
-
-        </div>
     </div>
 </div>
 
@@ -499,7 +490,64 @@ $activeTab = $_GET['tab'] ?? 'personal';
                     html += `<p><strong>Feedback:</strong> ${order.review}</p>`;
                 }
 
+                if (order.status === "delivered" || order.status === "picked_up") {
+                    if (!order.review) {
+                        // Delivered/picked up AND no review → show all three buttons
+                        html += `
+        <div id="reorder-receipt-btn">
+            <?= createButton(
+                35,
+                150,
+                "Write a review",
+                "writeReviewBtn",
+                16,
+                "button"
+            ); ?>
+            <form action="../backend/reorder.php" method="POST">
+                <input type="hidden" name="order_id" id="order_id" value="${order.order_id}">
+                <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "submit"); ?>
+            </form>
+            <?= createButton(35, 200, "Download Receipt", "dlReceipt", 16, "submit"); ?>
+        </div>
+        `;
+                    } else {
+                        // Delivered/picked up AND has review → reorder + download receipt
+                        html += `
+        <div id="reorder-receipt-btn">
+            <form action="../backend/reorder.php" method="POST">
+                <input type="hidden" name="order_id" id="order_id" value="${order.order_id}">
+                <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "submit"); ?>
+            </form>
+            <?= createButton(35, 200, "Download Receipt", "dlReceipt", 16, "submit"); ?>
+        </div>
+        `;
+                    }
+                } else if (order.status === "cancelled") {
+                    // Cancelled → only reorder
+                    html += `
+    <div id="reorder-receipt-btn">
+        <form action="../backend/reorder.php" method="POST">
+            <input type="hidden" name="order_id" id="order_id" value="${order.order_id}">
+            <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "submit"); ?>
+        </form>
+    </div>
+    `;
+                }
+
+
+
                 modalContent.innerHTML = html;
+                const writeBtn = document.getElementById("writeReviewBtn");
+if (writeBtn) {
+    writeBtn.addEventListener("click", () => {
+        window.location.href = `index.php?page=order-tracking&num=${order.order_number}`;
+    });
+}
+                const orderIdInput = document.getElementById('order_id');
+                if (orderIdInput) {
+                    orderIdInput.value = order.order_id;
+                }
+
                 document.getElementById('orderDetailsModal').style.display = 'flex';
             });
         });
@@ -516,6 +564,89 @@ $activeTab = $_GET['tab'] ?? 'personal';
         const modal = document.getElementById('orderDetailsModal');
         if (e.target === modal) modal.style.display = 'none';
     });
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const reorderBtn = document.getElementById("reorderBtn");
+        if (reorderBtn) {
+            reorderBtn.addEventListener("click", async (e) => {
+                e.preventDefault(); // stop form from instantly submitting
+
+                const confirmed = await showConfirm(
+                    "Reordering will remove all current items in your cart. Do you want to continue?"
+                );
+
+                if (confirmed) {
+                    reorderBtn.closest("form").submit(); // proceed only if user agrees
+                }
+            });
+        }
+    });
+    // -------------------------
+    // Confirm Modal (Reorder Warning)
+    // -------------------------
+    function showConfirm(message) {
+        return new Promise((resolve) => {
+            let modal = document.getElementById("confirm-modal");
+            if (!modal) {
+                modal = document.createElement("div");
+                modal.id = "confirm-modal";
+                modal.style.cssText = `
+                display:none; position:fixed; z-index:10000; left:0; top:0;
+                width:100%; height:100%; background:rgba(0,0,0,0.4);
+                justify-content:center; align-items:center;
+            `;
+                modal.innerHTML = `
+                <div class="confirm-content" style="
+                    background:white; padding:20px 30px; border-radius:10px;
+                    text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3);
+                    min-width:280px; animation:popin .3s ease;
+                ">
+                    <p id="confirm-message" style="margin-bottom:20px; font-size:16px; white-space:pre-line;"></p>
+                    <div style="display:flex; gap:15px; justify-content:center;">
+                        <button id="confirm-yes" style="
+                            padding:6px 16px; border:none; border-radius:6px;
+                            cursor:pointer; font-size:14px; color:white; background:#4caf50;
+                        ">Yes</button>
+                        <button id="confirm-no" style="
+                            padding:6px 16px; border:none; border-radius:6px;
+                            cursor:pointer; font-size:14px; color:white; background:#f44336;
+                        ">No</button>
+                    </div>
+                </div>
+            `;
+                document.body.appendChild(modal);
+            }
+
+            const msgEl = document.getElementById("confirm-message");
+            msgEl.style.whiteSpace = "pre-line"; // ensure \n = line break
+            msgEl.textContent = message;
+
+            const yesBtn = document.getElementById("confirm-yes");
+            const noBtn = document.getElementById("confirm-no");
+
+            modal.style.display = "flex";
+
+            const closeModal = () => {
+                modal.style.display = "none";
+            };
+
+            yesBtn.onclick = () => {
+                closeModal();
+                resolve(true);
+            };
+            noBtn.onclick = () => {
+                closeModal();
+                resolve(false);
+            };
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                    resolve(false);
+                }
+            };
+        });
+    }
 </script>
 
 

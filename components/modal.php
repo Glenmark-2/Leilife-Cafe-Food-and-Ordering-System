@@ -6,7 +6,7 @@ if (!function_exists('createModal')) {
 
         return <<<HTML
 <script>
-function showModal(message = "{$escapedMessage}", type = "{$escapedType}", autoClose = true, duration = 3000) {
+function showModal(message = "{$escapedMessage}", type = "{$escapedType}", autoClose = false, duration = 3000) {
     let modal = document.getElementById("notif-modal");
     if (!modal) {
         modal = document.createElement("div");

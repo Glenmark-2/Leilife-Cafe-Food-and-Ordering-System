@@ -121,6 +121,7 @@ $subCategories = array_values($subCategories);
 
                         <td class="actions-cell">
                             <button id="editBtn" class="editBtn" type="button">Edit</button>
+                            <button id="viewBtn" class="viewBtn" type="button">View</button>
                             <img src="public/assests/archive.png" alt="Archive" class="archive-icon">
                         </td>
                     </tr>
@@ -182,7 +183,9 @@ $subCategories = array_values($subCategories);
     </div>
 </div>
 
-                            <script>
+<div></div>
+
+<script>
     const BASE_URL = "http://localhost/Leilife/";
 
     // --- Search & Filter ---
@@ -217,6 +220,10 @@ $subCategories = array_values($subCategories);
             b.style.backgroundColor = "#C6C3BD";
             b.style.color = "#22333B";
         });
+
+
+
+
         const addBtn = document.getElementById("add-product");
         if (addBtn) {
             addBtn.disabled = false;
@@ -300,6 +307,14 @@ $subCategories = array_values($subCategories);
                     b.style.cursor = "not-allowed";
                 }
             });
+
+            // Disable ALL view buttons while editing
+            document.querySelectorAll('.viewBtn').forEach(v => {
+                v.disabled = true;
+                v.style.opacity = "0.5";
+                v.style.cursor = "not-allowed";
+            });
+
             const addBtn = document.getElementById("add-product");
             addBtn.disabled = true;
             addBtn.style.opacity = "0.5";
@@ -334,31 +349,31 @@ $subCategories = array_values($subCategories);
 
             // Send to backend
             fetch(BASE_URL + 'backend/admin/update_product.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const updated = data.product;
-                    const statusText = updated.status === "Unavailable" ? "Unavailable" : "Available";
-                    statusBtn.textContent = statusText;
-                    statusBtn.classList.remove("Available", "Unavailable");
-                    statusBtn.classList.add(statusText);
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const updated = data.product;
+                        const statusText = updated.status === "Unavailable" ? "Unavailable" : "Available";
+                        statusBtn.textContent = statusText;
+                        statusBtn.classList.remove("Available", "Unavailable");
+                        statusBtn.classList.add(statusText);
 
-                    if (updated.product_picture) {
-                        row.querySelector(".product-photo").src = BASE_URL + "public/products/" + updated.product_picture;
+                        if (updated.product_picture) {
+                            row.querySelector(".product-photo").src = BASE_URL + "public/products/" + updated.product_picture;
+                        }
+
+                        disableRow(row, btn);
+                        showModal("Product updated successfully!", "success");
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showModal(data.message || "Failed to update product.", "error");
+                        console.error(data.message);
                     }
-
-                    disableRow(row, btn);
-                    showModal("Product updated successfully!", "success");
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    showModal(data.message || "Failed to update product.", "error");
-                    console.error(data.message);
-                }
-            })
-            .catch(() => showModal("Error saving product.", "error"));
+                })
+                .catch(() => showModal("Error saving product.", "error"));
         }
     }
 
@@ -379,6 +394,13 @@ $subCategories = array_values($subCategories);
             b.style.opacity = "1";
             b.style.cursor = "pointer";
         });
+
+        document.querySelectorAll('.viewBtn').forEach(v => {
+            v.disabled = false;
+            v.style.opacity = "1";
+            v.style.cursor = "pointer";
+        });
+
         const addBtn = document.getElementById("add-product");
         addBtn.disabled = false;
         addBtn.style.opacity = "1";
@@ -544,7 +566,7 @@ $subCategories = array_values($subCategories);
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        
+
                         showModal(isArchive ? "Product archived!" : "Product restored!", "success");
                         disableRow(row, row.querySelector('.editBtn'));
                         row.remove(); // remove from table since it no longer belongs in this view

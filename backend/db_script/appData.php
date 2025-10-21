@@ -661,9 +661,9 @@ $sqlSummary = "
 }
 
 public function reorder($order_id, $user_id, $session_id, $option_type = 'delivery') {
-
+    // 1️⃣ Get products from the old order
     $stmt = $this->db->prepare("
-        SELECT oi.*
+        SELECT oi.*, o.user_id
         FROM order_items oi
         JOIN orders o ON oi.order_id = o.order_id
         WHERE oi.order_id = :oid
@@ -673,16 +673,19 @@ public function reorder($order_id, $user_id, $session_id, $option_type = 'delive
 
     if (!$products) return;
 
+    // 2️⃣ Calculate subtotal
     $sub_total = 0;
     foreach ($products as $item) {
-        $price = $item['size'] === 'large' && isset($item['price_large']) ? $item['price_large'] : $item['price'];
+        $price = ($item['size'] === 'large' && isset($item['price_large']))
+            ? $item['price_large']
+            : $item['price'];
         $sub_total += ($price * $item['quantity']);
     }
 
+    // 3️⃣ Check if user already has a cart
     $stmtCart = $this->db->prepare("
         SELECT cart_id FROM carts
-        WHERE user_id = :user_id
-           OR session_id = :session_id
+        WHERE user_id = :user_id OR session_id = :session_id
         LIMIT 1
     ");
     $stmtCart->execute([
@@ -693,8 +696,28 @@ public function reorder($order_id, $user_id, $session_id, $option_type = 'delive
 
     if ($cart) {
         $cart_id = $cart['cart_id'];
-        // Optional: update totals now, final totals will be recalculated in get_cart
+
+        // 🧹 4️⃣ Delete existing cart items before adding reorder items
+        $stmtDelete = $this->db->prepare("DELETE FROM cart_items WHERE cart_id = :cart_id");
+        $stmtDelete->execute([':cart_id' => $cart_id]);
+
+        // Optionally update totals
+        $stmtUpdate = $this->db->prepare("
+            UPDATE carts
+            SET sub_total = :sub_total,
+                total = :total,
+                option_type = :option_type
+            WHERE cart_id = :cart_id
+        ");
+        $stmtUpdate->execute([
+            ':sub_total'  => $sub_total,
+            ':total'      => $sub_total,
+            ':option_type'=> $option_type,
+            ':cart_id'    => $cart_id
+        ]);
+
     } else {
+        // 5️⃣ Create a new cart if none exists
         $stmtNewCart = $this->db->prepare("
             INSERT INTO carts (user_id, session_id, option_type, sub_total, total)
             VALUES (:user_id, :session_id, :option_type, :sub_total, :total)
@@ -709,6 +732,7 @@ public function reorder($order_id, $user_id, $session_id, $option_type = 'delive
         $cart_id = $this->db->lastInsertId();
     }
 
+    // 6️⃣ Add the reorder items to the (clean) cart
     $stmtItem = $this->db->prepare("
         INSERT INTO cart_items (cart_id, product_id, quantity, size, flavor_ids)
         VALUES (:cart_id, :product_id, :quantity, :size, :flavor_ids)
@@ -723,7 +747,9 @@ public function reorder($order_id, $user_id, $session_id, $option_type = 'delive
             ':flavor_ids' => $item['flavor_ids'] ?? null
         ]);
     }
+
 }
+
 
 
     }

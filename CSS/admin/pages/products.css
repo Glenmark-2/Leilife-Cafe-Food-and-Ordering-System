@@ -409,6 +409,11 @@ button:hover {
   font-weight: 600;
 }
 
+.viewBtn{
+  background-color: #966363;
+  color: white;
+}
+
 /* Desktop modal layout */
 @media (min-width: 768px) {
   #new-product-modal {

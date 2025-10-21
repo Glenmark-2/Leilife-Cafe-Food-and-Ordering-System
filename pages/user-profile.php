@@ -1,7 +1,9 @@
 <?php
 require_once __DIR__ . '/../backend/db_script/db.php';
 include "../components/buttonTemplate.php";
+include "../components/modal.php"; // <-- use your modal
 
+createModal(); // ensure modal JS is included
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
@@ -12,9 +14,6 @@ $userInfo = $appData->loadUserInfo($user_id);
 $userAddress = $appData->loadUserAddress($user_id);
 $userFavorites = $appData->loadUsersFave($user_id);
 $orders = $appData->loadUserOrders($user_id) ?? [];
-
-
-// $orders = $appData->loadUserOrders($user_id) ?? [];
 
 // compute hasPassword
 $hasPassword = false;
@@ -58,7 +57,6 @@ $activeTab = $_GET['tab'] ?? 'personal';
                 <button type="submit" id="submit-photo" hidden>Upload</button>
             </form>
 
-
             <div class="profile-info">
                 <h3><?= htmlspecialchars($userInfo["first_name"] ?? 'Unknown') . ' ' . htmlspecialchars($userInfo["last_name"] ?? 'Unknown'); ?></h3>
                 <p class="role" style="margin-bottom: 0;">Customer</p>
@@ -70,7 +68,6 @@ $activeTab = $_GET['tab'] ?? 'personal';
             <form id="personal-form" method="POST" action="../backend/update_user_profile.php">
                 <div class="title-info">
                     <h3>Personal Information</h3>
-
                 </div>
                 <hr>
                 <div class="row-info">
@@ -84,7 +81,6 @@ $activeTab = $_GET['tab'] ?? 'personal';
                         <h4 class="display-value"><?= htmlspecialchars($userInfo["last_name"] ?? '') ?></h4>
                         <input class="edit-input" type="text" name="last_name" value="<?= htmlspecialchars($userInfo["last_name"] ?? '') ?>" style="display:none;">
                     </div>
-                    <!-- switched email and phone -->
                     <div class="info">
                         <p>Phone</p>
                         <h4 class="display-value"><?= htmlspecialchars($userInfo["phone_number"] ?? '') ?></h4>
@@ -94,7 +90,6 @@ $activeTab = $_GET['tab'] ?? 'personal';
                         <p>Email</p>
                         <h4><?= htmlspecialchars($userInfo["email"] ?? '') ?></h4>
                     </div>
-
                 </div>
                 <div class="editBtn">
                     <?php
@@ -126,33 +121,27 @@ $activeTab = $_GET['tab'] ?? 'personal';
                         <div class="info">
                             <p>Street</p>
                             <h4 class="display-value"><?= htmlspecialchars($userAddress["street_address"] ?? '') ?></h4>
-                            <input class="edit-input" type="text" name="street_address"
-                                value="<?= htmlspecialchars($userAddress["street_address"] ?? '') ?>" style="display:none;">
+                            <input class="edit-input" type="text" name="street_address" value="<?= htmlspecialchars($userAddress["street_address"] ?? '') ?>" style="display:none;">
                         </div>
                         <div class="info">
                             <p>Barangay</p>
                             <h4 class="display-value"><?= htmlspecialchars($userAddress["barangay"] ?? '') ?></h4>
-                            <input class="edit-input" type="text" name="barangay"
-                                value="<?= htmlspecialchars($userAddress["barangay"] ?? '') ?>" style="display:none;">
+                            <input class="edit-input" type="text" name="barangay" value="<?= htmlspecialchars($userAddress["barangay"] ?? '') ?>" style="display:none;">
                         </div>
-                        <!-- FOR NOOOOW -->
                         <div class="info">
                             <p>City</p>
                             <h4 class="display-value">Caloocan City</h4>
-                            <input class="edit-input" type="text" name="city"
-                                value="<?= htmlspecialchars($userAddress["city"] ?? '') ?>" style="display:none;">
+                            <input class="edit-input" type="text" name="city" value="<?= htmlspecialchars($userAddress["city"] ?? '') ?>" style="display:none;">
                         </div>
                         <div class="info">
                             <p>Province</p>
                             <h4 class="display-value">Metro Manila</h4>
-                            <input class="edit-input" type="text" name="province"
-                                value="<?= htmlspecialchars($userAddress["province"] ?? '') ?>" style="display:none;">
+                            <input class="edit-input" type="text" name="province" value="<?= htmlspecialchars($userAddress["province"] ?? '') ?>" style="display:none;">
                         </div>
                         <div class="info">
                             <p>Region</p>
                             <h4 class="display-value">NCR (National Capital Region)</h4>
-                            <input class="edit-input" type="text" name="region"
-                                value="<?= htmlspecialchars($userAddress["region"] ?? '') ?>" style="display:none;">
+                            <input class="edit-input" type="text" name="region" value="<?= htmlspecialchars($userAddress["region"] ?? '') ?>" style="display:none;">
                         </div>
                     </div>
                 <?php endif; ?>
@@ -182,7 +171,6 @@ $activeTab = $_GET['tab'] ?? 'personal';
                         <?php foreach ($userFavorites as $item):
                             $product = $appData->getProductById($item['product_id']);
                             if (!$product) continue;
-
                             $title = $product['product_name'];
                             $price = $product['product_price'];
                             $image = $product['product_picture'];
@@ -197,9 +185,6 @@ $activeTab = $_GET['tab'] ?? 'personal';
                 <p>No favorites yet.</p>
             <?php endif; ?>
         </section>
-
-
-
 
         <!-- Order History -->
         <section id="orders" class="tab-content white-box <?= $activeTab === 'orders' ? 'active' : '' ?>">
@@ -232,12 +217,10 @@ $activeTab = $_GET['tab'] ?? 'personal';
             <?php endif; ?>
         </section>
 
-
         <!-- Settings -->
         <section id="settings" class="tab-content white-box <?= $activeTab === 'settings' ? 'active' : '' ?>">
             <h3>Account Settings</h3>
             <hr>
-
             <?php
             echo createButton(
                 30,
@@ -269,13 +252,10 @@ $activeTab = $_GET['tab'] ?? 'personal';
     </div>
 </div>
 
-
 <script>
     document.addEventListener("DOMContentLoaded", () => {
 
-        // -------------------------
-        // Toast notification
-        // -------------------------
+        // Toast helper (keeps your existing helper)
         function showToast(message, type = "success", duration = 2500) {
             let toast = document.getElementById("toast-notif");
             if (!toast) {
@@ -289,58 +269,41 @@ $activeTab = $_GET['tab'] ?? 'personal';
             `;
                 document.body.appendChild(toast);
             }
-
             toast.textContent = message;
             if (type === "success") toast.style.background = "#4caf50";
             else if (type === "error") toast.style.background = "#f44336";
             else if (type === "warning") toast.style.background = "#ff9800";
-
             toast.style.opacity = 1;
             setTimeout(() => toast.style.opacity = 0, duration);
         }
 
-        // -------------------------
-        // Tab switching
-        // -------------------------
+        // Tab switching (kept)
         const tabButtons = document.querySelectorAll(".tab-btn");
         const tabContents = document.querySelectorAll(".tab-content");
 
         function activateTab(tabId) {
             tabButtons.forEach(btn => btn.classList.remove("active"));
             tabContents.forEach(content => content.classList.remove("active"));
-
             const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
             const activeContent = document.getElementById(tabId);
-
             if (activeBtn) activeBtn.classList.add("active");
             if (activeContent) activeContent.classList.add("active");
-
             const url = new URL(window.location.href);
             url.searchParams.set("tab", tabId);
             window.history.replaceState({}, "", url);
         }
-
-        tabButtons.forEach(btn => {
-            btn.addEventListener("click", () => {
-                activateTab(btn.dataset.tab);
-            });
-        });
-
+        tabButtons.forEach(btn => btn.addEventListener("click", () => activateTab(btn.dataset.tab)));
         const urlParams = new URLSearchParams(window.location.search);
         activateTab(urlParams.get("tab") || "personal");
 
-        // -------------------------
-        // Personal Info Edit/Save
-        // -------------------------
+        // Personal edit (kept)
         const editBtn = document.getElementById("edit-info");
         const personalForm = document.getElementById("personal-form");
-
         if (editBtn && personalForm) {
             editBtn.addEventListener("click", async (e) => {
                 e.preventDefault();
                 const state = editBtn.getAttribute("data-state");
                 const infos = personalForm.querySelectorAll(".info");
-
                 if (state === "edit") {
                     editBtn.textContent = "Save";
                     editBtn.style.backgroundColor = "#28a745";
@@ -355,7 +318,6 @@ $activeTab = $_GET['tab'] ?? 'personal';
                     });
                     return;
                 }
-
                 const fd = new FormData(personalForm);
                 try {
                     const resp = await fetch(personalForm.action, {
@@ -363,11 +325,8 @@ $activeTab = $_GET['tab'] ?? 'personal';
                         body: fd
                     });
                     const result = await resp.json();
-
                     if (result.success) {
                         showToast(result.message || "Profile updated!", "success");
-
-                        // update displayed values
                         infos.forEach(info => {
                             const disp = info.querySelector(".display-value");
                             const input = info.querySelector(".edit-input");
@@ -377,7 +336,6 @@ $activeTab = $_GET['tab'] ?? 'personal';
                                 disp.style.display = "block";
                             }
                         });
-
                         editBtn.textContent = "Edit";
                         editBtn.style.backgroundColor = "";
                         editBtn.setAttribute("data-state", "edit");
@@ -390,107 +348,36 @@ $activeTab = $_GET['tab'] ?? 'personal';
             });
         }
 
-        // -------------------------
-        // Address Edit Modal
-        // -------------------------
-        const addressBtn = document.getElementById("edit-address");
-        const modalOverlay = document.getElementById("modalOverlay");
-        const addressModalForm = modalOverlay?.querySelector("form");
-
-        if (addressBtn && modalOverlay) {
-            addressBtn.addEventListener("click", e => {
-                e.preventDefault();
-                modalOverlay.style.display = "flex";
-            });
-        }
-
-        if (addressModalForm) {
-            addressModalForm.addEventListener("submit", async (e) => {
-                e.preventDefault();
-                const fd = new FormData(addressModalForm);
-
-                try {
-                    const resp = await fetch(addressModalForm.action, {
-                        method: "POST",
-                        body: fd
-                    });
-                    const result = await resp.json();
-
-                    if (result.success) {
-                        showToast(result.message || "Address updated!", "success");
-                        modalOverlay.style.display = "none";
-
-                        // update displayed address
-                        const fields = ["street_address", "barangay", "city", "province", "region"];
-                        fields.forEach(f => {
-                            const input = document.querySelector(`#address .info input[name="${f}"]`);
-                            if (input) {
-                                const displayElem = input.closest(".info").querySelector(".display-value");
-                                displayElem.textContent = input.value;
-                            }
-                        });
-                    } else {
-                        showToast(result.error || "Save failed", "error");
-                    }
-                } catch (err) {
-                    showToast("Request error: " + err.message, "error");
-                }
-            });
-        }
-
-        // -------------------------
-        // Profile photo upload
-        // -------------------------
-        const profileBtn = document.getElementById("profile-btn");
-        const profileInput = document.getElementById("profile-input");
-
-        if (profileBtn && profileInput) {
-            profileBtn.addEventListener("click", () => profileInput.click());
-            profileInput.addEventListener("change", () => {
-                if (!profileInput.files.length) return;
-                document.getElementById("submit-photo").click();
-            });
-        }
-
-        // -------------------------
-        // Profile hover effect
-        // -------------------------
-        const profilePic = document.querySelector(".profile-pic");
-        if (profilePic) {
-            profilePic.addEventListener("mouseenter", () => {
-                profilePic.setAttribute("title", "Click to change photo");
-            });
-        }
-
-        // -------------------------
-        // Order Row Click
-        // -------------------------
+        // Order row click -> show order details and reorder button creation (kept)
         const orderRows = document.querySelectorAll('.order-row');
         orderRows.forEach(row => {
-            row.style.cursor = "pointer"; // show pointer
+            row.style.cursor = "pointer";
             row.addEventListener('click', () => {
                 const order = JSON.parse(row.getAttribute('data-order'));
                 const modalContent = document.getElementById('modalOrderContent');
                 const items = Array.isArray(order.items) ? order.items : [];
-
                 let html = `
-            <p><strong>Order #:</strong> ${order.order_number || 'Undefined'}</p>
-            <p><strong>Date:</strong> ${order.date ? order.date.slice(0,10) : 'Undefined'}</p>
-            <p><strong>Status:</strong> ${order.status || 'Undefined'}</p>
-            <p><strong>Payment:</strong> ${order.payment_method || 'Undefined'}</p>
-            <p><strong>Total:</strong> ₱${parseFloat(order.total || 0).toFixed(2)}</p>
-            <p><strong>Items:</strong></p>
-            <ul>
-                ${items.map(i => `<li>${i.product_name || 'Undefined'} × ${i.quantity || 1}</li>`).join('')}
-            </ul>
-        `;
+                <p><strong>Order #:</strong> ${order.order_number || 'Undefined'}</p>
+                <p><strong>Date:</strong> ${order.date ? order.date.slice(0,10) : 'Undefined'}</p>
+                <p><strong>Status:</strong> ${order.status || 'Undefined'}</p>
+                <p><strong>Payment:</strong> ${order.payment_method || 'Undefined'}</p>
+                <p><strong>Total:</strong> ₱${parseFloat(order.total || 0).toFixed(2)}</p>
+                <p><strong>Items:</strong></p>
+                <ul>
+                    ${items.map(i => {
+                        let itemText = `${i.product_name || 'Undefined'} × ${i.quantity || 1}`;
+                        if (i.size) itemText += ` (${i.size})`;
+                        if (i.flavors && i.flavors.length > 0) itemText += ` — Flavors: ${i.flavors.join(', ')}`;
+                        return `<li>${itemText}</li>`;
+                    }).join('')}
+                </ul>
+            `;
 
-                // Only append review if it exists
                 if (order.review) {
                     html += `<p><strong>Feedback:</strong> ${order.review}</p>`;
                 }
 
-                if (order.status === "delivered" || order.status === "picked_up") {
+                                if (order.status === "delivered" || order.status === "picked_up") {
                     if (!order.review) {
                         // Delivered/picked up AND no review → show all three buttons
                         html += `
@@ -503,10 +390,10 @@ $activeTab = $_GET['tab'] ?? 'personal';
                 16,
                 "button"
             ); ?>
-            <form action="../backend/reorder.php" method="POST">
-                <input type="hidden" name="order_id" id="order_id" value="${order.order_id}">
-                <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "submit"); ?>
-            </form>
+            <form class="reorder-form" method="POST">
+                        <input type="hidden" name="order_id" value="${order.order_id}">
+                        <?= createButton(35,100,"Reorder","reorderBtn",16,"button",['class'=>'reorderBtn']); ?>
+                    </form>
             <?= createButton(35, 200, "Download Receipt", "dlReceipt", 16, "submit"); ?>
         </div>
         `;
@@ -514,10 +401,10 @@ $activeTab = $_GET['tab'] ?? 'personal';
                         // Delivered/picked up AND has review → reorder + download receipt
                         html += `
         <div id="reorder-receipt-btn">
-            <form action="../backend/reorder.php" method="POST">
-                <input type="hidden" name="order_id" id="order_id" value="${order.order_id}">
-                <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "submit"); ?>
-            </form>
+            <form class="reorder-form" method="POST">
+                        <input type="hidden" name="order_id" value="${order.order_id}">
+                        <?= createButton(35,100,"Reorder","reorderBtn",16,"button",['class'=>'reorderBtn']); ?>
+                    </form>
             <?= createButton(35, 200, "Download Receipt", "dlReceipt", 16, "submit"); ?>
         </div>
         `;
@@ -526,134 +413,125 @@ $activeTab = $_GET['tab'] ?? 'personal';
                     // Cancelled → only reorder
                     html += `
     <div id="reorder-receipt-btn">
-        <form action="../backend/reorder.php" method="POST">
-            <input type="hidden" name="order_id" id="order_id" value="${order.order_id}">
-            <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "submit"); ?>
-        </form>
+        <form class="reorder-form" method="POST">
+                        <input type="hidden" name="order_id" value="${order.order_id}">
+                        <?= createButton(35,100,"Reorder","reorderBtn",16,"button",['class'=>'reorderBtn']); ?>
+                    </form>
     </div>
     `;
                 }
 
 
 
+
                 modalContent.innerHTML = html;
+
                 const writeBtn = document.getElementById("writeReviewBtn");
-if (writeBtn) {
-    writeBtn.addEventListener("click", () => {
-        window.location.href = `index.php?page=order-tracking&num=${order.order_number}`;
-    });
-}
-                const orderIdInput = document.getElementById('order_id');
-                if (orderIdInput) {
-                    orderIdInput.value = order.order_id;
+                if (writeBtn) {
+                    writeBtn.addEventListener("click", () => {
+                        window.location.href = `index.php?page=order-tracking&num=${order.order_number}`;
+                    });
                 }
 
                 document.getElementById('orderDetailsModal').style.display = 'flex';
             });
         });
 
-    });
-
-    // Close modal function
-    function closeOrderModal() {
-        document.getElementById('orderDetailsModal').style.display = 'none';
-    }
-
-    // Close modal when clicking outside content
-    window.addEventListener('click', e => {
-        const modal = document.getElementById('orderDetailsModal');
-        if (e.target === modal) modal.style.display = 'none';
-    });
-
-
-    document.addEventListener("DOMContentLoaded", () => {
-        const reorderBtn = document.getElementById("reorderBtn");
-        if (reorderBtn) {
-            reorderBtn.addEventListener("click", async (e) => {
-                e.preventDefault(); // stop form from instantly submitting
-
-                const confirmed = await showConfirm(
-                    "Reordering will remove all current items in your cart. Do you want to continue?"
-                );
-
-                if (confirmed) {
-                    reorderBtn.closest("form").submit(); // proceed only if user agrees
-                }
-            });
+        // close order modal
+        function closeOrderModal() {
+            document.getElementById('orderDetailsModal').style.display = 'none';
         }
-    });
-    // -------------------------
-    // Confirm Modal (Reorder Warning)
-    // -------------------------
-    function showConfirm(message) {
-        return new Promise((resolve) => {
-            let modal = document.getElementById("confirm-modal");
-            if (!modal) {
-                modal = document.createElement("div");
-                modal.id = "confirm-modal";
-                modal.style.cssText = `
-                display:none; position:fixed; z-index:10000; left:0; top:0;
-                width:100%; height:100%; background:rgba(0,0,0,0.4);
-                justify-content:center; align-items:center;
-            `;
-                modal.innerHTML = `
-                <div class="confirm-content" style="
-                    background:white; padding:20px 30px; border-radius:10px;
-                    text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3);
-                    min-width:280px; animation:popin .3s ease;
-                ">
-                    <p id="confirm-message" style="margin-bottom:20px; font-size:16px; white-space:pre-line;"></p>
-                    <div style="display:flex; gap:15px; justify-content:center;">
-                        <button id="confirm-yes" style="
-                            padding:6px 16px; border:none; border-radius:6px;
-                            cursor:pointer; font-size:14px; color:white; background:#4caf50;
-                        ">Yes</button>
-                        <button id="confirm-no" style="
-                            padding:6px 16px; border:none; border-radius:6px;
-                            cursor:pointer; font-size:14px; color:white; background:#f44336;
-                        ">No</button>
-                    </div>
-                </div>
-            `;
-                document.body.appendChild(modal);
-            }
+        window.closeOrderModal = closeOrderModal;
 
-            const msgEl = document.getElementById("confirm-message");
-            msgEl.style.whiteSpace = "pre-line"; // ensure \n = line break
-            msgEl.textContent = message;
-
-            const yesBtn = document.getElementById("confirm-yes");
-            const noBtn = document.getElementById("confirm-no");
-
-            modal.style.display = "flex";
-
-            const closeModal = () => {
-                modal.style.display = "none";
-            };
-
-            yesBtn.onclick = () => {
-                closeModal();
-                resolve(true);
-            };
-            noBtn.onclick = () => {
-                closeModal();
-                resolve(false);
-            };
-            modal.onclick = (e) => {
-                if (e.target === modal) {
-                    closeModal();
-                    resolve(false);
-                }
-            };
+        // close clicking outside
+        window.addEventListener('click', e => {
+            const modal = document.getElementById('orderDetailsModal');
+            if (e.target === modal) modal.style.display = 'none';
         });
+
+        // ---- Reorder flow using modal.php's showModal ----
+        // When user clicks .reorderBtn:
+        // 1) show modal (warning). The modal has single OK button (notif-close).
+        // 2) When user clicks OK, send AJAX POST to backend/reorder.php with delete_cart=1
+        // 3) Handle JSON response: show messages or redirect to checkout
+
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('reorderBtn')) {
+        e.preventDefault();
+        const form = e.target.closest('form');
+        if (!form) return;
+        const orderId = form.querySelector('input[name="order_id"]').value;
+closeOrderModal();
+        // Show warning before reordering
+        showModal("Warning: All current products in your cart will be removed. Click OK to continue.", "warning", false);
+
+        const closeBtn = document.getElementById('notif-close');
+        if (!closeBtn) {
+            proceedReorder(orderId);
+            return;
+        }
+
+        const handler = () => {
+            closeBtn.removeEventListener('click', handler);
+            closeBtn.disabled = true;
+            proceedReorder(orderId);
+        };
+
+        closeBtn.addEventListener('click', handler);
     }
+});
+
+function proceedReorder(orderId) {
+    const fd = new FormData();
+    fd.append('order_id', orderId);
+    fd.append('delete_cart', 1);
+
+    fetch('../backend/reorder.php', {
+        method: 'POST',
+        body: fd,
+        credentials: 'same-origin'
+    })
+    .then(res => res.json())
+    .then(result => {
+        if (!result) {
+            showModal('Unexpected server response.', 'error', true, 3000);
+            return;
+        }
+
+        if (!result.success) {
+            // ❌ all items unavailable
+            showModal(result.message || 'All items in your previous order are unavailable.', 'warning', false);
+            return;
+        }
+
+        // ✅ partial success (some unavailable)
+        if (result.availableCount < result.totalItems) {
+            showModal(result.message || 'Some items were unavailable and skipped.', 'warning', false);
+
+            // ⏳ delay redirect to let modal show
+            if (result.redirect) {
+                setTimeout(() => {
+                    window.location.href = result.redirect;
+                }, 3000); // wait 3 seconds before redirect
+            }
+            return; // stop here so it doesn’t run the next redirect
+        }
+
+        // ✅ all items available
+        if (result.redirect) {
+            showModal(result.message || 'Reorder successful! Redirecting...', 'success', true, 1500);
+            setTimeout(() => {
+                window.location.href = result.redirect;
+            }, 1500);
+        } else {
+            showModal(result.message || 'Reorder successful.', 'success', true, 2000);
+        }
+    })
+    .catch(err => {
+        showModal('AJAX error: ' + err.message, 'error', true, 3000);
+    });
+}
+
+
+    }); // DOMContentLoaded
 </script>
-
-
-
-<style>
-    /* Ensure tab contents have a base min height */
-    .tab-content {
-        min-height: 300px;
-    }
-</style>

@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
@@ -12,6 +15,9 @@ $archived = $_GET['archived'] ?? 0;
 $btnText = $archived === '1' ? 'View Products' : 'View Archive';
 $appData->adminloadProducts($archived);
 $appData->loadCategories();
+$flavors = $appData->loadFlavors();
+$sizes = $appData->loadSizes();
+
 
 $subCategories = array_unique(
     array_map(fn($c) => $c['category_name'] ?? '', $appData->categories)
@@ -20,8 +26,13 @@ $subCategories = array_values($subCategories);
 ?>
 <div id="first-row">
     <h2>Products</h2>
-    <button type="button" id="view-archive"><span><?= $btnText ?></span></button>
+    <div>
+        <button type="button" id="edit-flavor-size-btn"><span>Edit Flavors/Sizes</span></button>
+        <button type="button" id="view-archive"><span><?= $btnText ?></span></button>
+
+    </div>
 </div>
+
 
 <div id="second-row">
     <button type="button" class="box-row clicked" data-category="all">All</button>
@@ -183,7 +194,51 @@ $subCategories = array_values($subCategories);
     </div>
 </div>
 
-<div></div>
+<!-- Edit Flavors/Sizes Modal -->
+<div id="flavor-size-modal" class="modal">
+    <div class="modal-content">
+        <h3>Edit Flavors & Sizes</h3>
+        <form id="flavor-size-form" onsubmit="return false;">
+            <div class="form-section">
+                <h4>Flavors</h4>
+                <table id="flavors-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- JS will populate flavors here -->
+                    </tbody>
+                </table>
+                <button type="button" id="add-flavor">+ Add Flavor</button>
+            </div>
+
+            <div class="form-section">
+                <h4>Sizes</h4>
+                <table id="sizes-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- JS will populate sizes here -->
+                    </tbody>
+                </table>
+                <button type="button" id="add-size">+ Add Size</button>
+            </div>
+
+            <div class="modal-buttons">
+                <button type="button" id="save-flavors-sizes">Save Changes</button>
+                <button type="button" id="cancel-flavors-sizes">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 
 <script>
     const BASE_URL = "http://localhost/Leilife/";
@@ -615,5 +670,118 @@ $subCategories = array_values($subCategories);
     // initial filter to apply (in case some rows are hidden by server-side logic)
     document.addEventListener('DOMContentLoaded', () => {
         filterProducts();
+    });
+
+
+
+    // --- Flavor & Size Modal ---
+    const FLAVORS_DATA = <?= json_encode($flavors) ?>;
+    const SIZES_DATA = <?= json_encode($sizes) ?>;
+    const flavorSizeBtn = document.getElementById('edit-flavor-size-btn');
+    const flavorSizeModal = document.getElementById('flavor-size-modal');
+    const cancelFlavorSizeBtn = document.getElementById('cancel-flavors-sizes');
+    const saveFlavorSizeBtn = document.getElementById('save-flavors-sizes');
+    const flavorsTable = document.querySelector('#flavors-table tbody');
+    const sizesTable = document.querySelector('#sizes-table tbody');
+    const addFlavorBtn = document.getElementById('add-flavor');
+    const addSizeBtn = document.getElementById('add-size');
+
+    // Open modal
+    flavorSizeBtn.addEventListener('click', () => {
+        flavorSizeModal.style.display = 'flex';
+        loadFlavorsSizes(); // fetch current flavors/sizes for product
+    });
+
+    // Close modal
+    cancelFlavorSizeBtn.addEventListener('click', () => {
+        flavorSizeModal.style.display = 'none';
+    });
+
+    // Add new row
+    addFlavorBtn.addEventListener('click', () => addRow(flavorsTable));
+    addSizeBtn.addEventListener('click', () => addRow(sizesTable));
+
+function addRow(table, id = '', name = '', status = 'Available', isSize = false) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>
+            <input type="text" value="${name}" placeholder="Enter name" ${isSize ? 'disabled' : ''}>
+        </td>
+        <td>
+            <select>
+                <option value="Available" ${status.toLowerCase() === 'available' ? 'selected' : ''}>Available</option>
+                <option value="Unavailable" ${status.toLowerCase() === 'unavailable' ? 'selected' : ''}>Unavailable</option>
+            </select>
+        </td>
+    `;
+    if (id) row.dataset.id = id;
+    table.appendChild(row);
+}
+
+
+function loadFlavorsSizes() {
+    flavorsTable.innerHTML = '';
+    sizesTable.innerHTML = '';
+
+    FLAVORS_DATA.forEach(f => addRow(flavorsTable, f.flavor_id, f.flavor_name, f.status));
+    SIZES_DATA.forEach(s => addRow(sizesTable, s.size_id, s.size_name, s.status, true));
+}
+
+
+
+// Save changes (with detailed debugging)
+saveFlavorSizeBtn.addEventListener('click', () => {
+    const flavors = Array.from(flavorsTable.querySelectorAll('tr')).map(row => ({
+        id: row.dataset.id || '',
+        name: row.querySelector('input').value.trim(),
+        status: row.querySelector('select').value
+    }));
+
+    const sizes = Array.from(sizesTable.querySelectorAll('tr')).map(row => ({
+        id: row.dataset.id || '',
+        name: row.querySelector('input').value.trim(),
+        status: row.querySelector('select').value
+    }));
+
+    console.log('🔹 Sending to backend:', { flavors, sizes });
+
+fetch(BASE_URL + 'backend/admin/edit_flavors_sizes.php', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ flavors, sizes })
+})
+
+    .then(async (res) => {
+        const text = await res.text(); // get raw text for debugging
+        console.log('🔹 Raw server response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            console.log('✅ Parsed JSON:', data);
+
+            if (data.success) {
+                showModal('Flavors & sizes updated!', 'success');
+                flavorSizeModal.style.display = 'none';
+            } else {
+                showModal(data.message || 'Failed to update flavors/sizes', 'error');
+            }
+        } catch (err) {
+            console.error('❌ JSON parse failed:', err);
+            showModal(
+                'Server did not return valid JSON:\n' + text,
+                'error'
+            );
+        }
+    })
+    .catch(err => {
+        console.error('❌ Fetch error:', err);
+        showModal('Fetch error: ' + err.message, 'error');
+    });
+});
+
+
+    // Close modal if clicked outside content
+    flavorSizeModal.addEventListener('click', (e) => {
+        if (e.target === flavorSizeModal) flavorSizeModal.style.display = 'none';
     });
 </script>

@@ -247,23 +247,44 @@ public function getActiveOrdersOfUser($user_id)
             ]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
-        public function getOrderByNumber($user_id, $order_number)
-        {
-            $stmt = $this->db->prepare("
-                SELECT o.*, 
-                       oi.product_id, oi.quantity, oi.price, 
-                       p.product_name
-                FROM orders o
-                JOIN order_items oi ON o.order_id = oi.order_id
-                JOIN products p ON oi.product_id = p.product_id
-                WHERE o.order_number = :onum AND o.user_id = :uid
-            ");
-            $stmt->execute([
-                ':onum' => $order_number,
-                ':uid'  => $user_id
-            ]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+public function getOrderByNumber($user_id, $order_number)
+{
+    // 1️⃣ Fetch order and items
+    $stmt = $this->db->prepare("
+        SELECT o.*, 
+               oi.order_item_id, oi.product_id, oi.quantity, oi.price, oi.size, oi.flavor_ids,
+               p.product_name, p.has_flavor, p.has_size
+        FROM orders o
+        JOIN order_items oi ON o.order_id = oi.order_id
+        JOIN products p ON oi.product_id = p.product_id
+        WHERE o.order_number = :onum AND o.user_id = :uid
+    ");
+    $stmt->execute([
+        ':onum' => $order_number,
+        ':uid'  => $user_id
+    ]);
+
+    $orderItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (!$orderItems) return [];
+
+    // 2️⃣ Resolve flavor names for each item
+    foreach ($orderItems as &$item) {
+        if ($item['has_flavor'] && !empty($item['flavor_ids'])) {
+            $ids = explode(',', $item['flavor_ids']);
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $flavorStmt = $this->db->prepare("SELECT flavor_name FROM product_flavors WHERE flavor_id IN ($placeholders)");
+            $flavorStmt->execute($ids);
+            $item['flavors'] = $flavorStmt->fetchAll(PDO::FETCH_COLUMN);
+        } else {
+            $item['flavors'] = [];
         }
+    }
+
+    return $orderItems;
+}
+
 
         //getting sales today
         public function getSalesToday()
@@ -497,15 +518,34 @@ public function loadUserOrders($userId)
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($orders as &$order) {
-        // Fetch order items
+        // Fetch order items with size and flavors
         $stmtItems = $this->db->prepare("
-            SELECT p.product_name, oi.quantity
+            SELECT 
+                oi.order_item_id, oi.quantity, oi.price, oi.size, oi.flavor_ids,
+                p.product_name
             FROM order_items oi
             LEFT JOIN products p ON oi.product_id = p.product_id
             WHERE oi.order_id = :order_id
         ");
         $stmtItems->execute([':order_id' => $order['order_id']]);
-        $order['items'] = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
+        $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($items as &$item) {
+            $item['flavors'] = [];
+            if (!empty($item['flavor_ids'])) {
+                $flavorIds = explode(',', $item['flavor_ids']);
+                $placeholders = implode(',', array_fill(0, count($flavorIds), '?'));
+                $stmtFlavors = $this->db->prepare("
+                    SELECT flavor_name 
+                    FROM product_flavors 
+                    WHERE flavor_id IN ($placeholders)
+                ");
+                $stmtFlavors->execute($flavorIds);
+                $item['flavors'] = array_column($stmtFlavors->fetchAll(PDO::FETCH_ASSOC), 'flavor_name');
+            }
+        }
+
+        $order['items'] = $items;
 
         // Fetch review for this order
         $stmtReview = $this->db->prepare("
@@ -522,6 +562,7 @@ public function loadUserOrders($userId)
 
     return $orders;
 }
+
 
 
         //for sales report
@@ -660,96 +701,183 @@ $sqlSummary = "
     ];
 }
 
+
 public function reorder($order_id, $user_id, $session_id, $option_type = 'delivery') {
-    // 1️⃣ Get products from the old order
+    // 1) Fetch order items joined with product data
     $stmt = $this->db->prepare("
-        SELECT oi.*, o.user_id
+        SELECT oi.*, p.product_name, p.status AS product_status, p.product_price AS base_price, 
+               p.price_large, p.has_size, p.has_flavor
         FROM order_items oi
-        JOIN orders o ON oi.order_id = o.order_id
+        JOIN products p ON oi.product_id = p.product_id
         WHERE oi.order_id = :oid
     ");
     $stmt->execute([':oid' => $order_id]);
-    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    if (!$products) return;
-
-    // 2️⃣ Calculate subtotal
-    $sub_total = 0;
-    foreach ($products as $item) {
-        $price = ($item['size'] === 'large' && isset($item['price_large']))
-            ? $item['price_large']
-            : $item['price'];
-        $sub_total += ($price * $item['quantity']);
+    if (!$items) {
+        return [
+            'success' => false,
+            'message' => 'No products found in this order.',
+            'availableCount' => 0
+        ];
     }
 
-    // 3️⃣ Check if user already has a cart
-    $stmtCart = $this->db->prepare("
-        SELECT cart_id FROM carts
-        WHERE user_id = :user_id OR session_id = :session_id
-        LIMIT 1
-    ");
-    $stmtCart->execute([
-        ':user_id'    => $user_id,
-        ':session_id' => $session_id
-    ]);
+    $availableProducts = [];
+
+    // 2) Validate each product availability
+    foreach ($items as $it) {
+        // Check product availability
+        if (strtolower($it['product_status']) !== 'available') {
+            continue;
+        }
+
+        // Check size availability
+        if (!empty($it['size']) && intval($it['has_size']) === 1) {
+            $stmtSize = $this->db->prepare("
+                SELECT status FROM drink_size WHERE product_id = :pid AND size_name = :size LIMIT 1
+            ");
+            $stmtSize->execute([':pid' => $it['product_id'], ':size' => $it['size']]);
+            $sizeStatus = $stmtSize->fetchColumn();
+            if ($sizeStatus !== 'available') {
+                continue;
+            }
+        }
+
+        // Check flavor availability
+        if (!empty($it['flavor_ids']) && intval($it['has_flavor']) === 1) {
+            $flavorIds = array_filter(array_map('intval', explode(',', $it['flavor_ids'])));
+            if (!empty($flavorIds)) {
+                $placeholders = implode(',', array_fill(0, count($flavorIds), '?'));
+                $sql = "SELECT COUNT(*) FROM product_flavors 
+                        WHERE flavor_id IN ($placeholders) AND status='available'";
+                $stmtFl = $this->db->prepare($sql);
+                $stmtFl->execute($flavorIds);
+                $availableCount = (int)$stmtFl->fetchColumn();
+                if ($availableCount !== count($flavorIds)) {
+                    continue;
+                }
+            }
+        }
+
+        // Passed all checks
+        $availableProducts[] = $it;
+    }
+
+    // 3) Handle availability results
+    if (empty($availableProducts)) {
+        return [
+            'success' => false,
+            'message' => 'All products in this order are unavailable.',
+            'availableCount' => 0
+        ];
+    }
+
+    $totalItems = count($items);
+    $availableCount = count($availableProducts);
+
+    $message = 'Reorder added to cart successfully.';
+    $success = true;
+
+    // ⚠️ Partial success detection
+    if ($availableCount < $totalItems) {
+        $message = 'Some products from your previous order were unavailable and were not added.';
+    }
+
+    // 4) Compute subtotal
+    $sub_total = 0.0;
+    foreach ($availableProducts as $ap) {
+        $price = $ap['base_price'];
+        if (!empty($ap['size']) && $ap['size'] === 'large' && isset($ap['price_large']) && $ap['price_large'] > 0) {
+            $price = $ap['price_large'];
+        }
+        $sub_total += ($price * (int)$ap['quantity']);
+    }
+
+    // 5) Find or create cart
+    $stmtCart = $this->db->prepare("SELECT cart_id FROM carts WHERE user_id=:uid OR session_id=:sid LIMIT 1");
+    $stmtCart->execute([':uid' => $user_id, ':sid' => $session_id]);
     $cart = $stmtCart->fetch(PDO::FETCH_ASSOC);
 
     if ($cart) {
         $cart_id = $cart['cart_id'];
-
-        // 🧹 4️⃣ Delete existing cart items before adding reorder items
-        $stmtDelete = $this->db->prepare("DELETE FROM cart_items WHERE cart_id = :cart_id");
-        $stmtDelete->execute([':cart_id' => $cart_id]);
-
-        // Optionally update totals
-        $stmtUpdate = $this->db->prepare("
-            UPDATE carts
-            SET sub_total = :sub_total,
-                total = :total,
-                option_type = :option_type
-            WHERE cart_id = :cart_id
-        ");
-        $stmtUpdate->execute([
-            ':sub_total'  => $sub_total,
-            ':total'      => $sub_total,
-            ':option_type'=> $option_type,
-            ':cart_id'    => $cart_id
+        $this->db->prepare("DELETE FROM cart_items WHERE cart_id = :cart_id")
+            ->execute([':cart_id' => $cart_id]);
+        $this->db->prepare("
+            UPDATE carts 
+            SET sub_total = :sub, total = :total, option_type = :opt 
+            WHERE cart_id = :cid
+        ")->execute([
+            ':sub' => $sub_total,
+            ':total' => $sub_total,
+            ':opt' => $option_type,
+            ':cid' => $cart_id
         ]);
-
     } else {
-        // 5️⃣ Create a new cart if none exists
-        $stmtNewCart = $this->db->prepare("
-            INSERT INTO carts (user_id, session_id, option_type, sub_total, total)
-            VALUES (:user_id, :session_id, :option_type, :sub_total, :total)
-        ");
-        $stmtNewCart->execute([
-            ':user_id'    => $user_id,
-            ':session_id' => $session_id,
-            ':option_type'=> $option_type,
-            ':sub_total'  => $sub_total,
-            ':total'      => $sub_total
+        $this->db->prepare("
+            INSERT INTO carts (user_id, session_id, option_type, sub_total, total) 
+            VALUES (:uid, :sid, :opt, :sub, :total)
+        ")->execute([
+            ':uid' => $user_id,
+            ':sid' => $session_id,
+            ':opt' => $option_type,
+            ':sub' => $sub_total,
+            ':total' => $sub_total
         ]);
         $cart_id = $this->db->lastInsertId();
     }
 
-    // 6️⃣ Add the reorder items to the (clean) cart
-    $stmtItem = $this->db->prepare("
+    // 6) Insert available products into cart_items
+    $stmtInsert = $this->db->prepare("
         INSERT INTO cart_items (cart_id, product_id, quantity, size, flavor_ids)
         VALUES (:cart_id, :product_id, :quantity, :size, :flavor_ids)
     ");
-
-    foreach ($products as $item) {
-        $stmtItem->execute([
-            ':cart_id'    => $cart_id,
-            ':product_id' => $item['product_id'],
-            ':quantity'   => $item['quantity'],
-            ':size'       => $item['size'] ?? null,
-            ':flavor_ids' => $item['flavor_ids'] ?? null
+    foreach ($availableProducts as $ap) {
+        $stmtInsert->execute([
+            ':cart_id' => $cart_id,
+            ':product_id' => $ap['product_id'],
+            ':quantity' => $ap['quantity'],
+            ':size' => $ap['size'] ?? null,
+            ':flavor_ids' => $ap['flavor_ids'] ?? null
         ]);
     }
 
+    // 7) Return with proper status
+    return [
+        'success' => $success,
+        'message' => $message,
+        'availableCount' => $availableCount,
+        'totalItems' => $totalItems
+    ];
 }
 
+
+
+
+public function loadFlavors() {
+    $stmt = $this->db->prepare("SELECT * FROM product_flavors");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function loadSizes() {
+    $stmt = $this->db->prepare("SELECT * FROM drink_size");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function getReviewMessage($orderNumber)
+{
+    $sql = "SELECT message 
+            FROM inbox 
+            WHERE subject = :subject 
+            LIMIT 1";
+
+    $stmt = $this->db->prepare($sql);
+    $subject = "Order Review #{$orderNumber}";
+    $stmt->execute(['subject' => $subject]);
+
+    return $stmt->fetchColumn(); // returns message or false if none
+}
 
 
     }

@@ -6,7 +6,8 @@
 */
 
 :root{
-  --header-height: 56px;
+  --header-height: 75px;
+  --accent-themed: #a8927b;
   --accent: #ffb347;
   --accent-strong: #ff8b18;
   --muted: #8a8a8a;
@@ -63,7 +64,7 @@
    CATEGORY BAR – CLEAN MOBILE-FIRST STYLE
    ========================================= */
 .category-bar {
-  position: sticky;
+  position: top;
   top: calc(var(--header-height, 65px));
   /* background: #fff; */
   z-index: 50;
@@ -79,6 +80,9 @@
 .category-bar::-webkit-scrollbar {
   display: none; /* hide scroll bar */
 }
+.mobile-bag-footer {
+    display: none;
+  }
 
 .category-bar button {
   flex: 0 0 auto;
@@ -271,4 +275,127 @@ button[role="tab"]{ -webkit-tap-highlight-color: transparent; }
   }
 }
 
+.mobile-category-header {
+  display: none; /* Hidden by default, shown on mobile */
+}
 
+/* =============================
+   MOBILE COMPACT CATEGORY HEADER
+   ============================= */
+@media (max-width: 768px) {
+  /* Hide the original category bar on mobile */
+  .category-bar {
+    display: none !important;
+  }
+
+  /* Container */
+  .mobile-category-header {
+    position: sticky;
+    top: var(--header-height,75px);
+    z-index: 999;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin: 0;
+  }
+
+  /* Scrollable area */
+  .mobile-category-scroll {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    white-space: nowrap;
+    flex: 1;
+    justify-content: space-around;
+  }
+
+  .mobile-category-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Buttons inside scroll area */
+  .mobile-cat-btn {
+    border: none;
+    background: none;
+    color: #333;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 10px 16px;
+    position: relative;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .mobile-cat-btn.active {
+    color: #ffb347;
+  }
+
+  .mobile-cat-btn.active::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 25%;
+    right: 25%;
+    height: 3px;
+    background: #ffb347;
+    border-radius: 3px;
+  }
+
+  /* Arrow buttons */
+  .scroll-btn {
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    color: #ffb347;
+    font-weight: bold;
+    padding: 0 10px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .scroll-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+   .mobile-bag-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    padding: 10px 14px;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .mobile-bag-footer button {
+    width: 100%;
+    max-width: 480px;
+    background: var(--accent-themed, #a8927b);
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 14px 0;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transition: background 0.25s ease, transform 0.15s ease;
+  }
+
+  .mobile-bag-footer button:hover {
+    background: var(--accent-themed, #a8927b);
+    transform: scale(1.02);
+  }
+
+  .mobile-bag-footer button:active {
+    transform: scale(0.98);
+  }
+
+}

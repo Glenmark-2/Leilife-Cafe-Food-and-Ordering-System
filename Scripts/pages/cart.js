@@ -201,19 +201,92 @@ async function removeItem(index) {
 }
 document.addEventListener("DOMContentLoaded", () => {
     if (window.currentPage === "checkout-page") {
-        // hide all texts inside second-div
         const contents = document.getElementsByClassName("second-div-content");
-        Array.from(contents).forEach(el => {
-            el.style.display = "none";
-        });
-
-        // hide the checkout button wrapper too
+        Array.from(contents).forEach(el => (el.style.display = "none"));
         const checkoutWrapper = document.querySelector(".checkout-wrapper");
-        if (checkoutWrapper) {
-            checkoutWrapper.style.display = "none";
-        }
+        if (checkoutWrapper) checkoutWrapper.style.display = "none";
     }
+
+    const cartModal = document.getElementById('cartModal');
+    if (!cartModal) return;
+
+    let startY = 0, currentY = 0, dragging = false;
+    let isAnimating = false;
+    let hasClosed = false;
+
+    const resetPosition = () => {
+        cartModal.style.transition = 'none';
+        cartModal.style.transform = 'translateY(0)';
+    };
+
+    const onTouchStart = (e) => {
+        if (isAnimating) return;
+        startY = e.touches[0].clientY;
+        dragging = true;
+        hasClosed = false;
+        cartModal.style.transition = 'none';
+    };
+
+    const onTouchMove = (e) => {
+        if (!dragging) return;
+        currentY = e.touches[0].clientY;
+        const diff = currentY - startY;
+        if (diff > 0) {
+            cartModal.style.transform = `translateY(${diff}px)`;
+        }
+    };
+
+    const onTouchEnd = () => {
+        if (!dragging) return;
+        dragging = false;
+        isAnimating = true;
+        const diff = currentY - startY;
+
+        cartModal.style.transition = 'transform 0.25s ease-out';
+
+        if (diff > 120) {
+            hasClosed = true;
+            // Slide down
+            cartModal.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+                cartModal.classList.remove('show');
+                isAnimating = false;
+                // Delay reset until it's *hidden* fully
+                requestAnimationFrame(() => {
+                    setTimeout(resetPosition, 100);
+                });
+            }, 250);
+        } else {
+            // Snap back up
+            cartModal.style.transform = 'translateY(0)';
+            setTimeout(() => (isAnimating = false), 250);
+        }
+    };
+
+    // 🔄 Reset transform properly when the modal reopens
+    const observer = new MutationObserver(() => {
+        if (cartModal.classList.contains('show') && !hasClosed) {
+            // Wait a tick to ensure styles reapply correctly
+            requestAnimationFrame(() => resetPosition());
+        }
+    });
+    observer.observe(cartModal, { attributes: true, attributeFilter: ['class'] });
+
+    cartModal.addEventListener('touchstart', onTouchStart);
+    cartModal.addEventListener('touchmove', onTouchMove);
+    cartModal.addEventListener('touchend', onTouchEnd);
 });
+
+function openCart() {
+  document.getElementById('cartModal').classList.add('show');
+  document.body.classList.add('cart-open');
+}
+
+function closeCart() {
+  document.getElementById('cartModal').classList.remove('show');
+  document.body.classList.remove('cart-open');
+}
+
 
 function toggleCheckoutButton() {
     const checkoutBtn = document.getElementById("check-out");

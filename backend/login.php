@@ -61,11 +61,12 @@ try {
             $_SESSION['admin_name']  = $admin['full_name'];
             $_SESSION['admin_email'] = $admin['email'];
             $_SESSION['show_welcome'] = true;
-
             echo json_encode([
                 "success"  => true,
                 "redirect" => "/Leilife/public/admin.php?page=dashboard"
             ]);
+            // Trigger sentiment processor silently (non-blocking)
+            @exec("C:\\xampp\\php\\php.exe " . __DIR__ . "\\sentiment_cron.php > NUL 2>&1 &");
             exit;
         }
     }

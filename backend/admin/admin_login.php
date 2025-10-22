@@ -31,7 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['admin_name'] = $admin['full_name'];
             $_SESSION['admin_email'] = $admin['email'];
             $_SESSION['show_welcome'] = true;
-
+            // Trigger sentiment processor silently (non-blocking)
+            @exec("C:\\xampp\\php\\php.exe " . __DIR__ . "\\sentiment_cron.php > NUL 2>&1 &");
             header('Location: /leilife/public/admin.php?page=dashboard');
             exit;
         }

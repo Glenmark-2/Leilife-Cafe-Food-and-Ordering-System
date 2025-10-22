@@ -4,6 +4,9 @@ $cart = $_SESSION['cart'] ?? [];
 ?>
 
 <div id="cart-box">
+    <div class="cart-drag-handle">
+        <div class="cart-drag-line"></div>
+    </div>
     <div class="inside-div" id="first-div">
         <div id="top-div">
             <img src="../public/assests/motorbike.png" alt="motor" id="motor">
@@ -13,7 +16,6 @@ $cart = $_SESSION['cart'] ?? [];
             echo createButton(25, 60, "Change", "change", 10);
             ?>
         </div>
-
         <h3>My Cart</h3>
         <div id="mid-div"></div>
     </div>

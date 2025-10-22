@@ -3,7 +3,6 @@
 include "../components/buttonTemplate.php";
 $appData->loadCategories();
 $appData->adminloadProducts(false);
-include '../components/order_button.php';
 ?>
 <!-- Yellow Pull-to-Reveal Header (kept) -->
 <div class="menu-header" id="menuHeader">
@@ -37,6 +36,25 @@ include '../components/order_button.php';
     }
     ?>
   </div>
+    <!-- Compact Mobile Category Header -->
+<div class="mobile-category-header" id="mobileCategoryHeader">
+  <button class="scroll-btn left" id="scrollLeftBtn">&#10094;</button>
+  <div class="mobile-category-scroll" id="mobileCategoryScroll">
+    <?php
+    $mainCategories = [];
+    foreach ($appData->categories as $cat) {
+      $mainCatName = $cat['main_category_name'] ?? '';
+      if ($mainCatName && !in_array($mainCatName, $mainCategories)) {
+        $mainCategories[] = $mainCatName;
+        echo "<button class='mobile-cat-btn' data-category='$mainCatName'>$mainCatName</button>";
+      }
+    }
+    ?>
+  </div>
+  <button class="scroll-btn right" id="scrollRightBtn">&#10095;</button>
+</div>
+
+
 
   <!-- Subcategories & Products -->
   <?php foreach ($appData->categories as $cat): ?>
@@ -71,278 +89,190 @@ include '../components/order_button.php';
     </div>
   <?php endforeach; ?>
 </div>
+<?php include '../components/order_button.php'; ?>
+
+<!-- Mobile Floating "View My Bag" Button -->
+<div class="mobile-bag-footer">
+  <button id="mobileBagButton">View my bag</button>
+</div>
+
 <script>
-/* Combined enhancement script:
-   - category tab keyboard nav & aria
-   - scroll-spy highlights
-   - smooth scroll on click
-   - preserves your pull-to-refresh behavior
-*/
 document.addEventListener('DOMContentLoaded', () => {
   const catBar = document.getElementById('categoryButtons');
-  const catButtons = Array.from(catBar ? catBar.querySelectorAll('button[data-category]') : []);
+  const catButtons = Array.from(catBar?.querySelectorAll('button[data-category]') || []);
   const sections = Array.from(document.querySelectorAll('.category-section'));
+  const scrollContainer = document.getElementById('mobileCategoryScroll');
+  const leftBtn = document.getElementById('scrollLeftBtn');
+  const rightBtn = document.getElementById('scrollRightBtn');
+  const mobileButtons = Array.from(scrollContainer?.querySelectorAll('.mobile-cat-btn') || []);
 
-  catButtons.forEach((btn, idx) => {
-    btn.setAttribute('role', 'tab');
-    btn.setAttribute('aria-selected', 'false');
-    btn.setAttribute('tabindex', idx === 0 ? '0' : '-1');
-  });
+  /* --- HELPER FUNCTIONS --- */
+  const headerOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 56;
 
-  (function showDefaultMainCategory() {
-    if (!catButtons.length) return;
-    const defaultMain = catButtons[0].dataset.category || '';
-    if (defaultMain) {
-      sections.forEach(s => {
-        s.style.display = (s.dataset.mainCategory === defaultMain) ? '' : 'none';
-      });
-      setActiveButton(catButtons[0], false);
-    }
-  })();
-
-  function setActiveButton(btn, focus = true) {
-    catButtons.forEach(b => {
-      b.classList.toggle('active', b === btn);
-      b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
-      b.setAttribute('tabindex', b === btn ? '0' : '-1');
+  function setActiveCategory(name) {
+    if (!name) return;
+    [...catButtons, ...mobileButtons].forEach(btn => {
+      const match = btn.dataset.category?.trim() === name.trim();
+      btn.classList.toggle('active', match);
+      if (btn.hasAttribute('aria-selected'))
+        btn.setAttribute('aria-selected', match ? 'true' : 'false');
     });
-    if (focus) try { btn.focus({preventScroll: true}); } catch(e){}
   }
 
+  function showCategory(name) {
+    sections.forEach(s => s.style.display = s.dataset.mainCategory === name ? '' : 'none');
+  }
+
+  function scrollToCategory(name) {
+    const target = sections.find(s => s.dataset.mainCategory === name);
+    if (!target) return;
+    const top = target.getBoundingClientRect().top + window.scrollY - (headerOffset + 8);
+    window.scrollTo({ top, behavior: 'smooth' });
+  }
+
+  /* --- INITIALIZE MAIN CATEGORIES --- */
+  catButtons.forEach((btn, i) => {
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-selected', 'false');
+    btn.setAttribute('tabindex', i === 0 ? '0' : '-1');
+  });
+
+  if (catButtons.length) {
+    const first = catButtons[0];
+    showCategory(first.dataset.category);
+    setActiveCategory(first.dataset.category);
+  }
+
+  /* --- MAIN BUTTON EVENTS --- */
   catButtons.forEach(btn => {
-    btn.addEventListener('click', (ev) => {
-      ev.preventDefault();
-      const main = btn.dataset.category || '';
-      if (!main) return;
-      sections.forEach(s => { s.style.display = (s.dataset.mainCategory === main) ? '' : 'none'; });
-      setActiveButton(btn, false);
-      const target = sections.find(s => s.dataset.mainCategory === main);
-      if (target) {
-        const headerOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 56;
-        const top = target.getBoundingClientRect().top + window.scrollY - (headerOffset + 8);
-        window.scrollTo({ top, behavior: 'smooth' });
-      }
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      const cat = btn.dataset.category;
+      showCategory(cat);
+      setActiveCategory(cat);
+      scrollToCategory(cat);
     });
 
-    btn.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
+    btn.addEventListener('keydown', e => {
+      if (['Enter', ' '].includes(e.key)) {
         e.preventDefault();
         btn.click();
       }
     });
   });
 
-  if (catBar) {
-    catBar.addEventListener('keydown', (e) => {
-      const activeIndex = catButtons.findIndex(b => b.getAttribute('tabindex') === '0');
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        const next = catButtons[Math.min(catButtons.length - 1, Math.max(0, activeIndex + 1))];
-        if (next) setActiveButton(next);
-        next?.scrollIntoView({ inline: 'center', behavior: 'smooth' });
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        const prev = catButtons[Math.max(0, activeIndex - 1)];
-        if (prev) setActiveButton(prev);
-        prev?.scrollIntoView({ inline: 'center', behavior: 'smooth' });
-      } else if (e.key === 'Home') {
-        e.preventDefault();
-        setActiveButton(catButtons[0]);
-        catButtons[0].scrollIntoView({ inline: 'center', behavior: 'smooth' });
-      } else if (e.key === 'End') {
-        e.preventDefault();
-        setActiveButton(catButtons[catButtons.length - 1]);
-        catButtons[catButtons.length - 1].scrollIntoView({ inline: 'center', behavior: 'smooth' });
-      }
-    });
-  }
+  /* --- KEYBOARD NAVIGATION --- */
+  catBar?.addEventListener('keydown', e => {
+    const activeIdx = catButtons.findIndex(b => b.classList.contains('active'));
+    const move = dir => {
+      const next = catButtons[Math.min(catButtons.length - 1, Math.max(0, activeIdx + dir))];
+      next?.focus();
+      next?.click();
+      next?.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+    };
+    if (e.key === 'ArrowRight') { e.preventDefault(); move(1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); move(-1); }
+    if (e.key === 'Home') { e.preventDefault(); catButtons[0]?.click(); }
+    if (e.key === 'End') { e.preventDefault(); catButtons.at(-1)?.click(); }
+  });
 
+  /* --- SCROLL SPY --- */
   if ('IntersectionObserver' in window && sections.length) {
-    const options = { root: null, rootMargin: '-40% 0px -55% 0px', threshold: 0 };
-    const io = new IntersectionObserver((entries) => {
-      const visible = entries.filter(e => e.isIntersecting).sort((a,b) => {
-        return (b.intersectionRect.height * b.intersectionRect.width) - (a.intersectionRect.height * a.intersectionRect.width);
-      });
-      if (visible.length) {
-        const main = visible[0].target.dataset.mainCategory;
-        const btn = catButtons.find(b => b.dataset.category === main);
-        if (btn) setActiveButton(btn, false);
-      }
-    }, options);
+    const io = new IntersectionObserver(entries => {
+      const visible = entries.filter(e => e.isIntersecting)
+        .sort((a,b) => (b.intersectionRect.height*b.intersectionRect.width) - (a.intersectionRect.height*a.intersectionRect.width));
+      if (visible[0]) setActiveCategory(visible[0].target.dataset.mainCategory);
+    }, { rootMargin: '-40% 0px -55% 0px' });
     sections.forEach(s => io.observe(s));
-  } else {
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const headerOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 56;
-        let closest = null;
-        let closestDelta = Infinity;
-        sections.forEach(s => {
-          const rect = s.getBoundingClientRect();
-          const delta = Math.abs(rect.top - headerOffset - 8);
-          if (delta < closestDelta) { closestDelta = delta; closest = s; }
-        });
-        if (closest) {
-          const main = closest.dataset.mainCategory;
-          const btn = catButtons.find(b => b.dataset.category === main);
-          if (btn) setActiveButton(btn, false);
-        }
-        ticking = false;
-      });
-    }, { passive: true });
   }
 
+  /* --- PULL TO REFRESH --- */
   (function () {
     const header = document.getElementById('menuHeader');
     const sheet = document.getElementById('menuSheet');
     if (!header || !sheet) return;
-    const THRESHOLD = 100;
-    const MAX_PULL = 160;
-    let startY = 0; let pulling = false; let pointerId = null;
+    const THRESHOLD = 100, MAX_PULL = 160;
+    let startY = 0, pulling = false, pointerId = null;
 
-    function applyTransform(y, immediate = false) {
-      const t = immediate ? 'none' : 'transform 0.35s ease';
-      header.style.transition = t; sheet.style.transition = t;
-      header.style.transform = `translateY(${y}px)`; sheet.style.transform = `translateY(${y}px)`;
-    }
-    function currentTranslateY(elem) {
-      const s = getComputedStyle(elem).transform;
+    const applyTransform = (y, instant=false) => {
+      const t = instant ? 'none' : 'transform 0.35s ease';
+      header.style.transition = sheet.style.transition = t;
+      header.style.transform = sheet.style.transform = `translateY(${y}px)`;
+    };
+    const currentY = el => {
+      const s = getComputedStyle(el).transform;
       if (!s || s === 'none') return 0;
-      const m = new DOMMatrixReadOnly(s);
-      return m.m42;
-    }
-    function setPull(distance) {
-      const ratio = Math.min(1, distance / MAX_PULL);
-      const eased = MAX_PULL * (1 - Math.pow(1 - ratio, 1.3));
-      const pullY = Math.min(MAX_PULL, eased);
-      applyTransform(pullY, true);
-    }
-    function reset(animated = true) { applyTransform(0, !animated); }
-    function triggerRefresh() { location.reload(true); }
+      return new DOMMatrixReadOnly(s).m42;
+    };
+    const reset = (anim=true) => applyTransform(0, !anim);
+    const triggerRefresh = () => location.reload(true);
 
-    window.addEventListener('touchstart', (e) => {
-      if (window.scrollY <= 0 && !pulling) { startY = e.touches[0].clientY; pulling = true; }
+    window.addEventListener('touchstart', e => {
+      if (window.scrollY <= 0) { startY = e.touches[0].clientY; pulling = true; }
     }, { passive: true });
 
-    window.addEventListener('touchmove', (e) => {
+    window.addEventListener('touchmove', e => {
       if (!pulling) return;
-      const distance = e.touches[0].clientY - startY;
-      if (distance > 0 && window.scrollY <= 0) {
-        e.preventDefault();
-        setPull(distance * 0.6);
-      }
+      const d = e.touches[0].clientY - startY;
+      if (d > 0 && window.scrollY <= 0) { e.preventDefault(); applyTransform(Math.min(MAX_PULL, d * 0.6), true); }
     }, { passive: false });
 
     window.addEventListener('touchend', () => {
       if (!pulling) return; pulling = false;
-      const currentY = currentTranslateY(header);
-      if (currentY >= THRESHOLD) triggerRefresh(); else reset(true);
+      currentY(header) >= THRESHOLD ? triggerRefresh() : reset();
     });
 
-    window.addEventListener('pointerdown', (e) => {
-      if (e.isPrimary && window.scrollY <= 0) { pointerId = e.pointerId; startY = e.clientY; pulling = true; try { e.target.setPointerCapture(pointerId); } catch(_){} }
-    }, { passive: true });
-
-    window.addEventListener('pointermove', (e) => {
-      if (!pulling || e.pointerId !== pointerId) return;
-      const distance = e.clientY - startY;
-      if (distance > 0 && window.scrollY <= 0) { e.preventDefault(); setPull(distance * 0.6); }
-    }, { passive: false });
-
-    window.addEventListener('pointerup', (e) => {
-      if (!pulling || e.pointerId !== pointerId) return; pulling = false; pointerId = null;
-      const currentY = currentTranslateY(header);
-      if (currentY >= THRESHOLD) triggerRefresh(); else reset(true);
-    });
-
-    window.addEventListener('scroll', () => { if (currentTranslateY(header) > 0 && window.scrollY > 0) reset(true); }, { passive: true });
-    window.addEventListener('resize', () => reset(true));
+    window.addEventListener('scroll', () => { if (currentY(header) > 0 && window.scrollY > 0) reset(); }, { passive: true });
   })();
 
-});
-// ====== SMART FLOATING CATEGORY BAR BEHAVIOR ======
-(function() {
-  const catBar = document.querySelector('.category-bar');
-  if (!catBar) return;
+  /* --- MOBILE CATEGORY BAR --- */
+  if (scrollContainer) {
+    const updateArrows = () => {
+      leftBtn.disabled = scrollContainer.scrollLeft <= 0;
+      rightBtn.disabled = scrollContainer.scrollLeft + scrollContainer.clientWidth >= scrollContainer.scrollWidth - 10;
+    };
 
-  let lastScrollY = window.scrollY;
-  let ticking = false;
-  let isFloating = false;
+    leftBtn?.addEventListener('click', () => scrollContainer.scrollBy({ left: -150, behavior: 'smooth' }));
+    rightBtn?.addEventListener('click', () => scrollContainer.scrollBy({ left: 150, behavior: 'smooth' }));
+    scrollContainer.addEventListener('scroll', updateArrows, { passive: true });
+    updateArrows();
 
-  function updateBar() {
-    const currentY = window.scrollY;
-    const scrollingDown = currentY > lastScrollY && currentY > 80;
-    const scrollingUp = currentY < lastScrollY - 10;
+    // Link mobile buttons to main
+    mobileButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const name = btn.dataset.category;
+        const main = catButtons.find(b => b.dataset.category === name);
+        if (main) main.click();
+        else { setActiveCategory(name); showCategory(name); scrollToCategory(name); }
+      });
+    });
 
-    if (scrollingDown && !isFloating) {
-      catBar.classList.add('floating');
-      isFloating = true;
-    } else if (scrollingUp && isFloating && currentY < 80) {
-      catBar.classList.remove('floating');
-      isFloating = false;
-    }
-
-    lastScrollY = currentY;
-    ticking = false;
+    // Sync when main clicked
+    catButtons.forEach(btn => {
+      btn.addEventListener('click', () => setActiveCategory(btn.dataset.category));
+    });
   }
+   const mobileBagButton = document.getElementById('mobileBagButton');
+  const cartModal = document.getElementById('cartModal');
 
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      window.requestAnimationFrame(updateBar);
-      ticking = true;
-    }
-  }, { passive: true });
-})();
-// ============================
-// MOBILE CATEGORY BAR SCROLL BEHAVIOR
-// ============================
-(function() {
-  const catBar = document.querySelector('.category-bar');
-  if (!catBar) return;
+  if (mobileBagButton && cartModal) {
+    mobileBagButton.addEventListener('click', () => {
+      // Toggle show class (same behavior as desktop)
+      cartModal.classList.toggle('show');
+    });
 
-  let lastScrollY = window.scrollY;
-  let ticking = false;
-  let hidden = false;
-
-  function updateBar() {
-    const currentY = window.scrollY;
-    const delta = currentY - lastScrollY;
-
-    // Apply only on mobile view
-    if (window.innerWidth <= 768) {
-      if (delta > 10 && currentY > 80 && !hidden) {
-        // scrolling down -> hide
-        catBar.classList.add('hide-on-scroll');
-        hidden = true;
-      } else if (delta < -10 && hidden) {
-        // scrolling up -> show
-        catBar.classList.remove('hide-on-scroll');
-        hidden = false;
+    // Optional: allow modal close by clicking outside or pressing ESC
+    cartModal.addEventListener('click', e => {
+      if (e.target === cartModal) {
+        cartModal.classList.remove('show');
       }
-    } else {
-      // reset on larger screens
-      catBar.classList.remove('hide-on-scroll');
-      hidden = false;
-    }
-
-    lastScrollY = currentY;
-    ticking = false;
-  }
-
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      window.requestAnimationFrame(updateBar);
-      ticking = true;
-    }
-  }, { passive: true });
-
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) {
-      catBar.classList.remove('hide-on-scroll');
-    }
-  });
-})();
-
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        cartModal.classList.remove('show');
+      }
+    });
+  } 
+});
 </script>
+

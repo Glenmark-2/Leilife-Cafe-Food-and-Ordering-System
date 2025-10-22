@@ -141,22 +141,107 @@ body.cart-open #pageContent {
 /* -------------------------
    Mobile: full-width, full-height "page-like"
    ------------------------- */
+/* -------------------------
+   Mobile: full-width, full-height "page-like"
+   ------------------------- */
 @media (max-width: 768px) {
   #cartModal {
-    top: var(--nav-h, 56px); /* keep below header; JS sets --nav-h */
+    position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
+
+    /* 🟢 Add space at top safely */
+    max-height: calc(100vh - 40px); /* leaves 40px gap above modal */
+    margin-top: 20px; /* visible gap, won't overflow since max-height used */
+
     width: 100%;
-    max-width: none;
-    height: calc(100vh - var(--nav-h, 56px) - var(--footer-h, 0px)); /* between header & footer */
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -3px 12px rgba(0,0,0,0.15);
+    overflow: hidden;
+    transform: translateY(0);
+    transition: transform 0.25s ease-out;
+    touch-action: none; /* prevent scroll conflict during drag */
   }
 
-  /* totals still pinned */
-  #second-div { position: sticky; bottom: 0; z-index: 1001; }
-  #mid-div { padding-bottom: 80px; } /* avoid overlap with sticky totals */
+  /* Ensure it doesn't go under header/footer if JS sets those vars */
+  #cartModal.show {
+    max-height: calc(100vh - var(--nav-h, 56px) - var(--footer-h, 0px) - 20px);
+    max-width: 100%;
+  }
+
+  /* Totals pinned */
+  #second-div {
+    position: sticky;
+    bottom: 0;
+    z-index: 1001;
+  }
+
+  #mid-div {
+    padding-bottom: 80px; /* avoid overlap with sticky totals */
+  }
+
+  #inside-div {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+
+  /* Top drag handle */
+  .cart-drag-handle {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
+    padding-bottom: 4px;
+  }
+
+  .cart-drag-line {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: #ccc;
+    position: relative;
+  }
+
+  /* Optional: make it look like 3 lines */
+  .cart-drag-line::before,
+  .cart-drag-line::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: #ccc;
+  }
+  .cart-drag-line::before { top: -6px; }
+  .cart-drag-line::after { top: 6px; }
 }
 
-#product-name{
+#product-name {
   margin: 0 5px 0 10px;
 }
+body.cart-open {
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Ensure modal actually captures all touch events */
+#cartModal {
+  pointer-events: auto; /* modal receives touch/clicks */
+}
+
+#cartModal.show {
+  pointer-events: auto;
+}
+
+/* Optional overlay for visual dim + blocking touches */
+#cartOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 999; /* below cartModal but above content */
+}
+

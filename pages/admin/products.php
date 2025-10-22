@@ -17,6 +17,8 @@ $appData->adminloadProducts($archived);
 $appData->loadCategories();
 $flavors = $appData->loadFlavors();
 $sizes = $appData->loadSizes();
+$flavorSets = $appData->getFlavorsBySet();
+$mainCategories = $appData->mainCategories();
 
 
 $subCategories = array_unique(
@@ -24,6 +26,79 @@ $subCategories = array_unique(
 );
 $subCategories = array_values($subCategories);
 ?>
+<style>
+    .dropdown {
+        position: relative;
+        display: inline-block;
+        width: 220px;
+        margin: 5px 0;
+    }
+
+    .dropdown-button {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        background: #fff;
+        text-align: left;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        border: 1px solid #ccc;
+        background: #fff;
+        z-index: 1000;
+    }
+
+    .dropdown-item {
+        padding: 8px;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .dropdown-item:hover {
+        background: #f0f0f0;
+    }
+
+    /* Submenu for flavor names */
+    .submenu {
+        display: none;
+        position: absolute;
+        left: 100%;
+        top: 0;
+        border: 1px solid #ccc;
+        background: #fff;
+        white-space: nowrap;
+        z-index: 1001;
+    }
+
+    .dropdown-item:hover .submenu {
+        display: block;
+    }
+
+    .submenu div {
+        padding: 5px 10px;
+        color: #555;
+        pointer-events: none;
+    }
+
+    #new-flavors input,
+    #new-category-input {
+        display: block;
+        margin: 5px 0;
+        width: 95%;
+        padding: 5px;
+        border: 1px solid #ccc;
+    }
+
+    #new-flavors button {
+        margin-bottom: 5px;
+    }
+</style>
 <div id="first-row">
     <h2>Products</h2>
     <div>
@@ -32,6 +107,7 @@ $subCategories = array_values($subCategories);
 
     </div>
 </div>
+
 
 
 <div id="second-row">
@@ -132,7 +208,6 @@ $subCategories = array_values($subCategories);
 
                         <td class="actions-cell">
                             <button id="editBtn" class="editBtn" type="button">Edit</button>
-                            <button id="viewBtn" class="viewBtn" type="button">View</button>
                             <img src="public/assests/archive.png" alt="Archive" class="archive-icon">
                         </td>
                     </tr>
@@ -169,15 +244,62 @@ $subCategories = array_values($subCategories);
                 </div>
 
                 <div class="form-row">
-                    <label for="category">Category:</label>
-                    <select name="category_id" id="add-category" required>
-                        <option value="">Select category</option>
-                        <?php foreach ($appData->categories as $cat): ?>
-                            <option value="<?= (int)$cat['category_id'] ?>">
-                                <?= htmlspecialchars($cat['category_name']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <label>Category:</label>
+                    <!-- Main Category Dropdown -->
+                    <div class="dropdown" id="main-category-dropdown">
+                        <div class="dropdown-button">-- Choose Main Category --</div>
+                        <div class="dropdown-content">
+                            <div class="dropdown-item" id="add-new-main-category-btn">+ Add new main category</div>
+                            <?php foreach ($mainCategories as $cat): ?>
+                                <div class="dropdown-item" data-id="<?= (int)$cat['main_category_id'] ?>">
+                                    <?= htmlspecialchars($cat['main_category_name']) ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <input type="text" id="new-main-category-input" placeholder="Enter new main category name" style="display: none;">
+                    </div>
+
+                    <!-- Subcategory Dropdown -->
+                    <div class="dropdown" id="subcategory-dropdown" style="margin-top: 5px;">
+                        <div class="dropdown-button">-- Choose Category --</div>
+                        <div class="dropdown-content">
+                            <div class="dropdown-item" id="add-new-subcategory-btn">+ Add new category</div>
+                            <?php foreach ($appData->categories as $cat): ?>
+                                <div class="dropdown-item" data-id="<?= (int)$cat['category_id'] ?>">
+                                    <?= htmlspecialchars($cat['category_name']) ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <input type="text" id="new-subcategory-input" placeholder="Enter new category name" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label><input type="checkbox" id="has-flavor"> This product has flavors</label>
+                </div>
+
+                <div class="form-row">
+                    <div class="dropdown" id="flavor-dropdown" style="display:none;">
+                        <div class="dropdown-button">-- Choose Flavor Set --</div>
+                        <div class="dropdown-content">
+                            <?php foreach ($flavorSets as $set): ?>
+                                <div class="dropdown-item" data-id="<?= $set['flavor_set_id'] ?>">
+                                    Flavor Set <?= $set['flavor_set_id'] ?>
+                                    <div class="submenu">
+                                        <?php foreach ($set['flavor_names'] as $flavor): ?>
+                                            <div><?= htmlspecialchars($flavor) ?></div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                            <div class="dropdown-item" id="add-new-flavor-btn">+ Add new flavor set</div>
+                        </div>
+                    </div>
+
+                    <div id="new-flavors" style="display:none;">
+                        <input type="text" class="flavor-input" placeholder="Enter flavor name">
+                        <button type="button" id="add-flavor-input">+ Add another flavor</button>
+                    </div>
                 </div>
 
                 <div class="form-row">
@@ -193,6 +315,237 @@ $subCategories = array_values($subCategories);
         </div>
     </div>
 </div>
+
+<script>
+    /* ----- Flavors ----- */
+    const hasFlavorCheckbox = document.getElementById("has-flavor");
+    const flavorDropdown = document.getElementById("flavor-dropdown");
+    const flavorButton = flavorDropdown.querySelector('.dropdown-button');
+    const flavorContent = flavorDropdown.querySelector('.dropdown-content');
+    const addNewFlavorBtn = document.getElementById("add-new-flavor-btn");
+    const newFlavorsDiv = document.getElementById("new-flavors");
+    const addFlavorInputBtn = document.getElementById("add-flavor-input");
+    let selectedFlavorSetId = null;
+
+    hasFlavorCheckbox.addEventListener('change', () => {
+        flavorDropdown.style.display = hasFlavorCheckbox.checked ? 'inline-block' : 'none';
+        if (!hasFlavorCheckbox.checked) {
+            newFlavorsDiv.style.display = 'none';
+            flavorButton.textContent = "-- Choose Flavor Set --";
+            selectedFlavorSetId = null;
+        }
+    });
+
+    flavorButton.addEventListener('click', () => {
+        flavorContent.style.display = flavorContent.style.display === 'block' ? 'none' : 'block';
+    });
+
+    document.querySelectorAll('#flavor-dropdown .dropdown-item').forEach(item => {
+        if (item.id === 'add-new-flavor-btn') return;
+        item.addEventListener('click', (e) => {
+            if (e.target.closest('.submenu')) return;
+            selectedFlavorSetId = item.getAttribute('data-id');
+            flavorButton.textContent = item.firstChild.textContent.trim();
+            flavorContent.style.display = 'none';
+            newFlavorsDiv.style.display = 'none';
+        });
+    });
+
+    addNewFlavorBtn.addEventListener('click', () => {
+        selectedFlavorSetId = null;
+        flavorButton.textContent = '+ Add new flavor set';
+        newFlavorsDiv.style.display = 'block';
+        newFlavorsDiv.querySelectorAll('.flavor-input').forEach((input, i) => i > 0 ? input.remove() : input.value = '');
+        flavorContent.style.display = 'none';
+    });
+
+    addFlavorInputBtn.addEventListener('click', () => {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "flavor-input";
+        input.placeholder = "Enter flavor name";
+        newFlavorsDiv.insertBefore(input, addFlavorInputBtn);
+    });
+
+    /* ----- Main Category ----- */
+    const mainDropdown = document.getElementById("main-category-dropdown");
+    const mainButton = mainDropdown.querySelector('.dropdown-button');
+    const mainContent = mainDropdown.querySelector('.dropdown-content');
+    const addNewMainBtn = document.getElementById("add-new-main-category-btn");
+    const newMainInput = document.getElementById("new-main-category-input");
+    let selectedMainCategoryId = null;
+
+    mainButton.addEventListener('click', () => {
+        mainContent.style.display = mainContent.style.display === 'block' ? 'none' : 'block';
+    });
+
+    mainContent.querySelectorAll('.dropdown-item[data-id]').forEach(item => {
+        item.addEventListener('click', () => {
+            selectedMainCategoryId = item.getAttribute('data-id');
+            mainButton.textContent = item.textContent;
+            mainContent.style.display = 'none';
+            newMainInput.style.display = 'none';
+        });
+    });
+
+    addNewMainBtn.addEventListener('click', () => {
+        selectedMainCategoryId = null;
+        mainButton.textContent = '+ Add new main category';
+        newMainInput.style.display = 'block';
+        newMainInput.value = '';
+        mainContent.style.display = 'none';
+    });
+
+    /* ----- Subcategory ----- */
+    const subDropdown = document.getElementById("subcategory-dropdown");
+    const subButton = subDropdown.querySelector('.dropdown-button');
+    const subContent = subDropdown.querySelector('.dropdown-content');
+    const addNewSubBtn = document.getElementById("add-new-subcategory-btn");
+    const newSubInput = document.getElementById("new-subcategory-input");
+    let selectedSubCategoryId = null;
+
+    subButton.addEventListener('click', () => {
+        subContent.style.display = subContent.style.display === 'block' ? 'none' : 'block';
+    });
+
+    subContent.querySelectorAll('.dropdown-item[data-id]').forEach(item => {
+        item.addEventListener('click', () => {
+            selectedSubCategoryId = item.getAttribute('data-id');
+            subButton.textContent = item.textContent;
+            subContent.style.display = 'none';
+            newSubInput.style.display = 'none';
+        });
+    });
+
+    addNewSubBtn.addEventListener('click', () => {
+        selectedSubCategoryId = null;
+        subButton.textContent = '+ Add new category';
+        newSubInput.style.display = 'block';
+        newSubInput.value = '';
+        subContent.style.display = 'none';
+    });
+
+    /* ----- Close dropdowns when clicking outside ----- */
+    document.addEventListener('click', e => {
+        if (!flavorDropdown.contains(e.target)) flavorContent.style.display = 'none';
+        if (!mainDropdown.contains(e.target)) mainContent.style.display = 'none';
+        if (!subDropdown.contains(e.target)) subContent.style.display = 'none';
+    });
+
+    /* ----- Add Product AJAX ----- */
+document.getElementById("add").addEventListener("click", () => {
+    const name = document.getElementById("name").value.trim();
+    const price = parseFloat(document.getElementById("price").value.trim());
+    const priceLargeInput = document.getElementById("price_large").value.trim();
+    const priceLarge = priceLargeInput ? parseFloat(priceLargeInput) : null;
+    const status = "Available";
+    const file = document.getElementById("uploadInput").files[0];
+
+    // Name validation
+    if (!name) {
+        showModal("Please enter a product name", "error");
+        return;
+    }
+
+    // Price validation
+    if (isNaN(price) || price <= 0) {
+        showModal("Please enter a valid price", "error");
+        return;
+    }
+
+    // Price large validation
+    if (priceLargeInput && (isNaN(priceLarge) || priceLarge <= 0)) {
+        showModal("Price (Large) must valid if provided", "error");
+        return;
+    }
+
+    // Main Category validation
+    let mainCategory = selectedMainCategoryId || newMainInput.value.trim();
+    if (!mainCategory) {
+        showModal("Please select or enter a main category", "error");
+        return;
+    }
+
+    // Subcategory validation
+    let subCategory = selectedSubCategoryId || newSubInput.value.trim();
+    if (!subCategory) {
+        showModal("Please select or enter a category", "error");
+        return;
+    }
+
+    // Image validation
+    if (!file) {
+        showModal("Please upload a product image", "error");
+        return;
+    }
+
+    // Flavors validation
+    let flavors = null;
+    if (hasFlavorCheckbox.checked) {
+        if (selectedFlavorSetId) {
+            flavors = { existing_flavor_set_id: selectedFlavorSetId };
+        } else {
+            const flavorInputs = Array.from(document.querySelectorAll('.flavor-input'));
+            const flavorNames = flavorInputs.map(f => f.value.trim()).filter(f => f);
+            if (flavorNames.length === 0) {
+                showModal("Please enter at least one flavor", "error");
+                return;
+            }
+            flavors = { new_flavors: flavorNames };
+        }
+    }
+
+    // AJAX FormData
+    const formData = new FormData();
+    formData.append("product_name", name);
+    formData.append("product_price", price);
+    if (priceLargeInput) formData.append("price_large", priceLarge);
+    formData.append("main_category", mainCategory);
+    formData.append("category", subCategory);
+    formData.append("status", status);
+    formData.append("photo", file);
+    if (flavors) formData.append("flavors", JSON.stringify(flavors));
+
+    // Send via fetch
+    fetch(BASE_URL + "backend/admin/add_product.php", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showModal("Product added successfully!", "success");
+            document.getElementById("modal").style.display = "none";
+
+            // Reset form
+            document.getElementById("name").value = "";
+            document.getElementById("price").value = "";
+            document.getElementById("price_large").value = "";
+            newMainInput.value = "";
+            newSubInput.value = "";
+            newMainInput.style.display = 'none';
+            newSubInput.style.display = 'none';
+            mainButton.textContent = "-- Choose Main Category --";
+            subButton.textContent = "-- Choose Category --";
+            selectedMainCategoryId = null;
+            selectedSubCategoryId = null;
+            hasFlavorCheckbox.checked = false;
+            flavorButton.textContent = "-- Choose Flavor Set --";
+            newFlavorsDiv.style.display = 'none';
+            newFlavorsDiv.querySelectorAll('.flavor-input').forEach((input, i) => i > 0 ? input.remove() : input.value = '');
+            selectedFlavorSetId = null;
+            document.getElementById("uploadInput").value = "";
+            document.getElementById("new-product-photo").src = "public/assests/image-43.png";
+
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showModal("Error: " + data.message, "error");
+        }
+    })
+    .catch(err => showModal("Fetch error: " + err.message, "error"));
+});
+
+</script>
 
 <!-- Edit Flavors/Sizes Modal -->
 <div id="flavor-size-modal" class="modal">
@@ -364,11 +717,11 @@ $subCategories = array_values($subCategories);
             });
 
             // Disable ALL view buttons while editing
-            document.querySelectorAll('.viewBtn').forEach(v => {
-                v.disabled = true;
-                v.style.opacity = "0.5";
-                v.style.cursor = "not-allowed";
-            });
+            // document.querySelectorAll('.viewBtn').forEach(v => {
+            //     v.disabled = true;
+            //     v.style.opacity = "0.5";
+            //     v.style.cursor = "not-allowed";
+            // });
 
             const addBtn = document.getElementById("add-product");
             addBtn.disabled = true;
@@ -450,11 +803,11 @@ $subCategories = array_values($subCategories);
             b.style.cursor = "pointer";
         });
 
-        document.querySelectorAll('.viewBtn').forEach(v => {
-            v.disabled = false;
-            v.style.opacity = "1";
-            v.style.cursor = "pointer";
-        });
+        // document.querySelectorAll('.viewBtn').forEach(v => {
+        //     v.disabled = false;
+        //     v.style.opacity = "1";
+        //     v.style.cursor = "pointer";
+        // });
 
         const addBtn = document.getElementById("add-product");
         addBtn.disabled = false;
@@ -478,48 +831,48 @@ $subCategories = array_values($subCategories);
         }
     });
 
-    document.getElementById("add").addEventListener("click", () => {
-        const name = document.getElementById("name").value.trim();
-        const price = document.getElementById("price").value.trim();
-        const priceLarge = document.getElementById("price_large").value.trim();
-        const category = document.getElementById("add-category").value;
-        const status = "Available";
-        const file = document.getElementById("uploadInput").files[0];
+    // document.getElementById("add").addEventListener("click", () => {
+    //     const name = document.getElementById("name").value.trim();
+    //     const price = document.getElementById("price").value.trim();
+    //     const priceLarge = document.getElementById("price_large").value.trim();
+    //     const category = document.getElementById("add-category").value;
+    //     const status = "Available";
+    //     const file = document.getElementById("uploadInput").files[0];
 
-        if (!name || !price || !category) {
-            showModal("Please fill all fields", "error");
-            return;
-        }
+    //     if (!name || !price || !category) {
+    //         showModal("Please fill all fields", "error");
+    //         return;
+    //     }
 
-        const formData = new FormData();
-        formData.append("product_name", name);
-        formData.append("product_price", price);
-        if (priceLarge) formData.append("price_large", priceLarge);
-        formData.append("category_id", category);
-        formData.append("status", status);
-        if (file) formData.append("photo", file);
+    //     const formData = new FormData();
+    //     formData.append("product_name", name);
+    //     formData.append("product_price", price);
+    //     if (priceLarge) formData.append("price_large", priceLarge);
+    //     formData.append("category_id", category);
+    //     formData.append("status", status);
+    //     if (file) formData.append("photo", file);
 
-        fetch(BASE_URL + "backend/admin/add_product.php", {
-                method: "POST",
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showModal("Product added successfully!", "success");
-                    document.getElementById("modal").style.display = "none";
-                    document.getElementById("name").value = "";
-                    document.getElementById("price").value = "";
-                    document.getElementById("add-category").value = "";
-                    document.getElementById("uploadInput").value = "";
-                    document.getElementById("new-product-photo").src = "public/assests/image-43.png";
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    showModal("Error: " + data.message, "error");
-                }
-            })
-            .catch(err => showModal("Fetch error: " + err.message, "error"));
-    });
+    //     fetch(BASE_URL + "backend/admin/add_product.php", {
+    //             method: "POST",
+    //             body: formData
+    //         })
+    //         .then(res => res.json())
+    //         .then(data => {
+    //             if (data.success) {
+    //                 showModal("Product added successfully!", "success");
+    //                 document.getElementById("modal").style.display = "none";
+    //                 document.getElementById("name").value = "";
+    //                 document.getElementById("price").value = "";
+    //                 document.getElementById("add-category").value = "";
+    //                 document.getElementById("uploadInput").value = "";
+    //                 document.getElementById("new-product-photo").src = "public/assests/image-43.png";
+    //                 setTimeout(() => location.reload(), 1000);
+    //             } else {
+    //                 showModal("Error: " + data.message, "error");
+    //             }
+    //         })
+    //         .catch(err => showModal("Fetch error: " + err.message, "error"));
+    // });
 
     // --- Notifications ---
     function showModal(message, type = "success", autoClose = true, duration = 3000) {
@@ -701,9 +1054,9 @@ $subCategories = array_values($subCategories);
     addFlavorBtn.addEventListener('click', () => addRow(flavorsTable));
     addSizeBtn.addEventListener('click', () => addRow(sizesTable));
 
-function addRow(table, id = '', name = '', status = 'Available', isSize = false) {
-    const row = document.createElement('tr');
-    row.innerHTML = `
+    function addRow(table, id = '', name = '', status = 'Available', isSize = false) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
         <td>
             <input type="text" value="${name}" placeholder="Enter name" ${isSize ? 'disabled' : ''}>
         </td>
@@ -714,70 +1067,78 @@ function addRow(table, id = '', name = '', status = 'Available', isSize = false)
             </select>
         </td>
     `;
-    if (id) row.dataset.id = id;
-    table.appendChild(row);
-}
+        if (id) row.dataset.id = id;
+        table.appendChild(row);
+    }
 
 
-function loadFlavorsSizes() {
-    flavorsTable.innerHTML = '';
-    sizesTable.innerHTML = '';
+    function loadFlavorsSizes() {
+        flavorsTable.innerHTML = '';
+        sizesTable.innerHTML = '';
 
-    FLAVORS_DATA.forEach(f => addRow(flavorsTable, f.flavor_id, f.flavor_name, f.status));
-    SIZES_DATA.forEach(s => addRow(sizesTable, s.size_id, s.size_name, s.status, true));
-}
+        FLAVORS_DATA.forEach(f => addRow(flavorsTable, f.flavor_id, f.flavor_name, f.status));
+        SIZES_DATA.forEach(s => addRow(sizesTable, s.size_id, s.size_name, s.status, true));
+    }
 
 
 
-// Save changes (with detailed debugging)
-saveFlavorSizeBtn.addEventListener('click', () => {
-    const flavors = Array.from(flavorsTable.querySelectorAll('tr')).map(row => ({
-        id: row.dataset.id || '',
-        name: row.querySelector('input').value.trim(),
-        status: row.querySelector('select').value
-    }));
+    // Save changes (with detailed debugging)
+    saveFlavorSizeBtn.addEventListener('click', () => {
+        const flavors = Array.from(flavorsTable.querySelectorAll('tr')).map(row => ({
+            id: row.dataset.id || '',
+            name: row.querySelector('input').value.trim(),
+            status: row.querySelector('select').value
+        }));
 
-    const sizes = Array.from(sizesTable.querySelectorAll('tr')).map(row => ({
-        id: row.dataset.id || '',
-        name: row.querySelector('input').value.trim(),
-        status: row.querySelector('select').value
-    }));
+        const sizes = Array.from(sizesTable.querySelectorAll('tr')).map(row => ({
+            id: row.dataset.id || '',
+            name: row.querySelector('input').value.trim(),
+            status: row.querySelector('select').value
+        }));
 
-    console.log('🔹 Sending to backend:', { flavors, sizes });
+        console.log('🔹 Sending to backend:', {
+            flavors,
+            sizes
+        });
 
-fetch(BASE_URL + 'backend/admin/edit_flavors_sizes.php', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ flavors, sizes })
-})
+        fetch(BASE_URL + 'backend/admin/edit_flavors_sizes.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    flavors,
+                    sizes
+                })
+            })
 
-    .then(async (res) => {
-        const text = await res.text(); // get raw text for debugging
-        console.log('🔹 Raw server response:', text);
+            .then(async (res) => {
+                const text = await res.text(); // get raw text for debugging
+                console.log('🔹 Raw server response:', text);
 
-        try {
-            const data = JSON.parse(text);
-            console.log('✅ Parsed JSON:', data);
+                try {
+                    const data = JSON.parse(text);
+                    console.log('✅ Parsed JSON:', data);
 
-            if (data.success) {
-                showModal('Flavors & sizes updated!', 'success');
-                flavorSizeModal.style.display = 'none';
-            } else {
-                showModal(data.message || 'Failed to update flavors/sizes', 'error');
-            }
-        } catch (err) {
-            console.error('❌ JSON parse failed:', err);
-            showModal(
-                'Server did not return valid JSON:\n' + text,
-                'error'
-            );
-        }
-    })
-    .catch(err => {
-        console.error('❌ Fetch error:', err);
-        showModal('Fetch error: ' + err.message, 'error');
+                    if (data.success) {
+                        showModal('Flavors & sizes updated!', 'success');
+                        flavorSizeModal.style.display = 'none';
+                    } else {
+                        showModal(data.message || 'Failed to update flavors/sizes', 'error');
+                    }
+                } catch (err) {
+                    console.error('❌ JSON parse failed:', err);
+                    showModal(
+                        'Server did not return valid JSON:\n' + text,
+                        'error'
+                    );
+                }
+            })
+            .catch(err => {
+                console.error('❌ Fetch error:', err);
+                showModal('Fetch error: ' + err.message, 'error');
+            });
     });
-});
 
 
     // Close modal if clicked outside content

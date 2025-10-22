@@ -5,12 +5,11 @@ require_once __DIR__ . '/../backend/db_script/appData.php';
 
 $productId = $_GET['id'] ?? null;
 if (!$productId) die("⚠️ No product ID provided.");
-
-// Fetch product
 $stmt = $pdo->prepare("
-    SELECT p.product_id, p.category_id, p.product_name, p.product_price, p.price_large,
-           p.status, p.product_picture, c.category_name, c.main_category_name,
-           p.has_flavor, p.has_size
+SELECT p.product_id, p.category_id, p.product_name, p.product_price, p.price_large,
+       p.status, p.product_picture, c.category_name, c.main_category_name,
+       p.has_flavor, p.has_size, p.flavor_set_id
+
     FROM products p
     JOIN categories c ON p.category_id = c.category_id
     WHERE p.product_id = :id AND p.status = 'available'
@@ -19,14 +18,20 @@ $stmt->execute(['id' => $productId]);
 $product = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$product) die("⚠️ Product not found or unavailable.");
 
-// Fetch available flavors
 $flavors = [];
-if ($product['has_flavor'] === '1') {
-    $flavorStmt = $pdo->query("SELECT flavor_id, flavor_name FROM product_flavors WHERE status = 'available'");
+if ($product['has_flavor'] === '1' && !empty($product['flavor_set_id'])) {
+    $flavorStmt = $pdo->prepare("
+        SELECT flavor_id, flavor_name 
+        FROM product_flavors 
+        WHERE status = 'available' 
+          AND flavor_set_id = :set_id
+        ORDER BY flavor_name ASC
+    ");
+    $flavorStmt->execute([':set_id' => $product['flavor_set_id']]);
     $flavors = $flavorStmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Fetch available sizes if drink
+
 $isDrink = in_array($product['category_id'], [7,8,9,10,11,12,13]);
 $sizes = [];
 if ($product['has_size'] === '1' && $isDrink) {
@@ -34,7 +39,6 @@ if ($product['has_size'] === '1' && $isDrink) {
     $sizes = $sizeStmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Check favorite
 $isFavorite = false;
 if (isset($_SESSION['user_id'])) {
     $stmtFav = $pdo->prepare("SELECT favorite_id FROM favorites WHERE user_id = ? AND product_id = ? LIMIT 1");

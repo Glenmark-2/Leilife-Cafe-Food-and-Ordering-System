@@ -7,6 +7,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 $appData = new AppData($pdo);
 
+
 // ✅ Ensure user is logged in
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
@@ -37,7 +38,7 @@ $orderInfo = $order[0];
 $userAddress = $appData->loadUserAddress($user_id);
 
 $delivery = ($orderInfo['delivery_method'] === "home") || ($orderInfo['status'] === 'delivered');
-
+$review = $appData->getReviewMessage($orderInfo['order_number']);
 ?>
 <?= createModal(); ?>
 <div class="tracking">
@@ -57,27 +58,27 @@ $delivery = ($orderInfo['delivery_method'] === "home") || ($orderInfo['status'] 
         $activeStep = $steps[$orderInfo['status']] ?? 1;
         ?>
         <!-- Progress -->
-        <?php if($orderInfo['status'] !== "cancelled"):?>
+        <?php if ($orderInfo['status'] !== "cancelled"): ?>
             <div class="progress-container">
-            <div class="step <?= $activeStep >= 1 ? 'active' : '' ?>">
-                <div class="circle">1</div>
-                <div class="label">Queuing...</div>
+                <div class="step <?= $activeStep >= 1 ? 'active' : '' ?>">
+                    <div class="circle">1</div>
+                    <div class="label">Queuing...</div>
+                </div>
+                <div class="step <?= $activeStep >= 2 ? 'active' : '' ?>">
+                    <div class="circle">2</div>
+                    <div class="label">Preparing...</div>
+                </div>
+                <div class="step <?= $activeStep >= 3 ? 'active' : '' ?>">
+                    <div class="circle">3</div>
+                    <div class="label">Out for delivery...</div>
+                </div>
+                <div class="step <?= $activeStep >= 4 ? 'active' : '' ?>">
+                    <div class="circle">4</div>
+                    <div class="label">Delivered</div>
+                </div>
             </div>
-            <div class="step <?= $activeStep >= 2 ? 'active' : '' ?>">
-                <div class="circle">2</div>
-                <div class="label">Preparing...</div>
-            </div>
-            <div class="step <?= $activeStep >= 3 ? 'active' : '' ?>">
-                <div class="circle">3</div>
-                <div class="label">Out for delivery...</div>
-            </div>
-            <div class="step <?= $activeStep >= 4 ? 'active' : '' ?>">
-                <div class="circle">4</div>
-                <div class="label">Delivered</div>
-            </div>
-        </div>
 
-        <?php endif;?>
+        <?php endif; ?>
 
         <div class="order_details">
             <!-- LEFT -->
@@ -116,19 +117,33 @@ $delivery = ($orderInfo['delivery_method'] === "home") || ($orderInfo['status'] 
                 <p style="color:#8f8d8dff;">Order details</p>
                 <div class="right-content">
                     <?php foreach ($order as $item): ?>
-                        <p><?= (int)$item['quantity'] ?> × <?= htmlspecialchars($item['product_name']) ?> — ₱<?= number_format($item['price'], 2) ?></p>
+                        <p>
+                            <?= (int)$item['quantity'] ?> × <?= htmlspecialchars($item['product_name']) ?>
+                            <?php if (!empty($item['size'])): ?>
+                                <br>
+                                Size: <?= htmlspecialchars(ucfirst($item['size'])) ?>
+                            <?php endif; ?>
+                            <?php if (!empty($item['flavors'])): ?>
+                                <br>
+                                Flavors: <?= htmlspecialchars(implode(", ", $item['flavors'])) ?>
+                            <?php endif; ?>
+                            — ₱<?= number_format($item['price'], 2) ?>
+                        </p>
                     <?php endforeach; ?>
                     <hr>
                     <p><strong>Total:</strong> ₱<?= number_format($orderInfo['total'], 2) ?></p>
                 </div>
 
+
                 <!-- CANCELLED or SUCCESSFUL -->
                 <?php if ($orderInfo['status'] === 'cancelled'): ?>
                     <div id="reorder-btns">
-                        <form action="../backend/reorder.php" method="POST">
+                        <form id="reorderForm" action="../backend/reorder.php" method="POST">
                             <input type="hidden" name="order_id" value="<?= htmlspecialchars($orderInfo['order_id']) ?>">
                             <?= createButton(45, 150, "Reorder", "reorderBtn", 16, "submit"); ?>
                         </form>
+
+
                         <a href="/leilife/public/index.php?page=menu">
                             <?= createButton(45, 150, "Go to menu"); ?>
                         </a>
@@ -145,6 +160,14 @@ $delivery = ($orderInfo['delivery_method'] === "home") || ($orderInfo['status'] 
                         ?>
                     </div>
                 <?php endif; ?>
+
+                <?php if ($review): ?>
+                    <p style="color:#8f8d8dff;">Order Review</p>
+                    <div class="right-content">
+
+                        <p><strong>Feedback:</strong> <?= $review ?></p>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -159,21 +182,21 @@ $delivery = ($orderInfo['delivery_method'] === "home") || ($orderInfo['status'] 
         $activeStep = $steps[$orderInfo['status']] ?? 1;
         ?>
         <!-- Progress -->
-         <?php if($orderInfo['status'] !== "cancelled"):?>
-        <div class="progress-container">
-            <div class="step <?= $activeStep >= 1 ? 'active' : '' ?>">
-                <div class="circle">1</div>
-                <div class="label">Pending...</div>
+        <?php if ($orderInfo['status'] !== "cancelled"): ?>
+            <div class="progress-container">
+                <div class="step <?= $activeStep >= 1 ? 'active' : '' ?>">
+                    <div class="circle">1</div>
+                    <div class="label">Pending...</div>
+                </div>
+                <div class="step <?= $activeStep >= 2 ? 'active' : '' ?>">
+                    <div class="circle">2</div>
+                    <div class="label">Preparing...</div>
+                </div>
+                <div class="step <?= $activeStep >= 3 ? 'active' : '' ?>">
+                    <div class="circle">3</div>
+                    <div class="label">Picked up</div>
+                </div>
             </div>
-            <div class="step <?= $activeStep >= 2 ? 'active' : '' ?>">
-                <div class="circle">2</div>
-                <div class="label">Preparing...</div>
-            </div>
-            <div class="step <?= $activeStep >= 3 ? 'active' : '' ?>">
-                <div class="circle">3</div>
-                <div class="label">Picked up</div>
-            </div>
-        </div>
         <?php endif; ?>
 
         <div class="order_details">
@@ -223,7 +246,18 @@ $delivery = ($orderInfo['delivery_method'] === "home") || ($orderInfo['status'] 
                 <p style="color:#8f8d8dff;">Order details</p>
                 <div class="right-content">
                     <?php foreach ($order as $item): ?>
-                        <p><?= (int)$item['quantity'] ?> × <?= htmlspecialchars($item['product_name']) ?> — ₱<?= number_format($item['price'], 2) ?></p>
+                        <p>
+                            <?= (int)$item['quantity'] ?> × <?= htmlspecialchars($item['product_name']) ?>
+                            <?php if (!empty($item['size'])): ?>
+                                <br>
+                                Size: <?= htmlspecialchars(ucfirst($item['size'])) ?>
+                            <?php endif; ?>
+                            <?php if (!empty($item['flavors'])): ?>
+                                <br>
+                                Flavors: <?= htmlspecialchars(implode(", ", $item['flavors'])) ?>
+                            <?php endif; ?>
+                            — ₱<?= number_format($item['price'], 2) ?>
+                        </p>
                     <?php endforeach; ?>
                     <hr>
                     <p><strong>Total:</strong> ₱<?= number_format($orderInfo['total'], 2) ?></p>
@@ -232,10 +266,11 @@ $delivery = ($orderInfo['delivery_method'] === "home") || ($orderInfo['status'] 
                 <!-- CANCELLED or SUCCESSFUL -->
                 <?php if ($orderInfo['status'] === 'cancelled'): ?>
                     <div id="reorder-btns">
-                        <form action="../backend/reorder.php" method="POST">
+                        <form id="reorderForm" action="../backend/reorder.php" method="POST">
                             <input type="hidden" name="order_id" value="<?= htmlspecialchars($orderInfo['order_id']) ?>">
                             <?= createButton(45, 150, "Reorder", "reorderBtn", 16, "submit"); ?>
                         </form>
+
                         <a href="/leilife/public/index.php?page=menu">
                             <?= createButton(45, 150, "Go to menu"); ?>
                         </a>
@@ -252,28 +287,39 @@ $delivery = ($orderInfo['delivery_method'] === "home") || ($orderInfo['status'] 
                         ?>
                     </div>
                 <?php endif; ?>
+                <?php if ($review): ?>
+                    <p style="color:#8f8d8dff;">Order Review</p>
+                    <div class="right-content">
+
+                        <p><strong>Feedback:</strong> <?= $review ?></p>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     <?php endif; ?>
 
     <!-- REVIEW SECTION -->
-    <?php if (in_array($orderInfo['status'], ['delivered', 'picked_up'])): ?>
-        <div class="review-section">
-            <h3>Leave a Review</h3>
-            <form id="reviewForm" method="POST">
-                <input type="hidden" name="name" value="<?= htmlspecialchars($_SESSION['username'] ?? 'Guest') ?>">
-                <input type="hidden" name="email" value="<?= htmlspecialchars($_SESSION['email'] ?? '') ?>">
-                <input type="hidden" name="subject" value="Order Review #<?= htmlspecialchars($orderInfo['order_number']) ?>">
-                <input type="hidden" name="type" value="feedback">
-                <div class="comment">
-                    <label>Comment:</label><br>
-                    <textarea name="message" rows="4" placeholder="Write your review..." required></textarea>
-                </div>
-                <div class="submit">
-                    <?= createButton(40, 120, "Submit Review", "submitReviewBtn", 14, "submit"); ?>
-                </div>
-            </form>
-        </div>
+    <?php if (!$review): ?>
+        <?php if (in_array($orderInfo['status'], ['delivered', 'picked_up'])): ?>
+            <div class="review-section">
+                <h3>Leave a Review</h3>
+                <form id="reviewForm" method="POST">
+                    <input type="hidden" name="name" value="<?= htmlspecialchars($_SESSION['username'] ?? 'Guest') ?>">
+                    <input type="hidden" name="email" value="<?= htmlspecialchars($_SESSION['email'] ?? '') ?>">
+                    <input type="hidden" name="subject" value="Order Review #<?= htmlspecialchars($orderInfo['order_number']) ?>">
+                    <input type="hidden" name="type" value="feedback">
+                    <div class="comment">
+                        <label>Comment:</label><br>
+                        <textarea name="message" rows="4" placeholder="Write your review..." required></textarea>
+                    </div>
+                    <div class="submit">
+                        <?= createButton(40, 120, "Submit Review", "submitReviewBtn", 14, "submit"); ?>
+                    </div>
+                </form>
+            </div>
+        <?php endif; ?>
+
+
     <?php endif; ?>
 </div>
 
@@ -316,60 +362,62 @@ $delivery = ($orderInfo['delivery_method'] === "home") || ($orderInfo['status'] 
 
 
 
-const timerEl = document.getElementById('pickup-timer');
-if (timerEl) {
-    const orderNumber = timerEl.dataset.orderNumber;
-    const orderDate = timerEl.dataset.orderDate;
-    const orderTimestamp = new Date(orderDate.replace(" ", "T")).getTime();
+        const timerEl = document.getElementById('pickup-timer');
+        if (timerEl) {
+            const orderNumber = timerEl.dataset.orderNumber;
+            const orderDate = timerEl.dataset.orderDate;
+            const orderTimestamp = new Date(orderDate.replace(" ", "T")).getTime();
 
-    // PHP server time sync
-    const serverNow = <?= round(microtime(true) * 1000) ?>; // milliseconds
-    const clientNow = Date.now();
-    const offset = serverNow - clientNow; // difference between server and client
+            // PHP server time sync
+            const serverNow = <?= round(microtime(true) * 1000) ?>; // milliseconds
+            const clientNow = Date.now();
+            const offset = serverNow - clientNow; // difference between server and client
 
-    // Auto-cancel duration (example: 10 minutes)
-    const AUTO_CANCEL_DURATION = 10 * 1000; // 10 mins in ms
-    const endTime = orderTimestamp + AUTO_CANCEL_DURATION;
+            // Auto-cancel duration (example: 10 minutes)
+            const AUTO_CANCEL_DURATION = 5 * 1000; // 10 mins in ms
+            const endTime = orderTimestamp + AUTO_CANCEL_DURATION;
 
-    const updateTimer = async () => {
-        const now = Date.now() + offset;
-        const timeLeft = Math.floor((endTime - now) / 1000);
+            const updateTimer = async () => {
+                const now = Date.now() + offset;
+                const timeLeft = Math.floor((endTime - now) / 1000);
 
-        if (timeLeft <= 0) {
-            clearInterval(countdown);
-            timerEl.textContent = "00:00";
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    timerEl.textContent = "00:00";
 
-            // 🔄 Auto-cancel when time expires
-            try {
-                const res = await fetch("/leilife/backend/auto_cancel_order.php", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: "order_number=" + encodeURIComponent(orderNumber),
-                });
-                const data = await res.json();
+                    // 🔄 Auto-cancel when time expires
+                    try {
+                        const res = await fetch("/leilife/backend/auto_cancel_order.php", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            },
+                            body: "order_number=" + encodeURIComponent(orderNumber),
+                        });
+                        const data = await res.json();
 
-                if (data.success) {
-                    showModal("Order automatically cancelled after timeout.", "info", true, 3000);
-                    setTimeout(() => location.reload(), 2500);
-                } else {
-                    showModal(data.message || "Failed to auto-cancel order", "error", true, 4000);
+                        if (data.success) {
+                            showModal("Order automatically cancelled after timeout.", "warning", true, 3000);
+                            setTimeout(() => location.reload(), 2500);
+                        } else {
+                            showModal(data.message || "Failed to auto-cancel order", "error", true, 4000);
+                        }
+                    } catch (err) {
+                        console.error("Auto-cancel error:", err);
+                        showModal("Network error during auto-cancel.", "error", true, 4000);
+                    }
+                    return;
                 }
-            } catch (err) {
-                console.error("Auto-cancel error:", err);
-                showModal("Network error during auto-cancel.", "error", true, 4000);
-            }
-            return;
+
+                // Format time as MM:SS
+                const m = Math.floor(timeLeft / 60);
+                const s = timeLeft % 60;
+                timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            };
+
+            updateTimer(); // run immediately
+            const countdown = setInterval(updateTimer, 1000);
         }
-
-        // Format time as MM:SS
-        const m = Math.floor(timeLeft / 60);
-        const s = timeLeft % 60;
-        timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    };
-
-    updateTimer(); // run immediately
-    const countdown = setInterval(updateTimer, 1000);
-}
 
 
 
@@ -438,21 +486,63 @@ if (timerEl) {
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+        const reorderForm = document.getElementById("reorderForm");
         const reorderBtn = document.getElementById("reorderBtn");
-        if (reorderBtn) {
+
+        if (reorderForm && reorderBtn) {
             reorderBtn.addEventListener("click", async (e) => {
-                e.preventDefault(); // stop form from instantly submitting
+                e.preventDefault();
 
                 const confirmed = await showConfirm(
                     "Reordering will remove all current items in your cart. Do you want to continue?"
                 );
 
-                if (confirmed) {
-                    reorderBtn.closest("form").submit(); // proceed only if user agrees
+                if (!confirmed) return;
+
+                const formData = new FormData(reorderForm);
+                const orderId = formData.get("order_id");
+
+                showModal("Processing reorder...", "warning", false);
+                reorderBtn.disabled = true; // prevent double-clicks
+
+                try {
+                    const res = await fetch("../backend/reorder.php", {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    const text = await res.text();
+                    console.log("Raw response:", text);
+
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch {
+                        throw new Error("Invalid JSON: " + text);
+                    }
+
+                    if (data.success) {
+                        showModal(data.message || "Order reordered successfully!", "success", true, 2000);
+
+                        // ✅ Use redirect path from PHP if provided
+                        if (data.redirect) {
+                            setTimeout(() => {
+                                window.location.href = data.redirect;
+                            }, 1500);
+                        }
+                    } else {
+                        showModal(data.message || "Failed to reorder", "error", true, 4000);
+                    }
+                } catch (err) {
+                    console.error("Reorder error:", err);
+                    showModal("Network error while reordering.", "error", true, 4000);
+                } finally {
+                    reorderBtn.disabled = false;
                 }
             });
         }
     });
+
 
 
 

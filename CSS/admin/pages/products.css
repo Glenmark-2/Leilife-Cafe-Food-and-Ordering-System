@@ -221,7 +221,7 @@ button:hover {
   transition: background 0.2s ease, transform 0.15s ease;
 }
 
-.editBtn {
+.editBtn, .viewBtn {
   background: #ffb700;
   color: #fff;
 }
@@ -546,4 +546,8 @@ button {
 .submenu div {
   padding: 5px 10px;
   color: #555;
+}
+
+#p_image{
+  width: 100px;
 }

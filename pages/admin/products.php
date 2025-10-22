@@ -25,7 +25,11 @@ $subCategories = array_unique(
     array_map(fn($c) => $c['category_name'] ?? '', $appData->categories)
 );
 $subCategories = array_values($subCategories);
+// $product_info = $appData->getProductInfo($appData->products['product_id']); 
+
 ?>
+
+
 <style>
     .dropdown {
         position: relative;
@@ -99,6 +103,7 @@ $subCategories = array_values($subCategories);
         margin-bottom: 5px;
     }
 </style>
+
 <div id="first-row">
     <h2>Products</h2>
     <div>
@@ -208,6 +213,7 @@ $subCategories = array_values($subCategories);
 
                         <td class="actions-cell">
                             <button id="editBtn" class="editBtn" type="button">Edit</button>
+                            <button class="viewBtn" data-product-id="<?= $product['product_id'] ?>">View</button>
                             <img src="public/assests/archive.png" alt="Archive" class="archive-icon">
                         </td>
                     </tr>
@@ -216,6 +222,8 @@ $subCategories = array_values($subCategories);
         </table>
     </div>
 </div>
+
+
 
 <!-- Add New Product Modal -->
 <div id="modal">
@@ -316,239 +324,9 @@ $subCategories = array_values($subCategories);
     </div>
 </div>
 
-<script>
-    /* ----- Flavors ----- */
-    const hasFlavorCheckbox = document.getElementById("has-flavor");
-    const flavorDropdown = document.getElementById("flavor-dropdown");
-    const flavorButton = flavorDropdown.querySelector('.dropdown-button');
-    const flavorContent = flavorDropdown.querySelector('.dropdown-content');
-    const addNewFlavorBtn = document.getElementById("add-new-flavor-btn");
-    const newFlavorsDiv = document.getElementById("new-flavors");
-    const addFlavorInputBtn = document.getElementById("add-flavor-input");
-    let selectedFlavorSetId = null;
-
-    hasFlavorCheckbox.addEventListener('change', () => {
-        flavorDropdown.style.display = hasFlavorCheckbox.checked ? 'inline-block' : 'none';
-        if (!hasFlavorCheckbox.checked) {
-            newFlavorsDiv.style.display = 'none';
-            flavorButton.textContent = "-- Choose Flavor Set --";
-            selectedFlavorSetId = null;
-        }
-    });
-
-    flavorButton.addEventListener('click', () => {
-        flavorContent.style.display = flavorContent.style.display === 'block' ? 'none' : 'block';
-    });
-
-    document.querySelectorAll('#flavor-dropdown .dropdown-item').forEach(item => {
-        if (item.id === 'add-new-flavor-btn') return;
-        item.addEventListener('click', (e) => {
-            if (e.target.closest('.submenu')) return;
-            selectedFlavorSetId = item.getAttribute('data-id');
-            flavorButton.textContent = item.firstChild.textContent.trim();
-            flavorContent.style.display = 'none';
-            newFlavorsDiv.style.display = 'none';
-        });
-    });
-
-    addNewFlavorBtn.addEventListener('click', () => {
-        selectedFlavorSetId = null;
-        flavorButton.textContent = '+ Add new flavor set';
-        newFlavorsDiv.style.display = 'block';
-        newFlavorsDiv.querySelectorAll('.flavor-input').forEach((input, i) => i > 0 ? input.remove() : input.value = '');
-        flavorContent.style.display = 'none';
-    });
-
-    addFlavorInputBtn.addEventListener('click', () => {
-        const input = document.createElement("input");
-        input.type = "text";
-        input.className = "flavor-input";
-        input.placeholder = "Enter flavor name";
-        newFlavorsDiv.insertBefore(input, addFlavorInputBtn);
-    });
-
-    /* ----- Main Category ----- */
-    const mainDropdown = document.getElementById("main-category-dropdown");
-    const mainButton = mainDropdown.querySelector('.dropdown-button');
-    const mainContent = mainDropdown.querySelector('.dropdown-content');
-    const addNewMainBtn = document.getElementById("add-new-main-category-btn");
-    const newMainInput = document.getElementById("new-main-category-input");
-    let selectedMainCategoryId = null;
-
-    mainButton.addEventListener('click', () => {
-        mainContent.style.display = mainContent.style.display === 'block' ? 'none' : 'block';
-    });
-
-    mainContent.querySelectorAll('.dropdown-item[data-id]').forEach(item => {
-        item.addEventListener('click', () => {
-            selectedMainCategoryId = item.getAttribute('data-id');
-            mainButton.textContent = item.textContent;
-            mainContent.style.display = 'none';
-            newMainInput.style.display = 'none';
-        });
-    });
-
-    addNewMainBtn.addEventListener('click', () => {
-        selectedMainCategoryId = null;
-        mainButton.textContent = '+ Add new main category';
-        newMainInput.style.display = 'block';
-        newMainInput.value = '';
-        mainContent.style.display = 'none';
-    });
-
-    /* ----- Subcategory ----- */
-    const subDropdown = document.getElementById("subcategory-dropdown");
-    const subButton = subDropdown.querySelector('.dropdown-button');
-    const subContent = subDropdown.querySelector('.dropdown-content');
-    const addNewSubBtn = document.getElementById("add-new-subcategory-btn");
-    const newSubInput = document.getElementById("new-subcategory-input");
-    let selectedSubCategoryId = null;
-
-    subButton.addEventListener('click', () => {
-        subContent.style.display = subContent.style.display === 'block' ? 'none' : 'block';
-    });
-
-    subContent.querySelectorAll('.dropdown-item[data-id]').forEach(item => {
-        item.addEventListener('click', () => {
-            selectedSubCategoryId = item.getAttribute('data-id');
-            subButton.textContent = item.textContent;
-            subContent.style.display = 'none';
-            newSubInput.style.display = 'none';
-        });
-    });
-
-    addNewSubBtn.addEventListener('click', () => {
-        selectedSubCategoryId = null;
-        subButton.textContent = '+ Add new category';
-        newSubInput.style.display = 'block';
-        newSubInput.value = '';
-        subContent.style.display = 'none';
-    });
-
-    /* ----- Close dropdowns when clicking outside ----- */
-    document.addEventListener('click', e => {
-        if (!flavorDropdown.contains(e.target)) flavorContent.style.display = 'none';
-        if (!mainDropdown.contains(e.target)) mainContent.style.display = 'none';
-        if (!subDropdown.contains(e.target)) subContent.style.display = 'none';
-    });
-
-    /* ----- Add Product AJAX ----- */
-document.getElementById("add").addEventListener("click", () => {
-    const name = document.getElementById("name").value.trim();
-    const price = parseFloat(document.getElementById("price").value.trim());
-    const priceLargeInput = document.getElementById("price_large").value.trim();
-    const priceLarge = priceLargeInput ? parseFloat(priceLargeInput) : null;
-    const status = "Available";
-    const file = document.getElementById("uploadInput").files[0];
-
-    // Name validation
-    if (!name) {
-        showModal("Please enter a product name", "error");
-        return;
-    }
-
-    // Price validation
-    if (isNaN(price) || price <= 0) {
-        showModal("Please enter a valid price", "error");
-        return;
-    }
-
-    // Price large validation
-    if (priceLargeInput && (isNaN(priceLarge) || priceLarge <= 0)) {
-        showModal("Price (Large) must valid if provided", "error");
-        return;
-    }
-
-    // Main Category validation
-    let mainCategory = selectedMainCategoryId || newMainInput.value.trim();
-    if (!mainCategory) {
-        showModal("Please select or enter a main category", "error");
-        return;
-    }
-
-    // Subcategory validation
-    let subCategory = selectedSubCategoryId || newSubInput.value.trim();
-    if (!subCategory) {
-        showModal("Please select or enter a category", "error");
-        return;
-    }
-
-    // Image validation
-    if (!file) {
-        showModal("Please upload a product image", "error");
-        return;
-    }
-
-    // Flavors validation
-    let flavors = null;
-    if (hasFlavorCheckbox.checked) {
-        if (selectedFlavorSetId) {
-            flavors = { existing_flavor_set_id: selectedFlavorSetId };
-        } else {
-            const flavorInputs = Array.from(document.querySelectorAll('.flavor-input'));
-            const flavorNames = flavorInputs.map(f => f.value.trim()).filter(f => f);
-            if (flavorNames.length === 0) {
-                showModal("Please enter at least one flavor", "error");
-                return;
-            }
-            flavors = { new_flavors: flavorNames };
-        }
-    }
-
-    // AJAX FormData
-    const formData = new FormData();
-    formData.append("product_name", name);
-    formData.append("product_price", price);
-    if (priceLargeInput) formData.append("price_large", priceLarge);
-    formData.append("main_category", mainCategory);
-    formData.append("category", subCategory);
-    formData.append("status", status);
-    formData.append("photo", file);
-    if (flavors) formData.append("flavors", JSON.stringify(flavors));
-
-    // Send via fetch
-    fetch(BASE_URL + "backend/admin/add_product.php", {
-        method: "POST",
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showModal("Product added successfully!", "success");
-            document.getElementById("modal").style.display = "none";
-
-            // Reset form
-            document.getElementById("name").value = "";
-            document.getElementById("price").value = "";
-            document.getElementById("price_large").value = "";
-            newMainInput.value = "";
-            newSubInput.value = "";
-            newMainInput.style.display = 'none';
-            newSubInput.style.display = 'none';
-            mainButton.textContent = "-- Choose Main Category --";
-            subButton.textContent = "-- Choose Category --";
-            selectedMainCategoryId = null;
-            selectedSubCategoryId = null;
-            hasFlavorCheckbox.checked = false;
-            flavorButton.textContent = "-- Choose Flavor Set --";
-            newFlavorsDiv.style.display = 'none';
-            newFlavorsDiv.querySelectorAll('.flavor-input').forEach((input, i) => i > 0 ? input.remove() : input.value = '');
-            selectedFlavorSetId = null;
-            document.getElementById("uploadInput").value = "";
-            document.getElementById("new-product-photo").src = "public/assests/image-43.png";
-
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            showModal("Error: " + data.message, "error");
-        }
-    })
-    .catch(err => showModal("Fetch error: " + err.message, "error"));
-});
-
-</script>
 
 <!-- Edit Flavors/Sizes Modal -->
-<div id="flavor-size-modal" class="modal">
+<div id="flavor-size-modal" class="modal" style="display: none;">
     <div class="modal-content">
         <h3>Edit Flavors & Sizes</h3>
         <form id="flavor-size-form" onsubmit="return false;">
@@ -593,365 +371,868 @@ document.getElementById("add").addEventListener("click", () => {
 </div>
 
 
+
+<!-- Product Info Modal -->
+<div id="product-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modal-title">Product Info</h2>
+
+        <div id="modal-body">
+            <!-- Filled dynamically -->
+        </div>
+
+        <div class="modal-footer">
+            <button id="edit-btn" class="btn-edit">Edit</button>
+            <button id="cancel-btn" class="btn-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6);
+        display: flex; justify-content: center; align-items: center;
+        z-index: 9999;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .modal-content {
+        background: #fff;
+        padding: 25px 30px;
+        border-radius: 10px;
+        width: 480px;
+        max-height: 85vh;
+        overflow-y: auto;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+        position: relative;
+    }
+
+    .modal-content h2 {
+        margin-top: 0;
+        color: #333;
+        font-weight: 600;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+    }
+
+    .modal-footer {
+        margin-top: 20px;
+        text-align: right;
+    }
+
+    .modal .close {
+        position: absolute;
+        right: 15px;
+        top: 10px;
+        cursor: pointer;
+        font-size: 22px;
+        color: #999;
+        transition: 0.2s;
+    }
+    .modal .close:hover { color: #333; }
+
+    .modal-body p {
+        margin: 8px 0;
+        font-size: 15px;
+        color: #444;
+    }
+
+    .modal-body strong {
+        color: #222;
+        display: inline-block;
+        width: 140px;
+    }
+
+    .modal-body img {
+        max-width: 160px;
+        margin-top: 8px;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .btn-edit, .btn-cancel {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: 0.2s;
+    }
+
+    .btn-edit {
+        background: #007bff;
+        color: #fff;
+        margin-right: 8px;
+    }
+
+    .btn-edit:hover {
+        background: #0069d9;
+    }
+
+    .btn-cancel {
+        background: #ccc;
+        color: #333;
+    }
+
+    .btn-cancel:hover {
+        background: #b5b5b5;
+    }
+
+    button[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+</style>
+
 <script>
-    const BASE_URL = "http://localhost/Leilife/";
+    const productModal = document.getElementById('product-modal');
+    const modalClose = productModal.querySelector('.close');
+    const modalEditBtn = document.getElementById('edit-btn');
+    const modalCancelBtn = document.getElementById('cancel-btn');
 
-    // --- Search & Filter ---
-    const searchInput = document.getElementById('search-input');
-    const categoryButtons = document.querySelectorAll('.box-row');
+    function disableAllButtons() {
+        document.querySelectorAll('button:not(#edit-btn):not(#cancel-btn), .archive-icon').forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+        });
+    }
 
-    function filterProducts() {
-        const search = searchInput.value.toLowerCase();
-        const activeCategoryBtn = document.querySelector('.box-row.clicked');
-        const category = activeCategoryBtn ? (activeCategoryBtn.dataset.category || 'all').toLowerCase() : 'all';
+    function enableAllButtons() {
+        document.querySelectorAll('button, .archive-icon').forEach(btn => {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        });
+    }
 
-        document.querySelectorAll('.product-row').forEach(row => {
-            const nameEl = row.querySelector('#pname');
-            const name = nameEl ? (nameEl.value || '').toLowerCase() : '';
-            const prodSub = row.dataset.sub ? row.dataset.sub.toLowerCase() : '';
-            const matchesSearch = name.includes(search);
-            const matchesCategory = category === 'all' || prodSub === category;
-            if (matchesSearch && matchesCategory) {
-                row.classList.remove('hidden');
-            } else {
-                row.classList.add('hidden');
+    // Open product info modal
+    document.querySelectorAll('.viewBtn').forEach(viewBtn => {
+        viewBtn.addEventListener('click', async () => {
+            const productId = viewBtn.dataset.productId;
+            disableAllButtons();
+
+            try {
+                const response = await fetch(`${BASE_URL}backend/admin/fetch_product_info.php?product_id=${productId}`);
+                const product = await response.json();
+                if (!product) throw new Error("No product data found");
+
+                const modalBody = document.getElementById('modal-body');
+                modalBody.innerHTML = `
+                    <p><strong>Main Category:</strong> ${product.main_category_name || 'N/A'}</p>
+                    <p><strong>Category:</strong> ${product.category_name || 'N/A'}</p>
+                    <p><strong>Product Name:</strong> ${product.product_name}</p>
+                    <p><strong>Price:</strong> ₱${product.product_price || 'N/A'}</p>
+                    ${product.price_large ? `<p><strong>Large Price:</strong> ₱${product.price_large}</p>` : ''}
+                    <p><strong>Status:</strong> ${product.status}</p>
+                    <p><strong>Flavors:</strong> ${product.flavors || 'N/A'}</p>
+                    <p><strong>Sizes:</strong> ${product.sizes || 'N/A'}</p>
+                    ${product.product_picture ? `
+                        <p><strong>Picture:</strong><br>
+                        <img src="public/products/${product.product_picture}" alt="Product Image" id="p_image"></p>
+                    ` : ''}
+                `;
+
+                document.getElementById('modal-title').textContent = 'Product Info';
+                modalEditBtn.style.display = 'inline-block';
+                modalCancelBtn.textContent = 'Close';
+                modalCancelBtn.disabled = false;
+                modalEditBtn.disabled = false;
+
+                productModal.style.display = 'flex';
+            } catch (err) {
+                console.error(err);
+                alert("Failed to fetch product info.");
+                enableAllButtons();
             }
         });
-    }
-
-    function resetEditButtons() {
-        document.querySelectorAll('.editBtn').forEach(b => {
-            b.disabled = false;
-            b.style.opacity = "1";
-            b.style.cursor = "pointer";
-            b.textContent = "Edit";
-            b.style.backgroundColor = "#C6C3BD";
-            b.style.color = "#22333B";
-        });
-
-
-
-
-        const addBtn = document.getElementById("add-product");
-        if (addBtn) {
-            addBtn.disabled = false;
-            addBtn.style.opacity = "1";
-        }
-        // disable all inputs back
-        document.querySelectorAll('#pname, #pprice, #pprice_large, .pcategory, #statusBtn').forEach(el => {
-            el.disabled = true;
-            el.onclick = null;
-        });
-        document.querySelectorAll('.product-row').forEach(r => r.classList.remove('editing'));
-    }
-
-    categoryButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            categoryButtons.forEach(b => b.classList.remove('clicked'));
-            btn.classList.add('clicked');
-            filterProducts();
-            resetEditButtons(); // reset edit state
-        });
     });
 
-    searchInput.addEventListener("input", () => {
-        filterProducts();
-        resetEditButtons(); // reset edit state
+    // Close modal handlers
+    modalClose.addEventListener('click', closeModal);
+    modalCancelBtn.addEventListener('click', closeModal);
+
+    function closeModal() {
+        productModal.style.display = 'none';
+        enableAllButtons();
+    }
+
+    productModal.addEventListener('click', (e) => {
+        if (e.target === productModal) closeModal();
     });
+</script>
 
-    // --- Edit & Save ---
-    document.querySelectorAll('.editBtn').forEach(btn => btn.addEventListener('click', () => toggleEdit(btn)));
 
-    function toggleEdit(btn) {
-        const row = btn.closest('.product-row');
-        const productId = row.dataset.id;
-        const nameInput = row.querySelector('#pname');
-        const priceInput = row.querySelector('#pprice');
-        const priceLargeInput = row.querySelector('#pprice_large');
-        const categorySelect = row.querySelector('.pcategory');
-        const statusBtn = row.querySelector('#statusBtn');
-        const photo = row.querySelector('.product-photo');
-        const fileInput = row.querySelector('.edit-upload');
-        const isEditing = !nameInput.disabled;
 
-        if (!isEditing) {
-            // Enable edit mode
-            [nameInput, priceInput, priceLargeInput, categorySelect, statusBtn].forEach(el => {
-                if (el) el.disabled = false;
+
+
+
+
+
+
+<!-- add product js -->
+<script>
+        /* ----- Flavors ----- */
+        const hasFlavorCheckbox = document.getElementById("has-flavor");
+        const flavorDropdown = document.getElementById("flavor-dropdown");
+        const flavorButton = flavorDropdown.querySelector('.dropdown-button');
+        const flavorContent = flavorDropdown.querySelector('.dropdown-content');
+        const addNewFlavorBtn = document.getElementById("add-new-flavor-btn");
+        const newFlavorsDiv = document.getElementById("new-flavors");
+        const addFlavorInputBtn = document.getElementById("add-flavor-input");
+        let selectedFlavorSetId = null;
+
+        hasFlavorCheckbox.addEventListener('change', () => {
+            flavorDropdown.style.display = hasFlavorCheckbox.checked ? 'inline-block' : 'none';
+            if (!hasFlavorCheckbox.checked) {
+                newFlavorsDiv.style.display = 'none';
+                flavorButton.textContent = "-- Choose Flavor Set --";
+                selectedFlavorSetId = null;
+            }
+        });
+
+        flavorButton.addEventListener('click', () => {
+            flavorContent.style.display = flavorContent.style.display === 'block' ? 'none' : 'block';
+        });
+
+        document.querySelectorAll('#flavor-dropdown .dropdown-item').forEach(item => {
+            if (item.id === 'add-new-flavor-btn') return;
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.submenu')) return;
+                selectedFlavorSetId = item.getAttribute('data-id');
+                flavorButton.textContent = item.firstChild.textContent.trim();
+                flavorContent.style.display = 'none';
+                newFlavorsDiv.style.display = 'none';
             });
-            row.classList.add('editing');
-            btn.textContent = "Save";
-            btn.style.backgroundColor = "#75c277";
-            btn.style.color = "#036d2b";
+        });
 
-            // Store original values
-            row.dataset.originalName = nameInput.value;
-            row.dataset.originalPrice = priceInput ? priceInput.value : '';
-            if (priceLargeInput) row.dataset.originalPriceLarge = priceLargeInput.value;
-            row.dataset.originalCategory = categorySelect.value;
-            row.dataset.originalStatus = statusBtn.textContent;
+        addNewFlavorBtn.addEventListener('click', () => {
+            selectedFlavorSetId = null;
+            flavorButton.textContent = '+ Add new flavor set';
+            newFlavorsDiv.style.display = 'block';
+            newFlavorsDiv.querySelectorAll('.flavor-input').forEach((input, i) => i > 0 ? input.remove() : input.value = '');
+            flavorContent.style.display = 'none';
+        });
 
-            // Photo upload
-            photo.style.cursor = "pointer";
-            photo.onclick = () => fileInput.click();
-            fileInput.onchange = e => {
-                const file = e.target.files[0];
-                if (file) photo.src = URL.createObjectURL(file);
-            };
+        addFlavorInputBtn.addEventListener('click', () => {
+            const input = document.createElement("input");
+            input.type = "text";
+            input.className = "flavor-input";
+            input.placeholder = "Enter flavor name";
+            newFlavorsDiv.insertBefore(input, addFlavorInputBtn);
+        });
 
-            // Status toggle
-            statusBtn.onclick = () => {
-                const newStatus = statusBtn.textContent === "Available" ? "Unavailable" : "Available";
-                statusBtn.textContent = newStatus;
-                statusBtn.classList.remove("Available", "Unavailable");
-                statusBtn.classList.add(newStatus);
-            };
+        /* ----- Main Category ----- */
+        const mainDropdown = document.getElementById("main-category-dropdown");
+        const mainButton = mainDropdown.querySelector('.dropdown-button');
+        const mainContent = mainDropdown.querySelector('.dropdown-content');
+        const addNewMainBtn = document.getElementById("add-new-main-category-btn");
+        const newMainInput = document.getElementById("new-main-category-input");
+        let selectedMainCategoryId = null;
 
-            // Disable other edit buttons
-            document.querySelectorAll('.editBtn').forEach(b => {
-                if (b !== btn) {
-                    b.disabled = true;
-                    b.style.opacity = "0.5";
-                    b.style.cursor = "not-allowed";
-                }
+        mainButton.addEventListener('click', () => {
+            mainContent.style.display = mainContent.style.display === 'block' ? 'none' : 'block';
+        });
+
+        mainContent.querySelectorAll('.dropdown-item[data-id]').forEach(item => {
+            item.addEventListener('click', () => {
+                selectedMainCategoryId = item.getAttribute('data-id');
+                mainButton.textContent = item.textContent;
+                mainContent.style.display = 'none';
+                newMainInput.style.display = 'none';
             });
+        });
 
-            // Disable ALL view buttons while editing
-            // document.querySelectorAll('.viewBtn').forEach(v => {
-            //     v.disabled = true;
-            //     v.style.opacity = "0.5";
-            //     v.style.cursor = "not-allowed";
-            // });
+        addNewMainBtn.addEventListener('click', () => {
+            selectedMainCategoryId = null;
+            mainButton.textContent = '+ Add new main category';
+            newMainInput.style.display = 'block';
+            newMainInput.value = '';
+            mainContent.style.display = 'none';
+        });
 
-            const addBtn = document.getElementById("add-product");
-            addBtn.disabled = true;
-            addBtn.style.opacity = "0.5";
+        /* ----- Subcategory ----- */
+        const subDropdown = document.getElementById("subcategory-dropdown");
+        const subButton = subDropdown.querySelector('.dropdown-button');
+        const subContent = subDropdown.querySelector('.dropdown-content');
+        const addNewSubBtn = document.getElementById("add-new-subcategory-btn");
+        const newSubInput = document.getElementById("new-subcategory-input");
+        let selectedSubCategoryId = null;
 
-        } else {
-            // Save changes
-            const changed =
-                row.dataset.originalName !== nameInput.value ||
-                row.dataset.originalPrice !== (priceInput ? priceInput.value : '') ||
-                (priceLargeInput && row.dataset.originalPriceLarge !== priceLargeInput.value) ||
-                row.dataset.originalCategory !== categorySelect.value ||
-                row.dataset.originalStatus !== statusBtn.textContent ||
-                (fileInput && fileInput.files && fileInput.files.length > 0);
+        subButton.addEventListener('click', () => {
+            subContent.style.display = subContent.style.display === 'block' ? 'none' : 'block';
+        });
 
-            if (!changed) {
-                disableRow(row, btn);
-                showModal("No changes made.", "warning");
+        subContent.querySelectorAll('.dropdown-item[data-id]').forEach(item => {
+            item.addEventListener('click', () => {
+                selectedSubCategoryId = item.getAttribute('data-id');
+                subButton.textContent = item.textContent;
+                subContent.style.display = 'none';
+                newSubInput.style.display = 'none';
+            });
+        });
+
+        addNewSubBtn.addEventListener('click', () => {
+            selectedSubCategoryId = null;
+            subButton.textContent = '+ Add new category';
+            newSubInput.style.display = 'block';
+            newSubInput.value = '';
+            subContent.style.display = 'none';
+        });
+
+        /* ----- Close dropdowns when clicking outside ----- */
+        document.addEventListener('click', e => {
+            if (!flavorDropdown.contains(e.target)) flavorContent.style.display = 'none';
+            if (!mainDropdown.contains(e.target)) mainContent.style.display = 'none';
+            if (!subDropdown.contains(e.target)) subContent.style.display = 'none';
+        });
+
+        /* ----- Add Product AJAX ----- */
+        document.getElementById("add").addEventListener("click", () => {
+            const name = document.getElementById("name").value.trim();
+            const price = parseFloat(document.getElementById("price").value.trim());
+            const priceLargeInput = document.getElementById("price_large").value.trim();
+            const priceLarge = priceLargeInput ? parseFloat(priceLargeInput) : null;
+            const status = "Available";
+            const file = document.getElementById("uploadInput").files[0];
+
+            // Name validation
+            if (!name) {
+                showModal("Please enter a product name", "error");
                 return;
             }
 
-            // Build FormData (send both prices, empty strings if blank)
-            const formData = new FormData();
-            formData.append("product_id", productId);
-            formData.append("product_name", nameInput.value);
-            formData.append("product_price", priceInput ? priceInput.value.trim() : '');
-            if (priceLargeInput) {
-                formData.append("price_large", priceLargeInput.value.trim());
+            // Price validation
+            if (isNaN(price) || price <= 0) {
+                showModal("Please enter a valid price", "error");
+                return;
             }
-            formData.append("category_id", categorySelect.value);
-            formData.append("status", statusBtn.textContent.trim());
-            if (fileInput && fileInput.files[0]) formData.append("photo", fileInput.files[0]);
 
-            // Send to backend
-            fetch(BASE_URL + 'backend/admin/update_product.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        const updated = data.product;
-                        const statusText = updated.status === "Unavailable" ? "Unavailable" : "Available";
-                        statusBtn.textContent = statusText;
-                        statusBtn.classList.remove("Available", "Unavailable");
-                        statusBtn.classList.add(statusText);
+            // Price large validation
+            if (priceLargeInput && (isNaN(priceLarge) || priceLarge <= 0)) {
+                showModal("Price (Large) must valid if provided", "error");
+                return;
+            }
 
-                        if (updated.product_picture) {
-                            row.querySelector(".product-photo").src = BASE_URL + "public/products/" + updated.product_picture;
-                        }
+            // Main Category validation
+            let mainCategory = selectedMainCategoryId || newMainInput.value.trim();
+            if (!mainCategory) {
+                showModal("Please select or enter a main category", "error");
+                return;
+            }
 
-                        disableRow(row, btn);
-                        showModal("Product updated successfully!", "success");
-                        setTimeout(() => location.reload(), 1000);
-                    } else {
-                        showModal(data.message || "Failed to update product.", "error");
-                        console.error(data.message);
+            // Subcategory validation
+            let subCategory = selectedSubCategoryId || newSubInput.value.trim();
+            if (!subCategory) {
+                showModal("Please select or enter a category", "error");
+                return;
+            }
+
+            // Image validation
+            if (!file) {
+                showModal("Please upload a product image", "error");
+                return;
+            }
+
+            // Flavors validation
+            let flavors = null;
+            if (hasFlavorCheckbox.checked) {
+                if (selectedFlavorSetId) {
+                    flavors = { existing_flavor_set_id: selectedFlavorSetId };
+                } else {
+                    const flavorInputs = Array.from(document.querySelectorAll('.flavor-input'));
+                    const flavorNames = flavorInputs.map(f => f.value.trim()).filter(f => f);
+                    if (flavorNames.length === 0) {
+                        showModal("Please enter at least one flavor", "error");
+                        return;
                     }
-                })
-                .catch(() => showModal("Error saving product.", "error"));
-        }
-    }
+                    flavors = { new_flavors: flavorNames };
+                }
+            }
 
-    function disableRow(row, btn) {
-        row.querySelectorAll('#pname, #pprice, #pprice_large, .pcategory, #statusBtn').forEach(el => {
-            if (el) {
+            // AJAX FormData
+            const formData = new FormData();
+            formData.append("product_name", name);
+            formData.append("product_price", price);
+            if (priceLargeInput) formData.append("price_large", priceLarge);
+            formData.append("main_category", mainCategory);
+            formData.append("category", subCategory);
+            formData.append("status", status);
+            formData.append("photo", file);
+            if (flavors) formData.append("flavors", JSON.stringify(flavors));
+
+            // Send via fetch
+            fetch(BASE_URL + "backend/admin/add_product.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showModal("Product added successfully!", "success");
+                    document.getElementById("modal").style.display = "none";
+
+                    // Reset form
+                    document.getElementById("name").value = "";
+                    document.getElementById("price").value = "";
+                    document.getElementById("price_large").value = "";
+                    newMainInput.value = "";
+                    newSubInput.value = "";
+                    newMainInput.style.display = 'none';
+                    newSubInput.style.display = 'none';
+                    mainButton.textContent = "-- Choose Main Category --";
+                    subButton.textContent = "-- Choose Category --";
+                    selectedMainCategoryId = null;
+                    selectedSubCategoryId = null;
+                    hasFlavorCheckbox.checked = false;
+                    flavorButton.textContent = "-- Choose Flavor Set --";
+                    newFlavorsDiv.style.display = 'none';
+                    newFlavorsDiv.querySelectorAll('.flavor-input').forEach((input, i) => i > 0 ? input.remove() : input.value = '');
+                    selectedFlavorSetId = null;
+                    document.getElementById("uploadInput").value = "";
+                    document.getElementById("new-product-photo").src = "public/assests/image-43.png";
+
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showModal("Error: " + data.message, "error");
+                }
+            })
+            .catch(err => showModal("Fetch error: " + err.message, "error"));
+        });
+
+</script>
+
+<script>
+        const BASE_URL = "http://localhost/Leilife/";
+
+        // --- Search & Filter ---
+        const searchInput = document.getElementById('search-input');
+        const categoryButtons = document.querySelectorAll('.box-row');
+
+        function filterProducts() {
+            const search = searchInput.value.toLowerCase();
+            const activeCategoryBtn = document.querySelector('.box-row.clicked');
+            const category = activeCategoryBtn ? (activeCategoryBtn.dataset.category || 'all').toLowerCase() : 'all';
+
+            document.querySelectorAll('.product-row').forEach(row => {
+                const nameEl = row.querySelector('#pname');
+                const name = nameEl ? (nameEl.value || '').toLowerCase() : '';
+                const prodSub = row.dataset.sub ? row.dataset.sub.toLowerCase() : '';
+                const matchesSearch = name.includes(search);
+                const matchesCategory = category === 'all' || prodSub === category;
+                if (matchesSearch && matchesCategory) {
+                    row.classList.remove('hidden');
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+        }
+
+        function resetEditButtons() {
+            document.querySelectorAll('.editBtn').forEach(b => {
+                b.disabled = false;
+                b.style.opacity = "1";
+                b.style.cursor = "pointer";
+                b.textContent = "Edit";
+                b.style.backgroundColor = "#C6C3BD";
+                b.style.color = "#22333B";
+            });
+
+
+
+
+            const addBtn = document.getElementById("add-product");
+            if (addBtn) {
+                addBtn.disabled = false;
+                addBtn.style.opacity = "1";
+            }
+            // disable all inputs back
+            document.querySelectorAll('#pname, #pprice, #pprice_large, .pcategory, #statusBtn').forEach(el => {
                 el.disabled = true;
                 el.onclick = null;
+            });
+            document.querySelectorAll('.product-row').forEach(r => r.classList.remove('editing'));
+        }
+
+        categoryButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                categoryButtons.forEach(b => b.classList.remove('clicked'));
+                btn.classList.add('clicked');
+                filterProducts();
+                resetEditButtons(); // reset edit state
+            });
+        });
+
+        searchInput.addEventListener("input", () => {
+            filterProducts();
+            resetEditButtons(); // reset edit state
+        });
+
+        // --- Edit & Save ---
+        document.querySelectorAll('.editBtn').forEach(btn => btn.addEventListener('click', () => toggleEdit(btn)));
+
+        function toggleEdit(btn) {
+            const row = btn.closest('.product-row');
+            const productId = row.dataset.id;
+            const nameInput = row.querySelector('#pname');
+            const priceInput = row.querySelector('#pprice');
+            const priceLargeInput = row.querySelector('#pprice_large');
+            const categorySelect = row.querySelector('.pcategory');
+            const statusBtn = row.querySelector('#statusBtn');
+            const photo = row.querySelector('.product-photo');
+            const fileInput = row.querySelector('.edit-upload');
+            const isEditing = !nameInput.disabled;
+
+            if (!isEditing) {
+                // Enable edit mode
+                [nameInput, priceInput, priceLargeInput, categorySelect, statusBtn].forEach(el => {
+                    if (el) el.disabled = false;
+                });
+                row.classList.add('editing');
+                btn.textContent = "Save";
+                btn.style.backgroundColor = "#75c277";
+                btn.style.color = "#036d2b";
+
+                // Store original values
+                row.dataset.originalName = nameInput.value;
+                row.dataset.originalPrice = priceInput ? priceInput.value : '';
+                if (priceLargeInput) row.dataset.originalPriceLarge = priceLargeInput.value;
+                row.dataset.originalCategory = categorySelect.value;
+                row.dataset.originalStatus = statusBtn.textContent;
+
+                // Photo upload
+                photo.style.cursor = "pointer";
+                photo.onclick = () => fileInput.click();
+                fileInput.onchange = e => {
+                    const file = e.target.files[0];
+                    if (file) photo.src = URL.createObjectURL(file);
+                };
+
+                // Status toggle
+                statusBtn.onclick = () => {
+                    const newStatus = statusBtn.textContent === "Available" ? "Unavailable" : "Available";
+                    statusBtn.textContent = newStatus;
+                    statusBtn.classList.remove("Available", "Unavailable");
+                    statusBtn.classList.add(newStatus);
+                };
+
+                // Disable other edit buttons
+                document.querySelectorAll('.editBtn').forEach(b => {
+                    if (b !== btn) {
+                        b.disabled = true;
+                        b.style.opacity = "0.5";
+                        b.style.cursor = "not-allowed";
+                    }
+                });
+
+                // Disable ALL view buttons while editing
+                document.querySelectorAll('.viewBtn').forEach(v => {
+                    v.disabled = true;
+                    v.style.opacity = "0.5";
+                    v.style.cursor = "not-allowed";
+                });
+
+        const editFlavorBtn = document.getElementById("edit-flavor-size-btn");
+        const viewArchiveBtn = document.getElementById("view-archive");
+
+        if (editFlavorBtn) {
+            editFlavorBtn.disabled = true;
+            editFlavorBtn.style.opacity = "0.5";
+            editFlavorBtn.style.cursor = "not-allowed";
+        }
+
+        if (viewArchiveBtn) {
+            viewArchiveBtn.disabled = true;
+            viewArchiveBtn.style.opacity = "0.5";
+            viewArchiveBtn.style.cursor = "not-allowed";
+        }
+
+
+
+                    const addBtn = document.getElementById("add-product");
+                    addBtn.disabled = true;
+                    addBtn.style.opacity = "0.5";
+
+                } else {
+                    // Save changes
+                    const changed =
+                        row.dataset.originalName !== nameInput.value ||
+                        row.dataset.originalPrice !== (priceInput ? priceInput.value : '') ||
+                        (priceLargeInput && row.dataset.originalPriceLarge !== priceLargeInput.value) ||
+                        row.dataset.originalCategory !== categorySelect.value ||
+                        row.dataset.originalStatus !== statusBtn.textContent ||
+                        (fileInput && fileInput.files && fileInput.files.length > 0);
+
+                    if (!changed) {
+                        disableRow(row, btn);
+                        showModal("No changes made.", "warning");
+                        return;
+                    }
+
+                    // Build FormData (send both prices, empty strings if blank)
+                    const formData = new FormData();
+                    formData.append("product_id", productId);
+                    formData.append("product_name", nameInput.value);
+                    formData.append("product_price", priceInput ? priceInput.value.trim() : '');
+                    if (priceLargeInput) {
+                        formData.append("price_large", priceLargeInput.value.trim());
+                    }
+                    formData.append("category_id", categorySelect.value);
+                    formData.append("status", statusBtn.textContent.trim());
+                    if (fileInput && fileInput.files[0]) formData.append("photo", fileInput.files[0]);
+
+                    // Send to backend
+                    fetch(BASE_URL + 'backend/admin/update_product.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                const updated = data.product;
+                                const statusText = updated.status === "Unavailable" ? "Unavailable" : "Available";
+                                statusBtn.textContent = statusText;
+                                statusBtn.classList.remove("Available", "Unavailable");
+                                statusBtn.classList.add(statusText);
+
+                                if (updated.product_picture) {
+                                    row.querySelector(".product-photo").src = BASE_URL + "public/products/" + updated.product_picture;
+                                }
+
+                                disableRow(row, btn);
+                                showModal("Product updated successfully!", "success");
+                                setTimeout(() => location.reload(), 1000);
+                            } else {
+                                showModal(data.message || "Failed to update product.", "error");
+                                console.error(data.message);
+                            }
+                        })
+                        .catch(() => showModal("Error saving product.", "error"));
+                }
             }
-        });
-        row.classList.remove('editing');
-        btn.textContent = "Edit";
-        btn.style.backgroundColor = "#ffc107";
-        btn.style.color = "#22333B";
 
-        document.querySelectorAll('.editBtn').forEach(b => {
-            b.disabled = false;
-            b.style.opacity = "1";
-            b.style.cursor = "pointer";
-        });
+            function disableRow(row, btn) {
+                row.querySelectorAll('#pname, #pprice, #pprice_large, .pcategory, #statusBtn').forEach(el => {
+                    if (el) {
+                        el.disabled = true;
+                        el.onclick = null;
+                    }
+                });
+                row.classList.remove('editing');
+                btn.textContent = "Edit";
+                btn.style.backgroundColor = "#ffc107";
+                btn.style.color = "#22333B";
 
-        // document.querySelectorAll('.viewBtn').forEach(v => {
-        //     v.disabled = false;
-        //     v.style.opacity = "1";
-        //     v.style.cursor = "pointer";
-        // });
+                document.querySelectorAll('.editBtn').forEach(b => {
+                    b.disabled = false;
+                    b.style.opacity = "1";
+                    b.style.cursor = "pointer";
+                });
 
-        const addBtn = document.getElementById("add-product");
-        addBtn.disabled = false;
-        addBtn.style.opacity = "1";
-    }
+                document.querySelectorAll('.viewBtn').forEach(v => {
+                    v.disabled = false;
+                    v.style.opacity = "1";
+                    v.style.cursor = "pointer";
+                });
 
-    // --- Modal Add Product ---
-    document.getElementById("add-product").addEventListener("click", () => {
-        document.getElementById("modal").style.display = "flex";
-    });
-    document.getElementById("cancel").addEventListener("click", () => {
-        document.getElementById("modal").style.display = "none";
-    });
-    document.getElementById("uploadBtn").addEventListener("click", () => {
-        document.getElementById("uploadInput").click();
-    });
-    document.getElementById("uploadInput").addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            document.getElementById("new-product-photo").src = URL.createObjectURL(file);
-        }
-    });
+                const editFlavorBtn = document.getElementById("edit-flavor-size-btn");
+        const viewArchiveBtn = document.getElementById("view-archive");
 
-    // document.getElementById("add").addEventListener("click", () => {
-    //     const name = document.getElementById("name").value.trim();
-    //     const price = document.getElementById("price").value.trim();
-    //     const priceLarge = document.getElementById("price_large").value.trim();
-    //     const category = document.getElementById("add-category").value;
-    //     const status = "Available";
-    //     const file = document.getElementById("uploadInput").files[0];
-
-    //     if (!name || !price || !category) {
-    //         showModal("Please fill all fields", "error");
-    //         return;
-    //     }
-
-    //     const formData = new FormData();
-    //     formData.append("product_name", name);
-    //     formData.append("product_price", price);
-    //     if (priceLarge) formData.append("price_large", priceLarge);
-    //     formData.append("category_id", category);
-    //     formData.append("status", status);
-    //     if (file) formData.append("photo", file);
-
-    //     fetch(BASE_URL + "backend/admin/add_product.php", {
-    //             method: "POST",
-    //             body: formData
-    //         })
-    //         .then(res => res.json())
-    //         .then(data => {
-    //             if (data.success) {
-    //                 showModal("Product added successfully!", "success");
-    //                 document.getElementById("modal").style.display = "none";
-    //                 document.getElementById("name").value = "";
-    //                 document.getElementById("price").value = "";
-    //                 document.getElementById("add-category").value = "";
-    //                 document.getElementById("uploadInput").value = "";
-    //                 document.getElementById("new-product-photo").src = "public/assests/image-43.png";
-    //                 setTimeout(() => location.reload(), 1000);
-    //             } else {
-    //                 showModal("Error: " + data.message, "error");
-    //             }
-    //         })
-    //         .catch(err => showModal("Fetch error: " + err.message, "error"));
-    // });
-
-    // --- Notifications ---
-    function showModal(message, type = "success", autoClose = true, duration = 3000) {
-        let modal = document.getElementById("notif-modal");
-        if (!modal) {
-            modal = document.createElement("div");
-            modal.id = "notif-modal";
-            modal.className = "notif-modal";
-            modal.innerHTML = `
-        <div class="notif-content">
-            <p id="notif-message"></p>
-            <button id="notif-close">OK</button>
-        </div>`;
-            document.body.appendChild(modal);
-
-            const style = document.createElement("style");
-            style.innerHTML = `
-        .notif-modal { display:none; position:fixed; z-index:10000; left:0; top:0;
-                        width:100%; height:100%; background:rgba(0,0,0,0.4);
-                        justify-content:center; align-items:center; }
-        .notif-content { background:white; padding:20px 30px; border-radius:10px;
-                        text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3);
-                        min-width:250px; animation:popin .3s ease; }
-        .notif-content p { margin-bottom:15px; font-size:16px; }
-        .notif-content button { padding:6px 16px; border:none; border-radius:6px;
-                                cursor:pointer; font-size:14px; color:white; }
-        .notif-content button.success { background:#4caf50; }
-        .notif-content button.error { background:#f44336; }
-        .notif-content button.warning { background:#ff9800; }
-        @keyframes popin { from{transform:scale(0.8);opacity:0;} to{transform:scale(1);opacity:1;} }
-        `;
-            document.head.appendChild(style);
+        if (editFlavorBtn) {
+            editFlavorBtn.disabled = false;
+            editFlavorBtn.style.opacity = "1";
+            editFlavorBtn.style.cursor = "pointer";
         }
 
-        document.getElementById("notif-message").textContent = message;
-        const closeBtn = document.getElementById("notif-close");
-        closeBtn.className = type;
-
-        modal.style.display = "flex";
-        const closeModal = () => modal.style.display = "none";
-        closeBtn.onclick = closeModal;
-        modal.onclick = (e) => {
-            if (e.target === modal) closeModal();
-        };
-
-        if (autoClose) setTimeout(closeModal, duration);
-    }
-
-    function formatCategoryName(str) {
-        if (!str) return "";
-        return str
-            .toLowerCase()
-            .split(/[_\s]+/)
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ");
-    }
-    document.querySelectorAll(".box-row").forEach(btn => {
-        btn.textContent = formatCategoryName(btn.textContent);
-    });
-    document.querySelectorAll(".pcategory option").forEach(opt => {
-        opt.textContent = formatCategoryName(opt.textContent);
-    });
-    document.querySelectorAll("#add-category option").forEach(opt => {
-        opt.textContent = formatCategoryName(opt.textContent);
-    });
-
-    const viewArchiveBtn = document.getElementById('view-archive');
-    viewArchiveBtn.addEventListener('click', () => {
-        resetEditButtons();
-        const url = new URL(window.location.href);
-        if (url.searchParams.get('archived') === '1') {
-            url.searchParams.set('archived', '0');
-        } else {
-            url.searchParams.set('archived', '1');
+        if (viewArchiveBtn) {
+            viewArchiveBtn.disabled = true;
+            viewArchiveBtn.style.opacity = "1";
+            viewArchiveBtn.style.cursor = "pointer";
         }
-        window.location.href = url.toString();
-    });
 
-    document.querySelectorAll('.archive-icon').forEach(icon => {
+
+                const addBtn = document.getElementById("add-product");
+                addBtn.disabled = false;
+                addBtn.style.opacity = "1";
+            }
+
+            // --- Modal Add Product ---
+            document.getElementById("add-product").addEventListener("click", () => {
+                document.getElementById("modal").style.display = "flex";
+            });
+            document.getElementById("cancel").addEventListener("click", () => {
+                document.getElementById("modal").style.display = "none";
+            });
+            document.getElementById("uploadBtn").addEventListener("click", () => {
+                document.getElementById("uploadInput").click();
+            });
+            document.getElementById("uploadInput").addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    document.getElementById("new-product-photo").src = URL.createObjectURL(file);
+                }
+            });
+
+            // document.getElementById("add").addEventListener("click", () => {
+            //     const name = document.getElementById("name").value.trim();
+            //     const price = document.getElementById("price").value.trim();
+            //     const priceLarge = document.getElementById("price_large").value.trim();
+            //     const category = document.getElementById("add-category").value;
+            //     const status = "Available";
+            //     const file = document.getElementById("uploadInput").files[0];
+
+            //     if (!name || !price || !category) {
+            //         showModal("Please fill all fields", "error");
+            //         return;
+            //     }
+
+            //     const formData = new FormData();
+            //     formData.append("product_name", name);
+            //     formData.append("product_price", price);
+            //     if (priceLarge) formData.append("price_large", priceLarge);
+            //     formData.append("category_id", category);
+            //     formData.append("status", status);
+            //     if (file) formData.append("photo", file);
+
+            //     fetch(BASE_URL + "backend/admin/add_product.php", {
+            //             method: "POST",
+            //             body: formData
+            //         })
+            //         .then(res => res.json())
+            //         .then(data => {
+            //             if (data.success) {
+            //                 showModal("Product added successfully!", "success");
+            //                 document.getElementById("modal").style.display = "none";
+            //                 document.getElementById("name").value = "";
+            //                 document.getElementById("price").value = "";
+            //                 document.getElementById("add-category").value = "";
+            //                 document.getElementById("uploadInput").value = "";
+            //                 document.getElementById("new-product-photo").src = "public/assests/image-43.png";
+            //                 setTimeout(() => location.reload(), 1000);
+            //             } else {
+            //                 showModal("Error: " + data.message, "error");
+            //             }
+            //         })
+            //         .catch(err => showModal("Fetch error: " + err.message, "error"));
+            // });
+
+            // --- Notifications ---
+            function showModal(message, type = "success", autoClose = true, duration = 3000) {
+                let modal = document.getElementById("notif-modal");
+                if (!modal) {
+                    modal = document.createElement("div");
+                    modal.id = "notif-modal";
+                    modal.className = "notif-modal";
+                    modal.innerHTML = `
+                <div class="notif-content">
+                    <p id="notif-message"></p>
+                    <button id="notif-close">OK</button>
+                </div>`;
+                    document.body.appendChild(modal);
+
+                    const style = document.createElement("style");
+                    style.innerHTML = `
+                .notif-modal { display:none; position:fixed; z-index:10000; left:0; top:0;
+                                width:100%; height:100%; background:rgba(0,0,0,0.4);
+                                justify-content:center; align-items:center; }
+                .notif-content { background:white; padding:20px 30px; border-radius:10px;
+                                text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3);
+                                min-width:250px; animation:popin .3s ease; }
+                .notif-content p { margin-bottom:15px; font-size:16px; }
+                .notif-content button { padding:6px 16px; border:none; border-radius:6px;
+                                        cursor:pointer; font-size:14px; color:white; }
+                .notif-content button.success { background:#4caf50; }
+                .notif-content button.error { background:#f44336; }
+                .notif-content button.warning { background:#ff9800; }
+                @keyframes popin { from{transform:scale(0.8);opacity:0;} to{transform:scale(1);opacity:1;} }
+                `;
+                    document.head.appendChild(style);
+                }
+
+                document.getElementById("notif-message").textContent = message;
+                const closeBtn = document.getElementById("notif-close");
+                closeBtn.className = type;
+
+                modal.style.display = "flex";
+                const closeModal = () => modal.style.display = "none";
+                closeBtn.onclick = closeModal;
+                modal.onclick = (e) => {
+                    if (e.target === modal) closeModal();
+                };
+
+                if (autoClose) setTimeout(closeModal, duration);
+            }
+
+            function formatCategoryName(str) {
+                if (!str) return "";
+                return str
+                    .toLowerCase()
+                    .split(/[_\s]+/)
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(" ");
+            }
+            document.querySelectorAll(".box-row").forEach(btn => {
+                btn.textContent = formatCategoryName(btn.textContent);
+            });
+            document.querySelectorAll(".pcategory option").forEach(opt => {
+                opt.textContent = formatCategoryName(opt.textContent);
+            });
+            document.querySelectorAll("#add-category option").forEach(opt => {
+                opt.textContent = formatCategoryName(opt.textContent);
+            });
+
+            const viewArchiveBtn = document.getElementById('view-archive');
+            viewArchiveBtn.addEventListener('click', () => {
+                resetEditButtons();
+                const url = new URL(window.location.href);
+                if (url.searchParams.get('archived') === '1') {
+                    url.searchParams.set('archived', '0');
+                } else {
+                    url.searchParams.set('archived', '1');
+                }
+                window.location.href = url.toString();
+            });
+
+            // document.querySelectorAll('.archive-icon').forEach(icon => {
+            //     icon.addEventListener('click', () => {
+            //         const row = icon.closest('.product-row');
+            //         const productId = row.dataset.id;
+
+            //         // check current "archived" state from URL
+            //         const url = new URL(window.location.href);
+            //         const archivedMode = url.searchParams.get('archived') === '1';
+
+            //         // if we are viewing archive, unarchive on click
+            //         const isArchive = archivedMode ? 0 : 1;
+
+            //         const formData = new FormData();
+            //         formData.append('product_id', productId);
+            //         formData.append('is_archive', isArchive);
+
+            //         fetch(BASE_URL + "backend/admin/archive_product.php", {
+            //                 method: "POST",
+            //                 body: formData
+            //             })
+            //             .then(res => res.json())
+            //             .then(data => {
+            //                 if (data.success) {
+
+            //                     showModal(isArchive ? "Product archived!" : "Product restored!", "success");
+            //                     disableRow(row, row.querySelector('.editBtn'));
+            //                     row.remove(); // remove from table since it no longer belongs in this view
+            //                 } else {
+            //                     showModal("Error: " + data.message, "error");
+            //                 }
+            //             })
+            //             .catch(err => showModal("Fetch error: " + err.message, "error"));
+            //     });
+            // });
+
+
+            document.querySelectorAll('.archive-icon').forEach(icon => {
         icon.addEventListener('click', () => {
             const row = icon.closest('.product-row');
             const productId = row.dataset.id;
@@ -974,10 +1255,14 @@ document.getElementById("add").addEventListener("click", () => {
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-
                         showModal(isArchive ? "Product archived!" : "Product restored!", "success");
                         disableRow(row, row.querySelector('.editBtn'));
                         row.remove(); // remove from table since it no longer belongs in this view
+
+                        // AUTO RELOAD after a short delay so user sees the modal
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 500); // 0.5s delay
                     } else {
                         showModal("Error: " + data.message, "error");
                     }
@@ -986,163 +1271,164 @@ document.getElementById("add").addEventListener("click", () => {
         });
     });
 
-    // --- Image validation ---
-    const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
-    const uploadInput = document.getElementById("uploadInput");
-    const newProductPhoto = document.getElementById("new-product-photo");
 
-    const fileErrorModal = document.createElement("div");
-    fileErrorModal.id = "file-error-modal";
-    fileErrorModal.className = "notif-modal";
-    fileErrorModal.innerHTML = `
-  <div class="notif-content">
-    <p id="file-error-message"></p>
-    <button id="file-error-close">OK</button>
-  </div>
-`;
-    document.body.appendChild(fileErrorModal);
+            // --- Image validation ---
+            const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
+            const uploadInput = document.getElementById("uploadInput");
+            const newProductPhoto = document.getElementById("new-product-photo");
 
-    document.getElementById("file-error-close").onclick = () => {
-        fileErrorModal.style.display = "none";
-        uploadInput.value = "";
-    };
+            const fileErrorModal = document.createElement("div");
+            fileErrorModal.id = "file-error-modal";
+            fileErrorModal.className = "notif-modal";
+            fileErrorModal.innerHTML = `
+        <div class="notif-content">
+            <p id="file-error-message"></p>
+            <button id="file-error-close">OK</button>
+        </div>
+        `;
+            document.body.appendChild(fileErrorModal);
 
-    uploadInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (!allowedTypes.includes(file.type)) {
-                document.getElementById("file-error-message").textContent =
-                    "Invalid file type. Allowed types: PNG, JPG, JPEG, WEBP.";
-                fileErrorModal.style.display = "flex";
-                return;
+            document.getElementById("file-error-close").onclick = () => {
+                fileErrorModal.style.display = "none";
+                uploadInput.value = "";
+            };
+
+            uploadInput.addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (!allowedTypes.includes(file.type)) {
+                        document.getElementById("file-error-message").textContent =
+                            "Invalid file type. Allowed types: PNG, JPG, JPEG, WEBP.";
+                        fileErrorModal.style.display = "flex";
+                        return;
+                    }
+                    newProductPhoto.src = URL.createObjectURL(file);
+                }
+            });
+
+            // initial filter to apply (in case some rows are hidden by server-side logic)
+            document.addEventListener('DOMContentLoaded', () => {
+                filterProducts();
+            });
+
+
+
+            // --- Flavor & Size Modal ---
+            const FLAVORS_DATA = <?= json_encode($flavors) ?>;
+            const SIZES_DATA = <?= json_encode($sizes) ?>;
+            const flavorSizeBtn = document.getElementById('edit-flavor-size-btn');
+            const flavorSizeModal = document.getElementById('flavor-size-modal');
+            const cancelFlavorSizeBtn = document.getElementById('cancel-flavors-sizes');
+            const saveFlavorSizeBtn = document.getElementById('save-flavors-sizes');
+            const flavorsTable = document.querySelector('#flavors-table tbody');
+            const sizesTable = document.querySelector('#sizes-table tbody');
+            const addFlavorBtn = document.getElementById('add-flavor');
+            const addSizeBtn = document.getElementById('add-size');
+
+            // Open modal
+            flavorSizeBtn.addEventListener('click', () => {
+                flavorSizeModal.style.display = 'flex';
+                loadFlavorsSizes(); // fetch current flavors/sizes for product
+            });
+
+            // Close modal
+            cancelFlavorSizeBtn.addEventListener('click', () => {
+                flavorSizeModal.style.display = 'none';
+            });
+
+            // Add new row
+            addFlavorBtn.addEventListener('click', () => addRow(flavorsTable));
+            addSizeBtn.addEventListener('click', () => addRow(sizesTable));
+
+            function addRow(table, id = '', name = '', status = 'Available', isSize = false) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                <td>
+                    <input type="text" value="${name}" placeholder="Enter name" ${isSize ? 'disabled' : ''}>
+                </td>
+                <td>
+                    <select>
+                        <option value="Available" ${status.toLowerCase() === 'available' ? 'selected' : ''}>Available</option>
+                        <option value="Unavailable" ${status.toLowerCase() === 'unavailable' ? 'selected' : ''}>Unavailable</option>
+                    </select>
+                </td>
+            `;
+                if (id) row.dataset.id = id;
+                table.appendChild(row);
             }
-            newProductPhoto.src = URL.createObjectURL(file);
-        }
-    });
-
-    // initial filter to apply (in case some rows are hidden by server-side logic)
-    document.addEventListener('DOMContentLoaded', () => {
-        filterProducts();
-    });
 
 
+            function loadFlavorsSizes() {
+                flavorsTable.innerHTML = '';
+                sizesTable.innerHTML = '';
 
-    // --- Flavor & Size Modal ---
-    const FLAVORS_DATA = <?= json_encode($flavors) ?>;
-    const SIZES_DATA = <?= json_encode($sizes) ?>;
-    const flavorSizeBtn = document.getElementById('edit-flavor-size-btn');
-    const flavorSizeModal = document.getElementById('flavor-size-modal');
-    const cancelFlavorSizeBtn = document.getElementById('cancel-flavors-sizes');
-    const saveFlavorSizeBtn = document.getElementById('save-flavors-sizes');
-    const flavorsTable = document.querySelector('#flavors-table tbody');
-    const sizesTable = document.querySelector('#sizes-table tbody');
-    const addFlavorBtn = document.getElementById('add-flavor');
-    const addSizeBtn = document.getElementById('add-size');
-
-    // Open modal
-    flavorSizeBtn.addEventListener('click', () => {
-        flavorSizeModal.style.display = 'flex';
-        loadFlavorsSizes(); // fetch current flavors/sizes for product
-    });
-
-    // Close modal
-    cancelFlavorSizeBtn.addEventListener('click', () => {
-        flavorSizeModal.style.display = 'none';
-    });
-
-    // Add new row
-    addFlavorBtn.addEventListener('click', () => addRow(flavorsTable));
-    addSizeBtn.addEventListener('click', () => addRow(sizesTable));
-
-    function addRow(table, id = '', name = '', status = 'Available', isSize = false) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-        <td>
-            <input type="text" value="${name}" placeholder="Enter name" ${isSize ? 'disabled' : ''}>
-        </td>
-        <td>
-            <select>
-                <option value="Available" ${status.toLowerCase() === 'available' ? 'selected' : ''}>Available</option>
-                <option value="Unavailable" ${status.toLowerCase() === 'unavailable' ? 'selected' : ''}>Unavailable</option>
-            </select>
-        </td>
-    `;
-        if (id) row.dataset.id = id;
-        table.appendChild(row);
-    }
-
-
-    function loadFlavorsSizes() {
-        flavorsTable.innerHTML = '';
-        sizesTable.innerHTML = '';
-
-        FLAVORS_DATA.forEach(f => addRow(flavorsTable, f.flavor_id, f.flavor_name, f.status));
-        SIZES_DATA.forEach(s => addRow(sizesTable, s.size_id, s.size_name, s.status, true));
-    }
+                FLAVORS_DATA.forEach(f => addRow(flavorsTable, f.flavor_id, f.flavor_name, f.status));
+                SIZES_DATA.forEach(s => addRow(sizesTable, s.size_id, s.size_name, s.status, true));
+            }
 
 
 
-    // Save changes (with detailed debugging)
-    saveFlavorSizeBtn.addEventListener('click', () => {
-        const flavors = Array.from(flavorsTable.querySelectorAll('tr')).map(row => ({
-            id: row.dataset.id || '',
-            name: row.querySelector('input').value.trim(),
-            status: row.querySelector('select').value
-        }));
+            // Save changes (with detailed debugging)
+            saveFlavorSizeBtn.addEventListener('click', () => {
+                const flavors = Array.from(flavorsTable.querySelectorAll('tr')).map(row => ({
+                    id: row.dataset.id || '',
+                    name: row.querySelector('input').value.trim(),
+                    status: row.querySelector('select').value
+                }));
 
-        const sizes = Array.from(sizesTable.querySelectorAll('tr')).map(row => ({
-            id: row.dataset.id || '',
-            name: row.querySelector('input').value.trim(),
-            status: row.querySelector('select').value
-        }));
+                const sizes = Array.from(sizesTable.querySelectorAll('tr')).map(row => ({
+                    id: row.dataset.id || '',
+                    name: row.querySelector('input').value.trim(),
+                    status: row.querySelector('select').value
+                }));
 
-        console.log('🔹 Sending to backend:', {
-            flavors,
-            sizes
-        });
-
-        fetch(BASE_URL + 'backend/admin/edit_flavors_sizes.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
+                console.log('🔹 Sending to backend:', {
                     flavors,
                     sizes
-                })
-            })
+                });
 
-            .then(async (res) => {
-                const text = await res.text(); // get raw text for debugging
-                console.log('🔹 Raw server response:', text);
+                fetch(BASE_URL + 'backend/admin/edit_flavors_sizes.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            flavors,
+                            sizes
+                        })
+                    })
 
-                try {
-                    const data = JSON.parse(text);
-                    console.log('✅ Parsed JSON:', data);
+                    .then(async (res) => {
+                        const text = await res.text(); // get raw text for debugging
+                        console.log('🔹 Raw server response:', text);
 
-                    if (data.success) {
-                        showModal('Flavors & sizes updated!', 'success');
-                        flavorSizeModal.style.display = 'none';
-                    } else {
-                        showModal(data.message || 'Failed to update flavors/sizes', 'error');
-                    }
-                } catch (err) {
-                    console.error('❌ JSON parse failed:', err);
-                    showModal(
-                        'Server did not return valid JSON:\n' + text,
-                        'error'
-                    );
-                }
-            })
-            .catch(err => {
-                console.error('❌ Fetch error:', err);
-                showModal('Fetch error: ' + err.message, 'error');
+                        try {
+                            const data = JSON.parse(text);
+                            console.log('✅ Parsed JSON:', data);
+
+                            if (data.success) {
+                                showModal('Flavors & sizes updated!', 'success');
+                                flavorSizeModal.style.display = 'none';
+                            } else {
+                                showModal(data.message || 'Failed to update flavors/sizes', 'error');
+                            }
+                        } catch (err) {
+                            console.error('❌ JSON parse failed:', err);
+                            showModal(
+                                'Server did not return valid JSON:\n' + text,
+                                'error'
+                            );
+                        }
+                    })
+                    .catch(err => {
+                        console.error('❌ Fetch error:', err);
+                        showModal('Fetch error: ' + err.message, 'error');
+                    });
             });
-    });
 
 
-    // Close modal if clicked outside content
-    flavorSizeModal.addEventListener('click', (e) => {
-        if (e.target === flavorSizeModal) flavorSizeModal.style.display = 'none';
-    });
+            // Close modal if clicked outside content
+            flavorSizeModal.addEventListener('click', (e) => {
+                if (e.target === flavorSizeModal) flavorSizeModal.style.display = 'none';
+            });
 </script>

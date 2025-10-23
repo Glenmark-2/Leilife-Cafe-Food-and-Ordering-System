@@ -15,6 +15,7 @@ $userAddress = $appData->loadUserAddress($user_id);
 $userFavorites = $appData->loadUsersFave($user_id);
 $orders = $appData->loadUserOrders($user_id) ?? [];
 
+
 // compute hasPassword
 $hasPassword = false;
 if ($user_id) {
@@ -202,6 +203,11 @@ $activeTab = $_GET['tab'] ?? 'personal';
                     </thead>
                     <tbody>
                         <?php foreach ($orders as $order): ?>
+                            <?php
+                            if (!isset($order['user_id'])) {
+                                $order['user_id'] = $_SESSION['user_id'] ?? null;
+                            }
+                            ?>
                             <tr class="order-row"
                                 data-order='<?= json_encode($order, JSON_HEX_APOS | JSON_HEX_QUOT) ?>'>
                                 <td>#<?= htmlspecialchars($order["order_number"]) ?></td>
@@ -377,7 +383,7 @@ $activeTab = $_GET['tab'] ?? 'personal';
                     html += `<p><strong>Feedback:</strong> ${order.review}</p>`;
                 }
 
-                                if (order.status === "delivered" || order.status === "picked_up") {
+                if (order.status === "delivered" || order.status === "picked_up") {
                     if (!order.review) {
                         // Delivered/picked up AND no review → show all three buttons
                         html += `
@@ -392,9 +398,9 @@ $activeTab = $_GET['tab'] ?? 'personal';
             ); ?>
             <form class="reorder-form" method="POST">
                         <input type="hidden" name="order_id" value="${order.order_id}">
-                        <?= createButton(35,100,"Reorder","reorderBtn",16,"button",['class'=>'reorderBtn']); ?>
+                        <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "button", ['class' => 'reorderBtn']); ?>
                     </form>
-            <?= createButton(35, 200, "Download Receipt", "dlReceipt", 16, "submit"); ?>
+            <?= createButton(35, 200, "Download Receipt", "dlReceipt", 16, "button"); ?>
         </div>
         `;
                     } else {
@@ -403,9 +409,9 @@ $activeTab = $_GET['tab'] ?? 'personal';
         <div id="reorder-receipt-btn">
             <form class="reorder-form" method="POST">
                         <input type="hidden" name="order_id" value="${order.order_id}">
-                        <?= createButton(35,100,"Reorder","reorderBtn",16,"button",['class'=>'reorderBtn']); ?>
+                        <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "button", ['class' => 'reorderBtn']); ?>
                     </form>
-            <?= createButton(35, 200, "Download Receipt", "dlReceipt", 16, "submit"); ?>
+            <?= createButton(35, 200, "Download Receipt", "dlReceipt", 16, "button"); ?>
         </div>
         `;
                     }
@@ -415,7 +421,7 @@ $activeTab = $_GET['tab'] ?? 'personal';
     <div id="reorder-receipt-btn">
         <form class="reorder-form" method="POST">
                         <input type="hidden" name="order_id" value="${order.order_id}">
-                        <?= createButton(35,100,"Reorder","reorderBtn",16,"button",['class'=>'reorderBtn']); ?>
+                        <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "button", ['class' => 'reorderBtn']); ?>
                     </form>
     </div>
     `;
@@ -432,6 +438,16 @@ $activeTab = $_GET['tab'] ?? 'personal';
                         window.location.href = `index.php?page=order-tracking&num=${order.order_number}`;
                     });
                 }
+
+                const dlReceipt = document.getElementById("dlReceipt");
+                if (dlReceipt) {
+                    dlReceipt.addEventListener("click", () => {
+                        const url = `index.php?page=user-receipt&order_number=${order.order_number}&user_id=${order.user_id}`;
+                        window.open(url, "_blank");
+                    });
+                }
+
+
 
                 document.getElementById('orderDetailsModal').style.display = 'flex';
             });
@@ -455,82 +471,82 @@ $activeTab = $_GET['tab'] ?? 'personal';
         // 2) When user clicks OK, send AJAX POST to backend/reorder.php with delete_cart=1
         // 3) Handle JSON response: show messages or redirect to checkout
 
-document.addEventListener('click', function(e) {
-    if (e.target && e.target.classList.contains('reorderBtn')) {
-        e.preventDefault();
-        const form = e.target.closest('form');
-        if (!form) return;
-        const orderId = form.querySelector('input[name="order_id"]').value;
-closeOrderModal();
-        // Show warning before reordering
-        showModal("Warning: All current products in your cart will be removed. Click OK to continue.", "warning", false);
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('reorderBtn')) {
+                e.preventDefault();
+                const form = e.target.closest('form');
+                if (!form) return;
+                const orderId = form.querySelector('input[name="order_id"]').value;
+                closeOrderModal();
+                // Show warning before reordering
+                showModal("Warning: All current products in your cart will be removed. Click OK to continue.", "warning", false);
 
-        const closeBtn = document.getElementById('notif-close');
-        if (!closeBtn) {
-            proceedReorder(orderId);
-            return;
-        }
+                const closeBtn = document.getElementById('notif-close');
+                if (!closeBtn) {
+                    proceedReorder(orderId);
+                    return;
+                }
 
-        const handler = () => {
-            closeBtn.removeEventListener('click', handler);
-            closeBtn.disabled = true;
-            proceedReorder(orderId);
-        };
+                const handler = () => {
+                    closeBtn.removeEventListener('click', handler);
+                    closeBtn.disabled = true;
+                    proceedReorder(orderId);
+                };
 
-        closeBtn.addEventListener('click', handler);
-    }
-});
-
-function proceedReorder(orderId) {
-    const fd = new FormData();
-    fd.append('order_id', orderId);
-    fd.append('delete_cart', 1);
-
-    fetch('../backend/reorder.php', {
-        method: 'POST',
-        body: fd,
-        credentials: 'same-origin'
-    })
-    .then(res => res.json())
-    .then(result => {
-        if (!result) {
-            showModal('Unexpected server response.', 'error', true, 3000);
-            return;
-        }
-
-        if (!result.success) {
-            // ❌ all items unavailable
-            showModal(result.message || 'All items in your previous order are unavailable.', 'warning', false);
-            return;
-        }
-
-        // ✅ partial success (some unavailable)
-        if (result.availableCount < result.totalItems) {
-            showModal(result.message || 'Some items were unavailable and skipped.', 'warning', false);
-
-            // ⏳ delay redirect to let modal show
-            if (result.redirect) {
-                setTimeout(() => {
-                    window.location.href = result.redirect;
-                }, 3000); // wait 3 seconds before redirect
+                closeBtn.addEventListener('click', handler);
             }
-            return; // stop here so it doesn’t run the next redirect
-        }
+        });
 
-        // ✅ all items available
-        if (result.redirect) {
-            showModal(result.message || 'Reorder successful! Redirecting...', 'success', true, 1500);
-            setTimeout(() => {
-                window.location.href = result.redirect;
-            }, 1500);
-        } else {
-            showModal(result.message || 'Reorder successful.', 'success', true, 2000);
+        function proceedReorder(orderId) {
+            const fd = new FormData();
+            fd.append('order_id', orderId);
+            fd.append('delete_cart', 1);
+
+            fetch('../backend/reorder.php', {
+                    method: 'POST',
+                    body: fd,
+                    credentials: 'same-origin'
+                })
+                .then(res => res.json())
+                .then(result => {
+                    if (!result) {
+                        showModal('Unexpected server response.', 'error', true, 3000);
+                        return;
+                    }
+
+                    if (!result.success) {
+                        // ❌ all items unavailable
+                        showModal(result.message || 'All items in your previous order are unavailable.', 'warning', false);
+                        return;
+                    }
+
+                    // ✅ partial success (some unavailable)
+                    if (result.availableCount < result.totalItems) {
+                        showModal(result.message || 'Some items were unavailable and skipped.', 'warning', false);
+
+                        // ⏳ delay redirect to let modal show
+                        if (result.redirect) {
+                            setTimeout(() => {
+                                window.location.href = result.redirect;
+                            }, 3000); // wait 3 seconds before redirect
+                        }
+                        return; // stop here so it doesn’t run the next redirect
+                    }
+
+                    // ✅ all items available
+                    if (result.redirect) {
+                        showModal(result.message || 'Reorder successful! Redirecting...', 'success', true, 1500);
+                        setTimeout(() => {
+                            window.location.href = result.redirect;
+                        }, 1500);
+                    } else {
+                        showModal(result.message || 'Reorder successful.', 'success', true, 2000);
+                    }
+                })
+                .catch(err => {
+                    showModal('AJAX error: ' + err.message, 'error', true, 3000);
+                });
         }
-    })
-    .catch(err => {
-        showModal('AJAX error: ' + err.message, 'error', true, 3000);
-    });
-}
 
 
     }); // DOMContentLoaded

@@ -1,11 +1,14 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
-// if (!isset($_SESSION['admin_id'])) {
-//   header('Location: /leilife/pages/admin/login-x9P2kL7zQ.php');
-//   exit;
-// }
+if (!isset($_SESSION['admin_id'])) {
+  header('Location: /leilife/public/index.php');
+  exit;
+}
 
 $appData = new AppData($pdo);
 $archived = $_GET['archived'] ?? 0;

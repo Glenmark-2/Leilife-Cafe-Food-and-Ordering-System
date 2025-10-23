@@ -5,9 +5,8 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
-// Redirect if admin not logged in
 if (!isset($_SESSION['admin_id'])) {
-  header('Location: /leilife/public/index.php?page=home');
+  header('Location: /leilife/public/index.php');
   exit;
 }
 
@@ -151,7 +150,7 @@ $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: nul
     if (payment && payment.toLowerCase() !== 'all') params.push(`payment=${encodeURIComponent(payment)}`);
 
     const url = '/leilife/public/admin.php?' + params.join('&');
-    console.log("Export URL:", url);
+    // console.log("Export URL:", url);
     window.open(url, '_blank');
   }
 

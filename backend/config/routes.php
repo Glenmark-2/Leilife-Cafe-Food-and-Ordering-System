@@ -21,6 +21,7 @@ return [
     'resend_verification' => __DIR__ . '/../resend_verification.php', // ✅ add this
     'change_password' => __DIR__ . '/../../components/change_password.php',
     'order_button'   => __DIR__ . '/../../components/order_button.php',
+    'user-receipt'    => __DIR__ . '/../../pages/user-receipt.php',
 
 
     // Optional 404 page; router will fall back to it

@@ -18,6 +18,12 @@ $target = $routes[$page] ?? $routes['404'];
 requireLogin($page);
 
 // 6) Render layout + page
+if ($page === 'user-receipt') {
+    // Load directly without layout
+    include $target;
+    exit;
+}
+
 include __DIR__ . '/../components/header.php';
 
 echo '<div id="pageContent">';

@@ -921,5 +921,83 @@ if (!class_exists('AppData')) {
 
             return array_values($result);
         }
+
+        // for receipt
+public function getOrderWithItems($user_id, $order_number)
+{
+    $orderItems = $this->getOrderByNumber($user_id, $order_number);
+
+    if (!$orderItems) return [];
+
+    // ✅ Calculate subtotal from order_items (price * quantity)
+    $subtotal = 0;
+    foreach ($orderItems as &$item) {
+        $item['total_price'] = $item['price'] * $item['quantity'];
+        $subtotal += $item['total_price'];
+    }
+
+    // ✅ Base order info (from first item)
+    $order = [
+        'order_id'         => $orderItems[0]['order_id'],
+        'order_number'     => $orderItems[0]['order_number'],
+        'user_id'          => $orderItems[0]['user_id'],
+        'delivery_method'  => $orderItems[0]['delivery_method'],
+        'payment_method'   => $orderItems[0]['payment_method'],
+        'total'            => $orderItems[0]['total'] ?? $subtotal,
+        'order_date'       => $orderItems[0]['order_date'] ?? '',
+        'customer_name'    => '',
+        'delivery_address' => '',
+    ];
+
+    // ✅ Fetch customer full name from `users` table
+    $stmt = $this->db->prepare("
+        SELECT CONCAT(first_name, ' ', last_name) AS customer_name 
+        FROM users 
+        WHERE user_id = :uid
+    ");
+    $stmt->execute([':uid' => $order['user_id']]);
+    $order['customer_name'] = $stmt->fetchColumn() ?: 'Unknown Customer';
+
+    // ✅ Fetch delivery address from `address` table
+    $stmt = $this->db->prepare("
+        SELECT 
+            street_address, 
+            barangay, 
+            city, 
+            region, 
+            province 
+        FROM addresses 
+        WHERE user_id = :uid
+        LIMIT 1
+    ");
+    $stmt->execute([':uid' => $order['user_id']]);
+    $address = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($address) {
+        // Combine address parts into a readable string
+        $order['delivery_address'] = sprintf(
+            "%s, %s, %s, %s, %s",
+            $address['street_address'] ?? '',
+            $address['barangay'] ?? '',
+            $address['city'] ?? '',
+            $address['region'] ?? '',
+            $address['province'] ?? ''
+        );
+    }
+
+    // ✅ Calculate delivery fee
+    $deliveryFee = max(($order['total'] - $subtotal), 0);
+
+    // ✅ Final return
+    return [
+        'order'        => $order,
+        'items'        => $orderItems,
+        'subtotal'     => $subtotal,
+        'delivery_fee' => $deliveryFee,
+    ];
+}
+
+
+
     }
 }

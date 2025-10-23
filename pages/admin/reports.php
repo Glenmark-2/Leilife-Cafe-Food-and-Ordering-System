@@ -1,3 +1,14 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
+
+if (!isset($_SESSION['admin_id'])) {
+  header('Location: /leilife/public/index.php');
+  exit;
+} 
+?>
+
 <style>
 :root {
   --bg-light: #f5f1eb;

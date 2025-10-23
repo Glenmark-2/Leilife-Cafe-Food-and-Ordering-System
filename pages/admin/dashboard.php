@@ -1,8 +1,14 @@
 <?php
-
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
+if (!isset($_SESSION['admin_id'])) {
+  header('Location: /leilife/public/index.php');
+  exit;
+}
 $showWelcome = false;
 if (isset($_SESSION['show_welcome']) && $_SESSION['show_welcome'] === true) {
   $showWelcome = true;
@@ -698,13 +704,14 @@ $totalActiveDriver = $appData->activeDriver();
 
     <div id="table">
       <div id="table-title">
-        <p style="width: 25%;">Order #</p>
-        <p style="width: 20%;">Customer</p>
-        <p style="width: 15%;">Amount</p>
-        <p style="width: 10%;">Item</p>
-        <p style="width: 20%;">Status</p>
-        <p style="width: 20%;">Payment Status</p>
-        <p style="width: 20%;">Method</p>
+        <p style="width: 23%;">Order #</p>
+        <p style="width: 18%;">Customer</p>
+        <p style="width: 13%;">Amount</p>
+        <p style="width: 8%;">Item</p>
+        <p style="width: 18%;">Status</p>
+        <p style="width: 15%;">Payment Status</p>
+        <p style="width: 13%;">Method</p>
+        <p style="width: 15%;">Download Receipt</p>
       </div>
 
       <div id="table-body">
@@ -978,11 +985,11 @@ $totalActiveDriver = $appData->activeDriver();
         row.dataset.orderId = order.order_id;
 
         row.innerHTML = `
-                <p style="width:25%;">${escapeHtml(order.order_number)}</p>
-                <p style="width:20%;">${escapeHtml(order.customer_name || 'Unknown User')}</p>
-                <p style="width:15%;">₱${parseFloat(order.total || 0).toFixed(2)}</p>
-                <p style="width:10%; text-align:left;">${order.items_count}</p>
-                <div style="width:20%; position:relative;">
+                <p style="width:23%;">${escapeHtml(order.order_number)}</p>
+                <p style="width:18%;">${escapeHtml(order.customer_name || 'Unknown User')}</p>
+                <p style="width:13%;">₱${parseFloat(order.total || 0).toFixed(2)}</p>
+                <p style="width:8%; text-align:left;">${order.items_count}</p>
+                <div style="width:18%; position:relative;">
                     <button class="status-btn" data-id="${order.order_id}" data-status="${order.status}">
                         ${formatStatus(order.status)}
                     </button>
@@ -990,11 +997,27 @@ $totalActiveDriver = $appData->activeDriver();
                         ${createStatusOptions(order.status, order.delivery_method)}
                     </div>
                 </div>
-                <p style="width:20%;">${escapeHtml(order.payment_status)}</p>
-                <p style="width:20%;">${escapeHtml(order.delivery_method)}</p>
+                <p style="width:15%;">${escapeHtml(order.payment_status)}</p>
+                <p style="width:13%;">${escapeHtml(order.delivery_method)}</p>
+                <div style="width:15%; display:flex; justify-content:center">
+                    <button class="dlBtn"
+                    style = "background:transparent; border: 0;"
+                    >
+                        <img src="/leilife/public/assests/downloads.png" alt="Download"
+                        style = "width:20px;">
+                    </button>
+                </div>
+
             `;
 
         tableBody.appendChild(row);
+
+        const dlBtn = row.querySelector('.dlBtn');
+        dlBtn.addEventListener('click', e => {
+          e.stopPropagation(); // prevent row click
+          downloadReceipt(order.order_number, order.user_id);
+        });
+
 
         // Expandable item row
         const expandRow = document.createElement('div');
@@ -1005,6 +1028,8 @@ $totalActiveDriver = $appData->activeDriver();
         expandRow.style.borderBottom = "1px solid #ddd";
         expandRow.dataset.orderId = order.order_id;
         tableBody.appendChild(expandRow);
+
+
 
         row.addEventListener('click', async e => {
           if (e.target.classList.contains('status-btn') || e.target.classList.contains('status-option')) return;
@@ -1044,6 +1069,16 @@ $totalActiveDriver = $appData->activeDriver();
       updateCounts(0, 0, 0);
     }
   }
+
+function downloadReceipt(order_number, user_id) {
+    if (!order_number || !user_id) return;
+
+    const url = `/Leilife/public/admin.php?page=pos-receipt&download=1&order_number=${encodeURIComponent(order_number)}&user_id=${encodeURIComponent(user_id)}`;
+    window.open(url, '_blank'); // triggers receipt download in new tab
+}
+
+
+
 
   // ==================================================
   // ITEM TABLE
@@ -1144,22 +1179,22 @@ $totalActiveDriver = $appData->activeDriver();
   // ==================================================
   // ORDER STATUS
   // ==================================================
- function createStatusOptions(current, deliveryMethod) {
-  let statuses = [];
+  function createStatusOptions(current, deliveryMethod) {
+    let statuses = [];
 
-  if (deliveryMethod === 'pickup') {
-    statuses = ['pending', 'preparing','picked_up', 'cancelled'];
-  } else if (deliveryMethod === 'home') {
-    statuses = ['pending', 'preparing', 'ready_for_delivery', 'cancelled'];
-  } else {
-    // fallback
-    statuses = ['pending', 'preparing', 'ready_for_delivery', 'delivered', 'cancelled'];
+    if (deliveryMethod === 'pickup') {
+      statuses = ['pending', 'preparing', 'picked_up', 'cancelled'];
+    } else if (deliveryMethod === 'home') {
+      statuses = ['pending', 'preparing', 'ready_for_delivery', 'cancelled'];
+    } else {
+      // fallback
+      statuses = ['pending', 'preparing', 'ready_for_delivery', 'delivered', 'cancelled'];
+    }
+
+    return statuses
+      .map(st => `<div class="status-option ${st === current ? 'active' : ''}" data-status="${st}">${formatStatus(st)}</div>`)
+      .join('');
   }
-
-  return statuses
-    .map(st => `<div class="status-option ${st === current ? 'active' : ''}" data-status="${st}">${formatStatus(st)}</div>`)
-    .join('');
-}
 
 
   function attachStatusListeners() {

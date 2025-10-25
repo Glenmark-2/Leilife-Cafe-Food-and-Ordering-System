@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['admin_id'])) {
-  header('Location: /leilife/public/index.php');
+  header('Location: /Leilife/public/index.php');
   exit;
 } 
 ?>
@@ -261,7 +261,7 @@ new Chart(document.getElementById('userGrowth'), {
 });
 
 /* KEEP YOUR SENTIMENT FETCH AS IS */
-const sentimentEndpoint = '/leilife/backend/admin/fetch_inbox_sentiment.php';
+const sentimentEndpoint = '/Leilife/backend/admin/fetch_inbox_sentiment.php';
 const canvas = document.getElementById('sentimentChart');
 const pendingEl = document.getElementById('pendingNotice');
 const errEl = document.getElementById('sentimentError');
@@ -323,7 +323,7 @@ function updateAverageOrderValue() {
 
 
 async function fetchTotalSales(fromDate, toDate) {
-  const url = new URL('/leilife/backend/admin/get_total_sales.php', window.location.origin);
+  const url = new URL('/Leilife/backend/admin/get_total_sales.php', window.location.origin);
   if (fromDate) url.searchParams.set('fromDate', fromDate);
   if (toDate)   url.searchParams.set('toDate', toDate);
 
@@ -347,7 +347,7 @@ async function fetchTotalSales(fromDate, toDate) {
 }
 
 async function fetchTotalOrders(fromDate, toDate) {
-  const url = new URL('/leilife/backend/admin/get_total_orders.php', window.location.origin);
+  const url = new URL('/Leilife/backend/admin/get_total_orders.php', window.location.origin);
   if (fromDate) url.searchParams.set('fromDate', fromDate);
   if (toDate)   url.searchParams.set('toDate', toDate);
 
@@ -371,7 +371,7 @@ async function fetchTotalOrders(fromDate, toDate) {
 }
 
 async function fetchRevenueGrowth(fromDate, toDate) {
-  const url = new URL('/leilife/backend/admin/get_revenue_growth.php', window.location.origin);
+  const url = new URL('/Leilife/backend/admin/get_revenue_growth.php', window.location.origin);
   if (fromDate) url.searchParams.set('fromDate', fromDate);
   if (toDate)   url.searchParams.set('toDate', toDate);
 
@@ -400,7 +400,7 @@ async function fetchRevenueGrowth(fromDate, toDate) {
   }
 }
 async function fetchTopProduct(fromDate, toDate) {
-  const url = new URL('/leilife/backend/admin/get_top_product.php', window.location.origin);
+  const url = new URL('/Leilife/backend/admin/get_top_product.php', window.location.origin);
   if (fromDate) url.searchParams.set('fromDate', fromDate);
   if (toDate)   url.searchParams.set('toDate', toDate);
 
@@ -432,7 +432,7 @@ async function fetchTopProduct(fromDate, toDate) {
 }
 
 async function fetchTopCustomer(fromDate, toDate) {
-  const url = new URL('/leilife/backend/admin/get_top_customer.php', window.location.origin);
+  const url = new URL('/Leilife/backend/admin/get_top_customer.php', window.location.origin);
   if (fromDate) url.searchParams.set('fromDate', fromDate);
   if (toDate)   url.searchParams.set('toDate', toDate);
 

@@ -3,11 +3,14 @@
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-
+// echo dirname(dirname(__FILE__)). '/phpmailer-master/src/Exception.php';
+// echo __FILE__;
+// return;
 // Include PHPMailer files
-require __DIR__ . '/../phpmailer-master/src/Exception.php';
-require __DIR__ . '/../phpmailer-master/src/PHPMailer.php';
-require __DIR__ . '/../phpmailer-master/src/SMTP.php';
+require_once dirname(dirname(__FILE__)). '/PHPMailer-master/src/Exception.php';
+require_once dirname(dirname(__FILE__)). '/PHPMailer-master/src/PHPMailer.php';
+require_once dirname(dirname(__FILE__)). '/PHPMailer-master/src/SMTP.php';
+
 
 // ✅ Include your custom env loader
 require_once __DIR__ . '/db_script/env.php';
@@ -49,8 +52,7 @@ function sendVerificationEmail(string $toEmail, string $token): bool
         $mail = setupMailer();
         $mail->addAddress($toEmail);
         $mail->Subject = 'Verify your Leilife account';
-
-        $verifyLink = "http://localhost/Leilife/public/index.php?page=verify&token=" . urlencode($token);
+        $verifyLink = $_SERVER['HTTP_ORIGIN']."/Leilife/public/index.php?page=verify&token=" . urlencode($token);
 
         $mail->Body = "
             <p>Hello!</p>

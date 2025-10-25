@@ -6,4 +6,5 @@ return [
     'roles'     => ['CSS/admin/pages/roles.css'],
     'inbox'     => ['CSS/admin/pages/inbox.css'],
     'driver'    => ['CSS/admin/pages/driver.css'],
+    'settings'    => ['CSS/admin/pages/settings.css'],
 ];

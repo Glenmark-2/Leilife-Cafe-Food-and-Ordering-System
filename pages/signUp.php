@@ -29,7 +29,7 @@
 
 
     <form id="signup-form"
-          action="/Leilife/backend/signup.php"
+          action="/Leilife/backend/signUp.php"
           method="POST"
           novalidate>
       <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">

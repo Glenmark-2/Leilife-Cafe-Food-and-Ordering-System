@@ -1,6 +1,6 @@
 <?php
 require_once "db.php";
-require_once "AppData.php";
+require_once "appData.php";
 
 $appData = new AppData($pdo);
 

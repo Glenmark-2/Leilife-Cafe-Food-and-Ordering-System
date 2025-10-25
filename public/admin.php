@@ -56,6 +56,7 @@ $page = $currentPage;
             'inbox',
             'reports',
             'audit',
+            'settings'
         ];
 
         if (in_array($currentPage, $allowed_pages)) {

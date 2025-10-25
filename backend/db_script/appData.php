@@ -745,16 +745,21 @@ if (!class_exists('AppData')) {
                 }
 
                 // Check size availability
-                if (!empty($it['size']) && intval($it['has_size']) === 1) {
+                if (intval($it['has_size']) === 1 && !empty($it['size'])) {
                     $stmtSize = $this->db->prepare("
-                SELECT status FROM drink_size WHERE product_id = :pid AND size_name = :size LIMIT 1
-            ");
-                    $stmtSize->execute([':pid' => $it['product_id'], ':size' => $it['size']]);
+                        SELECT status 
+                        FROM drink_size 
+                        WHERE size_name = :size 
+                        LIMIT 1
+                    ");
+                    $stmtSize->execute([':size' => $it['size']]);
                     $sizeStatus = $stmtSize->fetchColumn();
-                    if ($sizeStatus !== 'available') {
-                        continue;
+
+                    if (!$sizeStatus || strtolower($sizeStatus) !== 'available') {
+                        continue; 
                     }
                 }
+
 
                 // Check flavor availability
                 if (!empty($it['flavor_ids']) && intval($it['has_flavor']) === 1) {

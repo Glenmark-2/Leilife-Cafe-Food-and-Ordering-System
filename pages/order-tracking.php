@@ -104,8 +104,10 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
                         <img src="../public/assests/pin.png" alt="location">
                         <p>
                             <?= htmlspecialchars($userAddress["street_address"] ?? 'No address') ?>,
-                            <?= htmlspecialchars($userAddress["barangay"] ?? '') ?>,
-                            <?= htmlspecialchars($userAddress["city"] ?? '') ?>
+                            Barangay <?= htmlspecialchars($userAddress["barangay"] ?? '') ?>,
+                            <?= htmlspecialchars($userAddress["city_name"] ?? '') ?>,
+                            <?= htmlspecialchars($userAddress["province_name"] ?? '') ?>,
+                            <?= htmlspecialchars($userAddress["region_name"] ?? '') ?>
                         </p>
                     </div>
                     <div class="info-row">
@@ -502,7 +504,6 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
                 const formData = new FormData(reorderForm);
                 const orderId = formData.get("order_id");
 
-                showModal("Processing reorder...", "warning", false);
                 reorderBtn.disabled = true; // prevent double-clicks
 
                 try {

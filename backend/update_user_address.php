@@ -17,10 +17,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $city = trim($_POST['city'] ?? '');
     $province = trim($_POST['province'] ?? '');
     $region = trim($_POST['region'] ?? '');
+    $city_name = trim($_POST['city_name'] ?? '');
+    $province_name = trim($_POST['province_name'] ?? '');
+    $region_name  = trim($_POST['region_name'] ?? '');
     $latitude = isset($_POST['latitude']) ? (float)$_POST['latitude'] : null;
     $longitude = isset($_POST['longitude']) ? (float)$_POST['longitude'] : null;
 
-    if (!$street_address || !$barangay || !$city || !$province || !$region) {
+    if (!$street_address || !$barangay || !$city || !$province || !$region || !$city_name || !$province_name || !$region_name || !$latitude || !$longitude) {
         echo json_encode(["success" => false, "error" => "All fields are required"]);
         exit;
     }
@@ -34,8 +37,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 SET street_address = :street, 
                     barangay = :barangay, 
                     city = :city,
+                    city_name = :city_name,
                     province = :province, 
+                    province_name = :province_name,
                     region = :region,
+                    region_name = :region_name,
                     latitude = :latitude,
                     longitude = :longitude
                 WHERE user_id = :user_id";
@@ -45,30 +51,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':street' => $street_address,
             ':barangay' => $barangay,
             ':city' => $city,
+            ':city_name' => $city_name,
             ':province' => $province,
+            ':province_name' => $province_name,
             ':region' => $region,
+            ':region_name' => $region_name,
             ':latitude' => $latitude,
             ':longitude' => $longitude
         ]);
     } else {
         $sql = "INSERT INTO addresses 
-                (user_id, street_address, barangay, city, province, region, latitude, longitude, payment_method, delivery_option)
-                VALUES (:user_id, :street, :barangay, :city, :province, :region, :latitude, :longitude, 'cash_on_delivery', 'delivery')";
+            (user_id, street_address, barangay, city, city_name, province, province_name, region, region_name, latitude, longitude, payment_method, delivery_option)
+            VALUES (:user_id, :street, :barangay, :city, :city_name, :province, :province_name, :region, :region_name, :latitude, :longitude, 'cash_on_delivery', 'delivery')";
+
         $stmt = $pdo->prepare($sql);
         $ok = $stmt->execute([
             ':user_id' => $user_id,
             ':street' => $street_address,
             ':barangay' => $barangay,
             ':city' => $city,
+            ':city_name' => $city_name,
             ':province' => $province,
+            ':province_name' => $province_name,
             ':region' => $region,
+            ':region_name' => $region_name,
             ':latitude' => $latitude,
             ':longitude' => $longitude
         ]);
     }
 
-    echo json_encode($ok 
-        ? ["success" => true, "message" => "Address updated successfully"] 
+    echo json_encode($ok
+        ? ["success" => true, "message" => "Address updated successfully"]
         : ["success" => false, "error" => "Database error"]);
     exit;
 }

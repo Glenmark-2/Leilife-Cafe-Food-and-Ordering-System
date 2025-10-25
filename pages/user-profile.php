@@ -85,7 +85,7 @@ $activeTab = $_GET['tab'] ?? 'personal';
                     <div class="info">
                         <p>Phone</p>
                         <h4 class="display-value"><?= htmlspecialchars($userInfo["phone_number"] ?? '') ?></h4>
-                        <input class="edit-input" type="text" name="phone_number" value="<?= htmlspecialchars($userInfo["phone_number"] ?? '') ?>" placeholder="+63" style="display:none;">
+                        <input class="edit-input" type="number" name="phone_number" value="<?= htmlspecialchars($userInfo["phone_number"] ?? '') ?>"  style="display:none;">
                     </div>
                     <div class="info">
                         <p>Email</p>
@@ -131,17 +131,17 @@ $activeTab = $_GET['tab'] ?? 'personal';
                         </div>
                         <div class="info">
                             <p>City</p>
-                            <h4 class="display-value">Caloocan City</h4>
+                            <h4 class="display-value"><?= htmlspecialchars($userAddress["city_name"] ?? '') ?></h4>
                             <input class="edit-input" type="text" name="city" value="<?= htmlspecialchars($userAddress["city"] ?? '') ?>" style="display:none;">
                         </div>
                         <div class="info">
                             <p>Province</p>
-                            <h4 class="display-value">Metro Manila</h4>
+                            <h4 class="display-value"><?= htmlspecialchars($userAddress["province_name"] ?? '') ?></h4>
                             <input class="edit-input" type="text" name="province" value="<?= htmlspecialchars($userAddress["province"] ?? '') ?>" style="display:none;">
                         </div>
                         <div class="info">
                             <p>Region</p>
-                            <h4 class="display-value">NCR (National Capital Region)</h4>
+                            <h4 class="display-value"><?= htmlspecialchars($userAddress["region_name"] ?? '') ?></h4>
                             <input class="edit-input" type="text" name="region" value="<?= htmlspecialchars($userAddress["region"] ?? '') ?>" style="display:none;">
                         </div>
                     </div>
@@ -302,18 +302,22 @@ $activeTab = $_GET['tab'] ?? 'personal';
         const urlParams = new URLSearchParams(window.location.search);
         activateTab(urlParams.get("tab") || "personal");
 
-        // Personal edit (kept)
+        // Personal edit (with validation for 09xxxxxxxxx)
         const editBtn = document.getElementById("edit-info");
         const personalForm = document.getElementById("personal-form");
+
         if (editBtn && personalForm) {
             editBtn.addEventListener("click", async (e) => {
                 e.preventDefault();
                 const state = editBtn.getAttribute("data-state");
                 const infos = personalForm.querySelectorAll(".info");
+
                 if (state === "edit") {
+                    // Switch to edit mode
                     editBtn.textContent = "Save";
                     editBtn.style.backgroundColor = "#28a745";
                     editBtn.setAttribute("data-state", "save");
+
                     infos.forEach(info => {
                         const disp = info.querySelector(".display-value");
                         const input = info.querySelector(".edit-input");
@@ -324,15 +328,41 @@ $activeTab = $_GET['tab'] ?? 'personal';
                     });
                     return;
                 }
+
+                const firstName = personalForm.querySelector('[name="first_name"]').value.trim();
+                const lastName = personalForm.querySelector('[name="last_name"]').value.trim();
+                const phone = personalForm.querySelector('[name="phone_number"]').value.trim();
+
+                // Only PH format 09XXXXXXXXX (11 digits)
+                const phonePattern = /^09\d{9}$/;
+
+                if (firstName === "" || lastName === "") {
+                    showToast("First name and last name cannot be empty.", "error");
+                    return;
+                }
+
+                if (phone === "") {
+                    showToast("Please enter your phone number.", "error");
+                    return;
+                }
+
+                if (!phonePattern.test(phone)) {
+                    showToast("Invalid phone number. It must start with 09 and be 11 digits long.", "error");
+                    return;
+                }
+
                 const fd = new FormData(personalForm);
+
                 try {
                     const resp = await fetch(personalForm.action, {
                         method: "POST",
                         body: fd
                     });
                     const result = await resp.json();
+
                     if (result.success) {
                         showToast(result.message || "Profile updated!", "success");
+
                         infos.forEach(info => {
                             const disp = info.querySelector(".display-value");
                             const input = info.querySelector(".edit-input");
@@ -342,6 +372,7 @@ $activeTab = $_GET['tab'] ?? 'personal';
                                 disp.style.display = "block";
                             }
                         });
+
                         editBtn.textContent = "Edit";
                         editBtn.style.backgroundColor = "";
                         editBtn.setAttribute("data-state", "edit");
@@ -385,47 +416,58 @@ $activeTab = $_GET['tab'] ?? 'personal';
 
                 if (order.status === "delivered" || order.status === "picked_up") {
                     if (!order.review) {
-                        // Delivered/picked up AND no review → show all three buttons
                         html += `
-        <div id="reorder-receipt-btn">
-            <?= createButton(
-                35,
-                150,
-                "Write a review",
-                "writeReviewBtn",
-                16,
-                "button"
-            ); ?>
-            <form class="reorder-form" method="POST">
-                        <input type="hidden" name="order_id" value="${order.order_id}">
-                        <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "button", ['class' => 'reorderBtn']); ?>
-                    </form>
-            <?= createButton(35, 200, "Download Receipt", "dlReceipt", 16, "button"); ?>
-        </div>
-        `;
+                            <div id="reorder-receipt-btn">
+                                <?= createButton(35, 150, "Write a review", "writeReviewBtn", 16, "button"); ?>
+
+                                <form class="reorder-form" method="POST">
+                                    <input type="hidden" name="order_id" value="${order.order_id}">
+                                    <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "button", ['class' => 'reorderBtn']); ?>
+                                </form>
+
+                                <?= createButton(35, 200, "Download Receipt", "dlReceipt", 16, "button"); ?>
+                            </div>
+                        `;
                     } else {
                         // Delivered/picked up AND has review → reorder + download receipt
                         html += `
-        <div id="reorder-receipt-btn">
-            <form class="reorder-form" method="POST">
-                        <input type="hidden" name="order_id" value="${order.order_id}">
-                        <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "button", ['class' => 'reorderBtn']); ?>
-                    </form>
-            <?= createButton(35, 200, "Download Receipt", "dlReceipt", 16, "button"); ?>
-        </div>
-        `;
+                            <div id="reorder-receipt-btn">
+                                <form class="reorder-form" method="POST">
+                                    <input type="hidden" name="order_id" value="${order.order_id}">
+                                    <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "button", ['class' => 'reorderBtn']); ?>
+                                </form>
+
+                                <?= createButton(35, 200, "Download Receipt", "dlReceipt", 16, "button"); ?>
+                            </div>
+                        `;
                     }
                 } else if (order.status === "cancelled") {
                     // Cancelled → only reorder
                     html += `
-    <div id="reorder-receipt-btn">
-        <form class="reorder-form" method="POST">
-                        <input type="hidden" name="order_id" value="${order.order_id}">
-                        <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "button", ['class' => 'reorderBtn']); ?>
-                    </form>
-    </div>
-    `;
+                        <div id="reorder-receipt-btn">
+                            <form class="reorder-form" method="POST">
+                                <input type="hidden" name="order_id" value="${order.order_id}">
+                                <?= createButton(35, 100, "Reorder", "reorderBtn", 16, "button", ['class' => 'reorderBtn']); ?>
+                            </form>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div id="reorder-receipt-btn">
+                            <?= createButton(
+                                35,
+                                150,
+                                "Track my order",
+                                "track",
+                                16,
+                                "button",
+                                ['onclick' => 'window.location.href = "http://localhost/Leilife/public/index.php?page=order-tracking&num=${order.order_number}"']
+                            ); ?>
+                        </div>
+                    `;
                 }
+
+
 
 
 
@@ -465,11 +507,47 @@ $activeTab = $_GET['tab'] ?? 'personal';
             if (e.target === modal) modal.style.display = 'none';
         });
 
-        // ---- Reorder flow using modal.php's showModal ----
-        // When user clicks .reorderBtn:
-        // 1) show modal (warning). The modal has single OK button (notif-close).
-        // 2) When user clicks OK, send AJAX POST to backend/reorder.php with delete_cart=1
-        // 3) Handle JSON response: show messages or redirect to checkout
+        function bindAddressModal() {
+            const addressBtn = document.getElementById("edit-address");
+            const modalOverlay = document.getElementById("modalOverlay");
+            const addressModalForm = modalOverlay?.querySelector("form");
+
+            if (addressBtn && modalOverlay) {
+                addressBtn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    modalOverlay.style.display = "flex";
+                });
+            }
+
+            if (addressModalForm) {
+                addressModalForm.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    const fd = new FormData(addressModalForm);
+
+                    try {
+                        const resp = await fetch(addressModalForm.action, {
+                            method: "POST",
+                            body: fd
+                        });
+                        const result = await resp.json();
+
+                        if (result.success) {
+                            showModal(result.message || "Address updated!", "success");
+                            modalOverlay.style.display = "none";
+                            setTimeout(() => {
+                                window.location.href = "index.php?page=user-profile&tab=address";
+                            }, 1000);
+                        } else {
+                            showModal(result.error || "Failed to save address.", "error");
+                        }
+                    } catch (err) {
+                        showModal("Error updating address.", "error");
+                    }
+                });
+            }
+        }
+        bindAddressModal();
+
 
         document.addEventListener('click', function(e) {
             if (e.target && e.target.classList.contains('reorderBtn')) {

@@ -84,6 +84,22 @@ function bindPlaceOrderHandler() {
       return;
     }
 
+    const numberInput = document.getElementById("phone");
+    const phone = numberInput?.value.trim();
+
+    if (!phone) {
+      showModal("Please provide your contact number.", "warning");
+      return;
+    }
+
+    // Optional: validate format (Philippine numbers example)
+    const phoneRegex = /^(09|\+639)\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+      showModal("Please enter a valid Philippine contact number (e.g. 09123456789).", "warning");
+      return;
+    }
+
+
     // --- Get delivery method ---
     const deliveryMethod = delivery.value; // 'pickup' or 'home'
 
@@ -166,9 +182,9 @@ function populateFields(data) {
   const fullAddress = [
     data.street_address,
     barangay,
-    "Caloocan City",
-    "Metro Manila",
-    "NCR"
+    data.city_name,
+    data.province_name,
+    data.region_name
   ].filter(Boolean).join(', ');
   document.getElementById('full-address').value = fullAddress;
   document.getElementById('note').value = data.note_to_rider ?? '';
@@ -273,7 +289,9 @@ function bindPhoneEdit() {
 
   btn.addEventListener('click', async () => {
     const isReadonly = phone.hasAttribute('readonly');
+
     if (isReadonly) {
+      // Enable edit mode
       phone.removeAttribute('readonly');
       phone.style.background = '#fff';
       btn.textContent = 'Save';
@@ -281,9 +299,24 @@ function bindPhoneEdit() {
       return;
     }
 
+    const phoneValue = phone.value.trim();
+    const phonePattern = /^(09)\d{9}$/; // PH format: 09XXXXXXXXX (11 digits)
+
+    if (phoneValue === '') {
+      showModal('Please enter your phone number.', 'error');
+      phone.focus();
+      return;
+    }
+
+    if (!phonePattern.test(phoneValue)) {
+      showModal('Invalid phone number format. It should be 11 digits and start with 09.', 'error');
+      phone.focus();
+      return;
+    }
+
     const payload = {
       action: 'update_phone',
-      phone_number: phone.value.trim()
+      phone_number: phoneValue
     };
 
     try {
@@ -293,7 +326,9 @@ function bindPhoneEdit() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+
       const data = await res.json();
+
       if (data.success) {
         phone.setAttribute('readonly', true);
         phone.style.background = '#f5f5f5';
@@ -307,3 +342,4 @@ function bindPhoneEdit() {
     }
   });
 }
+

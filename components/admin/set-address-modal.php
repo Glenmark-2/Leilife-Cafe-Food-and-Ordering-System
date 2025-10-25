@@ -1,5 +1,6 @@
 <?php
 include __DIR__ . "/../buttonTemplate.php";
+// <?= htmlspecialchars($userAddress["street_address"] ?? '') ?>
 ?>
 <div class="modal-overlay" id="modalOverlay">
   <div id="setAddressModal">
@@ -41,6 +42,12 @@ include __DIR__ . "/../buttonTemplate.php";
         <label>Street</label>
       </div>
 
+
+      <input type="hidden" name="region_name" id="region_name">
+      <input type="hidden" name="province_name" id="province_name">
+      <input type="hidden" name="city_name" id="city_name">
+
+
       <!-- 📍 Pin on Map Section -->
       <div class="row" style="align-items:center; gap:8px;">
         <button type="button" id="openMapModal" class="btn btn-secondary">📍 Pin on Map</button>
@@ -51,15 +58,15 @@ include __DIR__ . "/../buttonTemplate.php";
 
       <div style="display: flex; justify-content:center; margin-top: 15px;">
         <?php
-          echo createButton(
-            45,              
-            430,             
-            "Save Address",  
-            "saveAddressBtn", 
-            16,              
-            "submit",       
-            ["name" => "update_address"] 
-          );
+        echo createButton(
+          45,
+          430,
+          "Save Address",
+          "saveAddressBtn",
+          16,
+          "submit",
+          ["name" => "update_address"]
+        );
         ?>
       </div>
 
@@ -81,201 +88,295 @@ include __DIR__ . "/../buttonTemplate.php";
   </div>
 </div>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const southBarangays = [
-    1, 2, 3, 4,
-    77, 78, 79, 80, 81, 82, 83, 84, 85,
-    132, 133, 134, 135, 136, 137, 138, 139, 140,
-    141, 142, 143, 144, 145, 146, 147, 148, 149, 150,
-    151, 152, 153, 154, 155, 156, 157, 158, 159, 160,
-    161, 162, 163, 164
-  ];
+  document.addEventListener('DOMContentLoaded', () => {
+    const southBarangays = [
+      1, 2, 3, 4,
+      77, 78, 79, 80, 81, 82, 83, 84, 85,
+      132, 133, 134, 135, 136, 137, 138, 139, 140,
+      141, 142, 143, 144, 145, 146, 147, 148, 149, 150,
+      151, 152, 153, 154, 155, 156, 157, 158, 159, 160,
+      161, 162, 163, 164
+    ];
 
-  function resetDropdown(id) {
-    const sel = document.getElementById(id);
-    sel.innerHTML = "<option value=''>-- Select --</option>";
-  }
-
-  window.onRegionChange = function() {
-    const r = document.getElementById("region").value;
-    resetDropdown("province");
-    resetDropdown("city");
-    resetDropdown("barangay");
-    if (r === "130000000") {
-      const pSel = document.getElementById("province");
-      let opt = document.createElement("option");
-      opt.value = "137500000";
-      opt.text = "Metro Manila";
-      pSel.add(opt);
+    function resetDropdown(id) {
+      const sel = document.getElementById(id);
+      sel.innerHTML = "<option value=''>-- Select --</option>";
     }
-  }
 
-  window.onProvinceChange = function() {
-    const p = document.getElementById("province").value;
-    resetDropdown("city");
-    resetDropdown("barangay");
-    if (p === "137500000") {
-      const cSel = document.getElementById("city");
-      let opt = document.createElement("option");
-      opt.value = "137501";
-      opt.text = "Caloocan City";
-      cSel.add(opt);
-    }
-  }
+    // window.onRegionChange = function() {
+    //   const r = document.getElementById("region").value;
+    //   resetDropdown("province");
+    //   resetDropdown("city");
+    //   resetDropdown("barangay");
+    //   if (r === "130000000") {
+    //     const pSel = document.getElementById("province");
+    //     let opt = document.createElement("option");
+    //     opt.value = "137500000";
+    //     opt.text = "Metro Manila";
+    //     pSel.add(opt);
+    //   }
+    // }
 
-  window.onCityChange = function() {
-    const c = document.getElementById("city").value;
-    resetDropdown("barangay");
-    if (c === "137501") {
-      const bSel = document.getElementById("barangay");
-      southBarangays.forEach(num => {
+    window.onRegionChange = function() {
+      const regionSelect = document.getElementById("region");
+      const regionCode = regionSelect.value;
+      const regionName = regionSelect.options[regionSelect.selectedIndex]?.text || "";
+
+      // Set hidden field
+      document.getElementById("region_name").value = regionName;
+
+      resetDropdown("province");
+      resetDropdown("city");
+      resetDropdown("barangay");
+
+      if (regionCode === "130000000") {
+        const pSel = document.getElementById("province");
         let opt = document.createElement("option");
-        opt.value = num; // you can change to 'Barangay X' if backend expects names
-        opt.text = "Barangay " + num;
-        bSel.add(opt);
-      });
+        opt.value = "137500000";
+        opt.text = "Metro Manila";
+        pSel.add(opt);
+      }
+    };
+
+
+
+    // window.onProvinceChange = function() {
+    //   const p = document.getElementById("province").value;
+    //   resetDropdown("city");
+    //   resetDropdown("barangay");
+    //   if (p === "137500000") {
+    //     const cSel = document.getElementById("city");
+    //     let opt = document.createElement("option");
+    //     opt.value = "137501";
+    //     opt.text = "Caloocan City";
+    //     cSel.add(opt);
+    //   }
+    // }
+
+    window.onProvinceChange = function() {
+      const provinceSelect = document.getElementById("province");
+      const provinceCode = provinceSelect.value;
+      const provinceName = provinceSelect.options[provinceSelect.selectedIndex]?.text || "";
+
+      document.getElementById("province_name").value = provinceName;
+
+      resetDropdown("city");
+      resetDropdown("barangay");
+
+      if (provinceCode === "137500000") {
+        const cSel = document.getElementById("city");
+        let opt = document.createElement("option");
+        opt.value = "137501";
+        opt.text = "Caloocan City";
+        cSel.add(opt);
+      }
+    };
+
+
+    // window.onCityChange = function() {
+    //   const c = document.getElementById("city").value;
+    //   resetDropdown("barangay");
+    //   if (c === "137501") {
+    //     const bSel = document.getElementById("barangay");
+    //     southBarangays.forEach(num => {
+    //       let opt = document.createElement("option");
+    //       opt.value = num; // you can change to 'Barangay X' if backend expects names
+    //       opt.text = "Barangay " + num;
+    //       bSel.add(opt);
+    //     });
+    //   }
+    // }
+
+    window.onCityChange = function() {
+      const citySelect = document.getElementById("city");
+      const cityCode = citySelect.value;
+      const cityName = citySelect.options[citySelect.selectedIndex]?.text || "";
+
+      document.getElementById("city_name").value = cityName;
+
+      resetDropdown("barangay");
+
+      if (cityCode === "137501") {
+        const bSel = document.getElementById("barangay");
+        southBarangays.forEach(num => {
+          let opt = document.createElement("option");
+          opt.value = num;
+          opt.text = "Barangay " + num;
+          bSel.add(opt);
+        });
+      }
+    };
+
+    window.closeModal = function() {
+      document.getElementById("modalOverlay").style.display = "none";
     }
-  }
 
-  window.closeModal = function() {
-    document.getElementById("modalOverlay").style.display = "none";
-  }
+    // --- Pin UI helpers ---
+    const openMapBtn = document.getElementById("openMapModal");
+    const pinStatus = document.getElementById("pinStatus");
+    const latInput = document.getElementById("latitude");
+    const lngInput = document.getElementById("longitude");
+    const mapModal = document.getElementById("mapModal");
+    const confirmBtn = document.getElementById("confirmPinBtn");
 
-  // --- Pin UI helpers ---
-  const openMapBtn = document.getElementById("openMapModal");
-  const pinStatus = document.getElementById("pinStatus");
-  const latInput = document.getElementById("latitude");
-  const lngInput = document.getElementById("longitude");
-  const mapModal = document.getElementById("mapModal");
-  const confirmBtn = document.getElementById("confirmPinBtn");
+    // ✅ Require pin location before form submit
+    const addressForm = document.querySelector('#setAddressModal form');
 
-  // Remove any accidental reload listener on save button (you had this before)
-  const saveBtn = document.getElementById("saveAddressBtn");
-  if (saveBtn) {
-    // ensure no reload handler that conflicts:
-    // (if any leftover listener exists that does reload, remove? can't remove anonymous handlers,
-    //  but we ensured we won't add one here.)
-  }
+    addressForm.addEventListener('submit', function(e) {
+      const lat = document.getElementById('latitude').value.trim();
+      const lng = document.getElementById('longitude').value.trim();
 
-  // Map variables
-  let map, marker;
-  const DEFAULT_CENTER = [14.5995, 120.9842];
-  const DEFAULT_ZOOM = 12;
+      if (!lat || !lng) {
+        e.preventDefault();
+        const pinStatus = document.getElementById('pinStatus');
+        pinStatus.style.color = 'red';
+        pinStatus.textContent = '❌ You must pin your location before saving.';
+        // openMapModal(); // automatically open the map
+        return false;
+      }
 
-  function openMapModal() {
-    mapModal.style.display = "block";
-  
-    // initialize map first time
-    if (!map) {
-      map = L.map('map', { zoomControl: true }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(map);
-    
-      // When user clicks map, set or move marker
-      map.on('click', function (e) {
-        placeMarker(e.latlng.lat, e.latlng.lng);
-      });
-    } else {
-      setTimeout(() => { map.invalidateSize(); }, 200);
+    });
+
+
+    // Remove any accidental reload listener on save button (you had this before)
+    const saveBtn = document.getElementById("saveAddressBtn");
+    if (saveBtn) {
+      // ensure no reload handler that conflicts:
+      // (if any leftover listener exists that does reload, remove? can't remove anonymous handlers,
+      //  but we ensured we won't add one here.)
     }
-  
-    // Check if inputs already have coords
-    const existingLat = parseFloat(latInput.value) || null;
-    const existingLng = parseFloat(lngInput.value) || null;
-  
-    if (existingLat && existingLng) {
-      // If already pinned before, restore that pin
-      placeMarker(existingLat, existingLng, true);
-      map.setView([existingLat, existingLng], 16);
-    } else {
-      // Try geolocation first
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          function (pos) {
-            const userLat = pos.coords.latitude;
-            const userLng = pos.coords.longitude;
-            map.setView([userLat, userLng], 16);
-            placeMarker(userLat, userLng); // auto-pin at user location
-          },
-          function (err) {
-            console.warn("Geolocation failed:", err.message);
-            map.setView(DEFAULT_CENTER, DEFAULT_ZOOM); // fallback
-          },
-          { enableHighAccuracy: true, timeout: 5000 }
-        );
+
+    // Map variables
+    let map, marker;
+    const DEFAULT_CENTER = [14.5995, 120.9842];
+    const DEFAULT_ZOOM = 12;
+
+    function openMapModal() {
+      mapModal.style.display = "block";
+
+      // initialize map first time
+      if (!map) {
+        map = L.map('map', {
+          zoomControl: true
+        }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // When user clicks map, set or move marker
+        map.on('click', function(e) {
+          placeMarker(e.latlng.lat, e.latlng.lng);
+        });
       } else {
-        // fallback if no geolocation support
-        map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 200);
+      }
+
+      // Check if inputs already have coords
+      const existingLat = parseFloat(latInput.value) || null;
+      const existingLng = parseFloat(lngInput.value) || null;
+
+      if (existingLat && existingLng) {
+        // If already pinned before, restore that pin
+        placeMarker(existingLat, existingLng, true);
+        map.setView([existingLat, existingLng], 16);
+      } else {
+        // Try geolocation first
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function(pos) {
+              const userLat = pos.coords.latitude;
+              const userLng = pos.coords.longitude;
+              map.setView([userLat, userLng], 16);
+              placeMarker(userLat, userLng); // auto-pin at user location
+            },
+            function(err) {
+              console.warn("Geolocation failed:", err.message);
+              map.setView(DEFAULT_CENTER, DEFAULT_ZOOM); // fallback
+            }, {
+              enableHighAccuracy: true,
+              timeout: 5000
+            }
+          );
+        } else {
+          // fallback if no geolocation support
+          map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+        }
       }
     }
-  }
-  function placeMarker(lat, lng, skipInputUpdate=false) {
-    const latlng = { lat: parseFloat(lat), lng: parseFloat(lng) };
-    if (marker) {
-      marker.setLatLng(latlng);
-    } else {
-      marker = L.marker(latlng, { draggable: true }).addTo(map);
-      // update coords when dragging finished
-      marker.on('dragend', function (evt) {
-        const pos = evt.target.getLatLng();
-        latInput.value = pos.lat.toFixed(6);
-        lngInput.value = pos.lng.toFixed(6);
-        updatePinStatus(); // update UI
-      });
+
+    function placeMarker(lat, lng, skipInputUpdate = false) {
+      const latlng = {
+        lat: parseFloat(lat),
+        lng: parseFloat(lng)
+      };
+      if (marker) {
+        marker.setLatLng(latlng);
+      } else {
+        marker = L.marker(latlng, {
+          draggable: true
+        }).addTo(map);
+        // update coords when dragging finished
+        marker.on('dragend', function(evt) {
+          const pos = evt.target.getLatLng();
+          latInput.value = pos.lat.toFixed(6);
+          lngInput.value = pos.lng.toFixed(6);
+          updatePinStatus(); // update UI
+        });
+      }
+
+      if (!skipInputUpdate) {
+        latInput.value = latlng.lat.toFixed(6);
+        lngInput.value = latlng.lng.toFixed(6);
+        updatePinStatus();
+      }
     }
 
-    if (!skipInputUpdate) {
-      latInput.value = latlng.lat.toFixed(6);
-      lngInput.value = latlng.lng.toFixed(6);
+    function updatePinStatus() {
+      const lat = latInput.value;
+      const lng = lngInput.value;
+      if (lat && lng) {
+        pinStatus.textContent = `Pinned: ${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
+        pinStatus.style.color = "#1e7e34"; // green
+      } else {
+        pinStatus.textContent = "No location pinned";
+        pinStatus.style.color = "#666";
+      }
+    }
+
+    function closeMapModal() {
+      mapModal.style.display = "none";
+    }
+
+    // confirm pin -> close modal and keep hidden inputs set and UI updated
+    function confirmPin() {
+      const lat = latInput.value;
+      const lng = lngInput.value;
+      if (!lat || !lng) {
+        alert("Please click on the map to select your location.");
+        return;
+      }
+      closeMapModal();
       updatePinStatus();
+      // small success toast instead of alert is better UX; keep alert for now
+      // alert("Location pinned successfully!");
     }
-  }
 
-  function updatePinStatus() {
-    const lat = latInput.value;
-    const lng = lngInput.value;
-    if (lat && lng) {
-      pinStatus.textContent = `Pinned: ${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
-      pinStatus.style.color = "#1e7e34"; // green
-    } else {
-      pinStatus.textContent = "No location pinned";
-      pinStatus.style.color = "#666";
-    }
-  }
+    // wire DOM events
+    openMapBtn && openMapBtn.addEventListener('click', openMapModal);
+    confirmBtn && confirmBtn.addEventListener('click', confirmPin);
 
-  function closeMapModal() {
-    mapModal.style.display = "none";
-  }
+    // expose closeMapModal & confirmPin to global if other code uses them
+    window.closeMapModal = closeMapModal;
+    window.confirmPin = confirmPin;
 
-  // confirm pin -> close modal and keep hidden inputs set and UI updated
-  function confirmPin() {
-    const lat = latInput.value;
-    const lng = lngInput.value;
-    if (!lat || !lng) {
-      alert("Please click on the map to select your location.");
-      return;
-    }
-    closeMapModal();
+    // initialize pin status on load if coordinates are already present in the hidden inputs
     updatePinStatus();
-    // small success toast instead of alert is better UX; keep alert for now
-    // alert("Location pinned successfully!");
-  }
 
-  // wire DOM events
-  openMapBtn && openMapBtn.addEventListener('click', openMapModal);
-  confirmBtn && confirmBtn.addEventListener('click', confirmPin);
-
-  // expose closeMapModal & confirmPin to global if other code uses them
-  window.closeMapModal = closeMapModal;
-  window.confirmPin = confirmPin;
-
-  // initialize pin status on load if coordinates are already present in the hidden inputs
-  updatePinStatus();
-
-}); // DOMContentLoaded
+  }); // DOMContentLoaded
 </script>

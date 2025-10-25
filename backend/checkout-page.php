@@ -25,8 +25,8 @@ try {
         // ✅ JOIN users + addresses
         $stmt = $pdo->prepare("
             SELECT u.first_name, u.last_name, u.phone_number,
-            a.street_address, a.barangay, a.city, a.region,
-             a.province, a.note_to_rider
+            a.street_address, a.barangay, a.city_name, a.region_name,
+             a.province_name, a.note_to_rider
             FROM users u
             LEFT JOIN addresses a ON a.user_id = u.user_id
             WHERE u.user_id = :id

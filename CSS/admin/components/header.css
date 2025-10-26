@@ -8,6 +8,7 @@ html, body {
     display: flex;
     flex-direction: row;
     min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
     
 }
 

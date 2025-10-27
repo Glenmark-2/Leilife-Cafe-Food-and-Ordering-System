@@ -7,225 +7,353 @@ if (!isset($_SESSION['admin_id'])) {
   exit;
 }
 ?>
+
 <style>
-:root {
-  --bg-light: #f5f1eb;
-  --primary: #8b6f47;
-  --secondary: #d2b48c;
-  --accent: #a67c52;
-  --text-dark: #3e2f1c;
-  --white: #fff;
+:root{
+  --bg:#f4f6f8;
+  --surface:#ffffff;
+  --muted:#8a8f98;
+  --accent-1:linear-gradient(90deg,#8b6f47,#c2a47c);
+  --primary:#8b6f47;
+  --secondary:#d2b48c;
+  --accent:#a67c52;
+  --glass: rgba(255,255,255,0.6);
+  --shadow-1: 0 8px 24px rgba(18,20,25,0.06);
+  --shadow-2: 0 4px 12px rgba(18,20,25,0.06);
+  --radius:14px;
+  color-scheme: light;
 }
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+  background:
+    linear-gradient(180deg, #f8fafb 0%, #f3f5f7 40%),
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="%23f7f7f8"/><stop offset="1" stop-color="%23f1f3f5"/></linearGradient></defs><rect width="100%" height="100%" fill="url(%23g)"/></svg>') no-repeat center/cover;
+
+  color:var(--text-dark, #2f2b24);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* Page wrapper */
+.page {
+  max-width:1200px;
+  margin:0 auto;
+}
+
+/* Top header */
+.header {
+  display:flex;
+  gap:16px;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:22px;
+}
+
+.header-actions {
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+
+/* Page title */
 h2 {
-  color: var(--primary);
-  margin: 10px 0 25px;
-  font-size: 26px;
-  font-weight: 700;
+  color:var(--primary);
+  margin: 0px 0 0;
+  font-size:20px;
+  font-weight:700;
+}
+
+/* Content surface */
+.surface {
+  background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.95));
+  border-radius:18px;
+  padding:20px;
+  box-shadow:var(--shadow-1);
+  backdrop-filter: blur(6px) saturate(120%);
 }
 
 /* Filters */
 .report-filters {
-  background: var(--white);
-  padding: 15px 20px;
-  border-radius: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-  margin-bottom: 25px;
+  display:flex;
+  gap:12px;
+  align-items:center;
+  padding:14px;
+  border-radius:12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(250,250,250,0.6));
+  border:1px solid rgba(34,40,49,0.03);
+  box-shadow: var(--shadow-2);
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+.report-filters > div {
+  display:flex;
+  gap:8px;
+  align-items:center;
 }
 .report-filters label {
-  font-weight: 600;
-  margin-right: 5px;
+  font-weight:600;
+  color:var(--muted);
+  font-size:13px;
 }
 .report-filters select,
-.report-filters input[type="date"],
-.report-filters button {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 14px;
+.report-filters input[type="date"] {
+  padding:9px 12px;
+  border-radius:10px;
+  border:1px solid #e6e7ea;
+  background:transparent;
+  font-size:14px;
+  color: #222;
+  min-width:150px;
+  box-shadow:0 2px 6px rgba(16,24,32,0.03);
 }
 .report-filters button {
-  background-color: var(--primary);
-  color: var(--white);
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  padding:10px 14px;
+  border-radius:10px;
+  border:none;
+  background:linear-gradient(180deg,#8b6f47,#a0784f);
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow: 0 6px 18px rgba(139,111,71,0.12);
 }
-.report-filters button:hover {
-  background-color: var(--accent);
+.report-filters .spacer {
+  flex:1;
+  min-width:0;
 }
 
-/* KPI cards */
+/* KPI cards grid */
 .report-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-  margin-bottom: 30px;
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:16px;
+  margin-bottom:26px;
 }
 .report-card {
-  background: var(--white);
-  border-radius: 12px;
-  padding: 18px 20px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.report-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(249,249,249,0.6));
+  border-radius:12px;
+  padding:16px;
+  box-shadow: var(--shadow-2);
+  border:1px solid rgba(14,20,30,0.03);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
 .report-card h4 {
-  color: var(--text-dark);
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 6px;
+  color:var(--muted);
+  font-size:13px;
+  margin:0;
+  font-weight:600;
 }
 .report-card p {
-  font-size: 20px;
-  color: var(--primary);
-  font-weight: 700;
-  margin: 0;
+  font-size:18px;
+  color:var(--primary);
+  font-weight:700;
+  margin:0;
+  letter-spacing:0.2px;
 }
+.report-card small{color:#6b7280; font-size:12px}
 
 /* Charts grid */
 .analytics-charts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: 24px;
-  margin-bottom: 35px;
+  display:grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap:20px;
+  margin-bottom:26px;
 }
+/* right column holds two stacked charts */
+.charts-right {
+  display:grid;
+  grid-template-rows: 1fr 1fr;
+  gap:20px;
+}
+
+/* Chart box style */
 .chart-box {
-  background: var(--white);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(250,250,250,0.88));
+  padding:14px;
+  border-radius:12px;
+  box-shadow:var(--shadow-2);
+  border:1px solid rgba(14,20,30,0.03);
 }
 .chart-box h4 {
-  color: var(--primary);
-  margin-bottom: 12px;
-  font-size: 15px;
-  font-weight: 600;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  color:var(--primary);
+  margin:0 0 10px 0;
+  font-size:15px;
+  font-weight:600;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
-canvas {
-  width: 100% !important;
-  height: 320px !important;
-}
+.chart-box canvas{ width:100% !important; height:320px !important; }
 
-/* Export section */
+/* small helper styles */
+.no-data-note { font-size:13px; color:#6b7280; padding:12px; }
+.pending-badge { font-size:13px; color:#826000; }
+
+/* Export buttons */
 .export-section {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 30px;
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+  margin-top:6px;
 }
 .export-section button {
-  padding: 9px 16px;
+  padding:9px 14px;
+  border-radius:10px;
+  background-color: #826000;
+  min-width:120px;
+  cursor:pointer;
+  font-weight:300;
+  color:white;
   border: none;
-  border-radius: 8px;
-  background-color: var(--primary);
-  color: var(--white);
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s ease;
+ 
 }
-.export-section button:hover {
-  background-color: var(--accent);
-}
+.export-section button:hover { transform:translateY(-3px); transition:transform .18s ease; }
 
+/* Toggle small button */
 .btn-toggle {
-  background-color: var(--secondary);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-size: 13px;
+  background:transparent;
+  border:1px solid rgba(14,20,30,0.06);
+  color:var(--muted);
+  border-radius:8px;
+  padding:6px 10px;
+  cursor:pointer;
+  font-size:13px;
 }
-.btn-toggle:hover {
-  background-color: var(--accent);
-}
+.btn-toggle:hover{background:rgba(0,0,0,0.02)}
 
-@media (max-width: 600px) {
-  .report-filters {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .report-filters > div {
-    width: 100%;
-  }
-  h2 {
-    font-size: 22px;
-  }
+/* Responsive */
+@media (max-width: 1000px) {
+  .report-cards { grid-template-columns: repeat(2,1fr); }
+  .analytics-charts { grid-template-columns: 1fr; }
+  .charts-right { grid-template-rows: 1fr 1fr; }
+  .chart-box canvas { height:260px !important; }
+}
+@media (max-width:640px) {
+  body{ padding:14px; }
+  .report-cards { grid-template-columns: 1fr; gap:12px; }
+  .report-filters { padding:12px; gap:8px; }
+  .header { flex-direction:column; align-items:flex-start; gap:8px; }
+  .brand h1 { font-size:16px; }
+  .chart-box canvas { height:220px !important; }
+  .export-section { justify-content:stretch; gap:8px; flex-wrap:wrap }
 }
 </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+  
 
-<h2>Reports & Analytics</h2>
+      <div class="header-actions">
+        <!-- preserve any existing control IDs/classes (none required) -->
+        <div style="text-align:right;font-size:13px;color:#6b7280">Welcome, Admin</div>
+      </div>
+    </div>
 
-<!-- Filters -->
-<div class="report-filters">
-  <div>
-    <label>Report Type:</label>
-    <select id="reportType">
-      <option value="daily">Daily</option>
-      <option value="weekly" selected>Weekly</option>
-      <option value="monthly">Monthly</option>
-    </select>
-  </div>
-  <div>
-    <label>Date Range:</label>
-    <input type="date" id="fromDate"> -
-    <input type="date" id="toDate">
-  </div>
-  <button>Generate</button>
-</div>
+    <div class="surface">
 
-<!-- KPI Summary -->
-<div class="report-cards">
-  <div class="report-card"><h4>Total Sales</h4><p id="totalSales">Loading…</p></div>
-  <div class="report-card"><h4>Total Orders</h4><p id="totalOrders">Loading…</p></div>
-  <div class="report-card"><h4>Average Order Value</h4><p id="avgOrderValue">Loading…</p></div>
-  <div class="report-card"><h4>Revenue Growth</h4><p id="revenueGrowth">Loading…</p></div>
-  <div class="report-card"><h4>Top Product</h4><p id="topProductName">Loading…</p><small id="topProductDetails" style="color:#666;font-size:13px;"></small></div>
-  <div class="report-card"><h4>Top Customer</h4><p id="topCustomerName">Loading…</p><small id="topCustomerDetails" style="color:#666;font-size:13px;"></small></div>
-</div>
+      <!-- Filters (kept classes & ids intact) -->
+      <div class="report-filters">
+        <div>
+          <label for="reportType">Report Type:</label>
+          <select id="reportType">
+            <option value="daily">Daily</option>
+            <option value="weekly" selected>Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
 
-<!-- Charts Section -->
-<div class="analytics-charts">
-  <div class="chart-box">
-    <h4>Sales Trend (₱)</h4>
-    <canvas id="salesTrend"></canvas>
-  </div>
-  <div class="chart-box">
-    <h4>Revenue by Category</h4>
-    <canvas id="revenueBreakdown"></canvas>
-  </div>
-  <div class="chart-box">
-    <h4>Customer Growth <button id="toggleChartType" class="btn-toggle">Switch to Line View</button></h4>
-    <canvas id="userGrowth"></canvas>
-  </div>
-  <div class="chart-box">
-    <h4>Customer Sentiment Summary</h4>
-    <canvas id="sentimentChart"></canvas>
-    <p id="pendingNotice" style="color:#777;font-size:14px;margin-top:8px;"></p>
-    <p id="sentimentError" style="color:#c00;font-size:13px;margin-top:8px;display:none;"></p>
-  </div>
-</div>
+        <div>
+          <label for="fromDate">Date Range:</label>
+          <input type="date" id="fromDate"> -
+          <input type="date" id="toDate">
+        </div>
 
-<!-- Export Buttons -->
-<div class="export-section">
-  <button>Export PDF</button>
-  <button>Export Excel</button>
-  <button>Export CSV</button>
-</div>
+        <div class="spacer"></div>
+
+        <div style="display:flex;gap:10px;align-items:center">
+          <button id="generateBtn" onclick="/* kept for semantics, JS uses querySelector anyway */">Generate</button>
+          
+        </div>
+      </div>
+
+      <!-- KPI Summary (IDs preserved) -->
+      <div class="report-cards">
+        <div class="report-card">
+          <h4>Total Sales</h4>
+          <p id="totalSales">Loading…</p>
+        </div>
+        <div class="report-card">
+          <h4>Total Orders</h4>
+          <p id="totalOrders">Loading…</p>
+        </div>
+        <div class="report-card">
+          <h4>Average Order Value</h4>
+          <p id="avgOrderValue">Loading…</p>
+        </div>
+        <div class="report-card">
+          <h4>Revenue Growth</h4>
+          <p id="revenueGrowth">Loading…</p>
+        </div>
+        <div class="report-card">
+          <h4>Top Product</h4>
+          <p id="topProductName">Loading…</p>
+          <small id="topProductDetails" style="color:#666;font-size:13px;"></small>
+        </div>
+        <div class="report-card">
+          <h4>Top Customer</h4>
+          <p id="topCustomerName">Loading…</p>
+          <small id="topCustomerDetails" style="color:#666;font-size:13px;"></small>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="analytics-charts">
+        <div class="chart-box">
+          <h4>Sales Trend (₱)</h4>
+          <canvas id="salesTrend"></canvas>
+        </div>
+
+        <div class="charts-right">
+          <div class="chart-box">
+            <h4>Revenue by Category</h4>
+            <canvas id="revenueBreakdown"></canvas>
+          </div>
+
+          <div class="chart-box" style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <h4 style="margin:0">Customer Growth</h4>
+              <button id="toggleChartType" class="btn-toggle">Switch to Line View</button>
+            </div>
+            <canvas id="userGrowth"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="analytics-charts" style="grid-template-columns:1fr;">
+        <div class="chart-box">
+          <h4>Customer Sentiment Summary</h4>
+          <canvas id="sentimentChart"></canvas>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+            <p id="pendingNotice" style="color:#777;font-size:14px;margin:0;"></p>
+            <p id="sentimentError" style="color:#c00;font-size:13px;margin:0;display:none;"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Buttons -->
+      <div class="export-section" style="margin-top:18px;">
+        <button>Export PDF</button>
+        <button>Export Excel</button>
+        <button>Export CSV</button>
+      </div>
+
+    </div>
+  </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 

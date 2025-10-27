@@ -17,7 +17,6 @@ if (!$productId) {
     exit;
 }
 
-
 $sessionId = session_id();
 $userId = $_SESSION['user_id'] ?? null;
 
@@ -35,7 +34,6 @@ if (!$product) {
     echo json_encode(['success'=>false, 'message'=>'Product not found']);
     exit;
 }
-
 
 // Only drinks have size
 if ((int)$product['main_category_id'] !== 2) $size = null;
@@ -71,28 +69,29 @@ if (!$userId) {
 
 // --- Find or create cart ---
 if ($userId) {
-    // Logged in: fetch by user_id
-    $stmt = $pdo->prepare("SELECT cart_id FROM carts WHERE user_id=:uid LIMIT 1");
+    $stmt = $pdo->prepare("SELECT cart_id, option_type FROM carts WHERE user_id=:uid LIMIT 1");
     $stmt->execute(['uid'=>$userId]);
 } else {
-    // Guest: fetch by session_id or guest_token
-    $stmt = $pdo->prepare("SELECT cart_id FROM carts WHERE session_id=:sid OR guest_token=:gtoken LIMIT 1");
+    $stmt = $pdo->prepare("SELECT cart_id, option_type FROM carts WHERE session_id=:sid OR guest_token=:gtoken LIMIT 1");
     $stmt->execute(['sid'=>$sessionId, 'gtoken'=>$guestToken]);
 }
-$cartRow = $stmt->fetch();
-$cartId = $cartRow ? $cartRow['cart_id'] : null;
+$cartRow = $stmt->fetch(PDO::FETCH_ASSOC);
+$cartId = $cartRow['cart_id'] ?? null;
+$optionType = $cartRow['option_type'] ?? 'delivery';
 
 if (!$cartId) {
-    $stmt = $pdo->prepare("INSERT INTO carts (user_id, session_id, guest_token, option_type, sub_total, delivery_fee, total, created_at, updated_at)
-                           VALUES (:uid, :sid, :gtoken, 'delivery', 0, 50, 50, NOW(), NOW())");
+    $stmt = $pdo->prepare("
+        INSERT INTO carts (user_id, session_id, guest_token, option_type, sub_total, delivery_fee, total, created_at, updated_at)
+        VALUES (:uid, :sid, :gtoken, 'delivery', 0, 50, 50, NOW(), NOW())
+    ");
     $stmt->execute([
         'uid'    => $userId,
         'sid'    => $sessionId,
         'gtoken' => $guestToken
     ]);
     $cartId = $pdo->lastInsertId();
+    $optionType = 'delivery';
 }
-
 
 // Check if same item exists (same product, size, and exact flavor combination)
 $check = $pdo->prepare("
@@ -126,7 +125,7 @@ if ($existing) {
     ]);
 }
 
-// Recalculate totals
+// --- Recalculate totals ---
 $stmt = $pdo->prepare("
     SELECT ci.quantity, ci.size, p.product_price, p.price_large
     FROM cart_items ci
@@ -141,17 +140,25 @@ foreach ($items as $i) {
     $itemPrice = ($i['size']==='large') ? $i['price_large'] : $i['product_price'];
     $subtotal += $itemPrice * $i['quantity'];
 }
-$deliveryFee = 50;
+
+// ✅ Dynamically apply delivery fee based on option_type
+$deliveryFee = ($optionType === 'pickup') ? 0 : 50;
 $total = $subtotal + $deliveryFee;
 
-$stmt = $pdo->prepare("UPDATE carts SET sub_total=:sub, delivery_fee=:fee, total=:total, updated_at=NOW() WHERE cart_id=:id");
+// --- Update cart totals ---
+$stmt = $pdo->prepare("
+    UPDATE carts 
+    SET sub_total=:sub, delivery_fee=:fee, total=:total, updated_at=NOW() 
+    WHERE cart_id=:id
+");
 $stmt->execute(['sub'=>$subtotal,'fee'=>$deliveryFee,'total'=>$total,'id'=>$cartId]);
 
 echo json_encode([
-    'success'=>true,
-    'cart_id'=>$cartId,
-    'sub_total'=>$subtotal,
-    'delivery_fee'=>$deliveryFee,
-    'total'=>$total,
-    'flavor_names'=>$flavorNames
+    'success' => true,
+    'cart_id' => $cartId,
+    'option_type' => $optionType,
+    'sub_total' => $subtotal,
+    'delivery_fee' => $deliveryFee,
+    'total' => $total,
+    'flavor_names' => $flavorNames
 ]);

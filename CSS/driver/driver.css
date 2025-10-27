@@ -321,3 +321,16 @@ body { padding-bottom: env(safe-area-inset-bottom); }
 .summary .box h2 { font-size: 17px; margin: 4px 0 0; color: var(--accent); }
 
 
+/* Required for rotating the map container and counter-rotating UI */
+#mapContainer { /* ensure this is the element id you use */ }
+.map-root .leaflet-control,
+.map-root .leaflet-popup {
+  will-change: transform;
+}
+
+/* driver icon wrapper if needed */
+.driver-div-icon { background: transparent; }
+.driver-icon-wrap { width: 46px; height:46px; display:flex; align-items:center; justify-content:center; }
+.driver-icon-img { display:block; }
+
+

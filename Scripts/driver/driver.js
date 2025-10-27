@@ -1,14 +1,33 @@
-// =======================
-// DRIVER ORDERS FRONTEND (ENHANCED WITH MAP ROTATION)
-// =======================
+// DRIVER ORDERS FRONTEND — Fixed & Improved
+// - Correct coords order
+// - Stable marker updates
+// - Auto-refresh route when deviating
+// - Map rotates with heading; controls/popups counter-rotate
+// - Preserves all existing features (modal, marking delivered, directions panel)
 
 // --------- CONFIG ---------
-const DEFAULT_CENTER = [14.5995, 120.9842]; // Manila fallback [lat,lon]
+const DEFAULT_CENTER = [14.5995, 120.9842]; // [lat, lng]
 let ORS_API_KEY = "";
 
-// =======================
-// LOAD ORS KEY
-// =======================
+// thresholds (tweak as needed)
+const ROUTE_UPDATE_INTERVAL_MS = 8000; // minimum interval between route requests
+const ROUTE_UPDATE_DISTANCE_M = 30; // also update if moved > this meters
+const PAN_DISTANCE_THRESHOLD_M = 80; // pan map when driver > this from center
+
+// ---------- APP STATE ----------
+let driverCoords = null; // [lat, lng]
+let mapInstance = null;
+let markersGroup = null;
+let routeLayer = null;
+let driverMarker = null;
+let customerMarker = null;
+let lastHeading = 0;
+let lastRouteUpdate = 0;
+let lastRouteUpdatePos = null; // [lat, lng]
+let currentCard = null; // the order card currently shown (for routing)
+let mapRotated = false;
+
+// ---------- LOAD ORS API KEY ----------
 async function loadORSKey() {
   try {
     const res = await fetch("/Leilife/backend/db_script/get_key.php");
@@ -18,6 +37,8 @@ async function loadORSKey() {
     initDriverOrders();
   } catch (err) {
     console.error("Failed to load ORS key:", err);
+    // Still initialize app without ORS key (will show route errors if used)
+    initDriverOrders();
   }
 }
 
@@ -25,27 +46,16 @@ function initDriverOrders() {
   console.log("Driver Orders App starting with key:", ORS_API_KEY);
 }
 
+// start
 loadORSKey();
 
-// --------- STATE ---------
-let driverCoords = null;
-let mapInstance = null;
-let markersGroup = null;
-let routeLayer = null;
-let driverMarker = null;
-let customerMarker = null;
-let lastHeading = 0;
-
-// =======================
-// INIT LOAD
-// =======================
+// ---------- DOM READY ----------
 document.addEventListener("DOMContentLoaded", () => {
   loadDeliveredOrders();
+  ensureMapReady(); // create map immediately so modal's map works smoothly
 });
 
-// =======================
-// LOAD ORDERS FROM BACKEND
-// =======================
+// ---------- LOAD ORDERS ----------
 async function loadDeliveredOrders() {
   try {
     const res = await fetch("/Leilife/backend/driver/get_my_orders.php");
@@ -64,7 +74,7 @@ async function loadDeliveredOrders() {
       const customer = (order.first_name || "") + " " + (order.last_name || "");
       const address = [order.street_address, order.barangay, order.city].filter(Boolean).join(", ");
       const number = order.phone_number || "N/A";
-      const status = order.status || "unknown";
+      const status = (order.status || "unknown").toLowerCase();
 
       const itemsHtml = order.items && order.items.length > 0
         ? order.items.map(it => `<li>${it.product_name} (x${it.quantity})</li>`).join("")
@@ -79,8 +89,8 @@ async function loadDeliveredOrders() {
       card.dataset.status = status;
       card.dataset.lat = order.latitude || "";
       card.dataset.lng = order.longitude || "";
-      card.dataset.items = JSON.stringify(order.items);
-      card.dataset.total = order.total;
+      card.dataset.items = JSON.stringify(order.items || []);
+      card.dataset.total = order.total || 0;
 
       card.innerHTML = `
         <p><b>Customer:</b> ${customer}</p>
@@ -102,9 +112,7 @@ async function loadDeliveredOrders() {
   }
 }
 
-// =======================
-// BIND VIEW BUTTONS
-// =======================
+// ---------- BIND ORDER BUTTONS ----------
 function bindOrderButtons() {
   document.querySelectorAll(".btn-view").forEach(btn => {
     btn.onclick = (e) => {
@@ -115,10 +123,9 @@ function bindOrderButtons() {
   });
 }
 
-// =======================
-// OPEN ORDER MODAL
-// =======================
+// ---------- OPEN ORDER MODAL ----------
 function openOrderModal(card) {
+  currentCard = card; // store for auto-route updates
   const id = card.dataset.id;
   const customer = card.dataset.customer;
   const address = card.dataset.address;
@@ -142,11 +149,10 @@ function openOrderModal(card) {
   document.getElementById("modalBody").innerHTML = html;
   document.getElementById("orderModal").style.display = "flex";
 
-// ✅ Fix Leaflet blank issue when inside modal
-setTimeout(() => {
-  if (mapInstance) mapInstance.invalidateSize();
-}, 400);
-
+  // Force Leaflet to recalculate sizes (fix blank map in modal)
+  setTimeout(() => {
+    if (mapInstance) mapInstance.invalidateSize();
+  }, 300);
 
   const markBtn = document.querySelector(".complete-btn");
   markBtn.addEventListener("click", async () => {
@@ -159,17 +165,15 @@ setTimeout(() => {
         body: JSON.stringify({ order_id: id })
       });
       const data = await res.json();
-    if (data.success) {
-      alert(data.message);
-      document.getElementById("orderModal").style.display = "none";
-    
-      // 🔥 remove the order card immediately
-      const cardEl = document.querySelector(`.order-card[data-id="${id}"]`);
-      if (cardEl) cardEl.remove();
-    
-      // (optional) still reload to refresh data
-      loadDeliveredOrders();
-    } else {
+      if (data.success) {
+        alert(data.message);
+        document.getElementById("orderModal").style.display = "none";
+        const cardEl = document.querySelector(`.order-card[data-id="${id}"]`);
+        if (cardEl) cardEl.remove();
+        loadDeliveredOrders();
+        currentCard = null;
+        clearRoute();
+      } else {
         alert("❌ " + data.message);
       }
     } catch (err) {
@@ -180,55 +184,30 @@ setTimeout(() => {
   showRouteFromCard(card);
 }
 
-// =======================
-// MODAL CLOSE
-// =======================
-document.querySelector(".close-btn").onclick = () => { 
-  document.getElementById("orderModal").style.display = "none"; 
+// ---------- MODAL CLOSE ----------
+document.querySelector(".close-btn").onclick = () => {
+  document.getElementById("orderModal").style.display = "none";
+  currentCard = null;
+  clearRoute();
 };
-window.onclick = (e) => { 
-  if (e.target.id === "orderModal") document.getElementById("orderModal").style.display = "none"; 
+window.onclick = (e) => {
+  if (e.target.id === "orderModal") {
+    document.getElementById("orderModal").style.display = "none";
+    currentCard = null;
+    clearRoute();
+  }
 };
 
-// =======================
-// DRIVER MARKER INIT
-// =======================
-ensureMapReady();
-
-const icon = L.icon({
-  iconUrl: "/Leilife/public/assests/rider.png", // use a motorcycle or arrow image
-  iconSize: [50, 50],
-  iconAnchor: [25, 25]
-});
-driverMarker = L.marker(mapInstance.getCenter(), { icon, rotationAngle: 0 }).addTo(mapInstance);
-driverMarker.setZIndexOffset(9999);
-
-// =======================
-// DRIVER COORDS HANDLING WITH HEADING
-// =======================
-if (navigator.geolocation) {
-  navigator.geolocation.watchPosition(pos => {
-    const { latitude, longitude, heading } = pos.coords;
-    driverCoords = [longitude, latitude];
-
-    if (mapInstance) {
-      updateDriverPosition(driverCoords);
-      updateDriverHeading(heading); // ✅ rotate icon only
-    }
-  }, err => {
-    console.warn("Geolocation error:", err.message);
-    if (!driverCoords) driverCoords = [120.9842, 14.5995];
-  }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 8000 });
-}
-
-// =======================
-// MAP INIT & UTILS
-// =======================
+// ---------- MAP INIT ----------
 function ensureMapReady() {
   if (mapInstance) return mapInstance;
 
-  mapInstance = L.map("mapContainer", { zoomControl: true })
-    .setView(DEFAULT_CENTER, 13);
+  mapInstance = L.map("mapContainer", {
+    zoomControl: true,
+    center: DEFAULT_CENTER,
+    zoom: 13,
+    worldCopyJump: true // helps when crossing antimeridian (just in case)
+  }).setView(DEFAULT_CENTER, 13);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap contributors"
@@ -236,66 +215,142 @@ function ensureMapReady() {
 
   markersGroup = L.layerGroup().addTo(mapInstance);
 
-  const icon = L.icon({
-    iconUrl: "/Leilife/public/assets/driver-arrow.png",
-    iconSize: [40, 40],
-    iconAnchor: [20, 20]
+  // create driver marker once (use a simple divIcon so rotation via CSS is easy)
+  const driverHtml = `<div class="driver-icon-wrap"><img class="driver-icon-img" src="/Leilife/public/assests/rider.png" alt="driver" style="width:46px;height:46px;"/></div>`;
+  const driverDivIcon = L.divIcon({
+    className: "driver-div-icon",
+    html: driverHtml,
+    iconSize: [46, 46],
+    iconAnchor: [23, 23]
   });
 
-  driverMarker = L.marker(DEFAULT_CENTER, { icon }).addTo(mapInstance);
+  driverMarker = L.marker(DEFAULT_CENTER, { icon: driverDivIcon, interactive: false }).addTo(mapInstance);
   driverMarker.setZIndexOffset(9999);
 
-  // ✅ Force render correction when map becomes visible
+  // style adjustments: ensure map container has transform-origin center
+  const container = mapInstance.getContainer();
+  container.style.transformOrigin = "50% 50%";
+
+  // Counter-rotate leaflet UI elements when map rotated:
+  // We'll add / remove a CSS class to the map root to manage counter-rotation
+  mapInstance._container.classList.add("map-root");
+
+  // Force render correction when map becomes visible (modal usage)
   setTimeout(() => {
     mapInstance.invalidateSize();
-  }, 500);
+  }, 400);
 
   return mapInstance;
 }
 
+// ---------- DRIVER POSITION WATCH ----------
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(pos => {
+    // pos.coords: latitude, longitude, heading
+    const { latitude, longitude, heading } = pos.coords;
 
-function updateDriverPosition(coords) {
+    // store as [lat, lng]
+    driverCoords = [latitude, longitude];
+
+    if (mapInstance) {
+      updateDriverPosition(driverCoords);
+      updateDriverHeading(heading);
+      maybeUpdateRoute(); // automatically refresh route when needed
+    }
+  }, err => {
+    console.warn("Geolocation error:", err.message);
+    if (!driverCoords) driverCoords = DEFAULT_CENTER.slice(); // fallback
+  }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
+} else {
+  console.warn("Geolocation not supported in this browser.");
+}
+
+// ---------- UPDATE DRIVER POSITION (stable) ----------
+function updateDriverPosition(latlngArr) {
   if (!mapInstance || !driverMarker) return;
-  const latlon = [coords[1], coords[0]];
-  driverMarker.setLatLng(latlon);
-  mapInstance.panTo(latlon, { animate: true });
-}
+  const lat = latlngArr[0], lng = latlngArr[1];
+  const latlng = L.latLng(lat, lng);
 
+  // Smooth update: move marker
+  driverMarker.setLatLng(latlng);
 
-function clearRoute() {
-  if (routeLayer) { routeLayer.remove(); routeLayer = null; }
-  if (customerMarker) { customerMarker.remove(); customerMarker = null; }
-}
-
-// =======================
-// DRIVER HEADING & MAP ROTATION
-// =======================
-function updateDriverHeading(heading) {
-  if (!driverMarker || heading == null || isNaN(heading)) return;
-
-  // Smooth transition to avoid jerky rotation
-  const delta = ((heading - lastHeading + 540) % 360) - 180;
-  lastHeading = (lastHeading + delta * 0.3) % 360;
-
-  const iconEl = driverMarker.getElement();
-  if (iconEl) {
-    iconEl.style.transition = "transform 0.3s linear";
-    iconEl.style.transformOrigin = "center center";
-    iconEl.style.transform = `rotate(${lastHeading}deg)`;
+  // pan only if driver far from center (avoid constant re-centering)
+  const center = mapInstance.getCenter();
+  const distance = mapInstance.distance(center, latlng);
+  if (distance > PAN_DISTANCE_THRESHOLD_M) {
+    mapInstance.panTo(latlng, { animate: true, duration: 0.8 });
   }
 }
 
+// ---------- CLEAR ROUTE ----------
+function clearRoute() {
+  if (routeLayer) {
+    routeLayer.remove();
+    routeLayer = null;
+  }
+  if (customerMarker) {
+    customerMarker.remove();
+    customerMarker = null;
+  }
+  document.getElementById("directionsPanel").innerText = "";
+  lastRouteUpdate = 0;
+  lastRouteUpdatePos = null;
+}
 
-// =======================
-// SHOW ROUTE (ORS)
-// =======================
-async function showRouteFromCard(card) {
+// ---------- UPDATE DRIVER HEADING & MAP ROTATION ----------
+function updateDriverHeading(heading) {
+  // heading may be null; we accept numeric 0-359
+  if (heading == null || isNaN(heading)) {
+    // keep lastHeading but don't attempt to rotate if not available
+    return;
+  }
+
+  // Normalize and smooth heading change (small smoothing factor to reduce jitter)
+  heading = Number(heading);
+  const delta = ((heading - lastHeading + 540) % 360) - 180;
+  lastHeading = (lastHeading + delta * 0.35) % 360;
+
+  // Rotate the driver icon itself too (so it points correctly even if map rotation fails)
+  try {
+    const el = driverMarker.getElement();
+    if (el) {
+      const iconImg = el.querySelector(".driver-icon-img");
+      if (iconImg) {
+        iconImg.style.transition = "transform 0.25s linear";
+        iconImg.style.transformOrigin = "50% 50%";
+        iconImg.style.transform = `rotate(${lastHeading}deg)`;
+      }
+    }
+  } catch (e) {
+    // element might not be created yet
+  }
+
+  // Rotate the map container so "forward" is facing up
+  // We'll rotate the map by -heading so marker heading visually aligns with route direction
+  const mapEl = mapInstance.getContainer();
+  mapEl.style.transition = "transform 0.3s linear";
+  mapEl.style.transform = `rotate(${-lastHeading}deg)`;
+  mapRotated = true;
+
+  // To keep UI readable, counter-rotate controls/popups (all common leaflet controls)
+  // We apply the inverse transform to elements with .leaflet-control and .leaflet-popup
+  const controls = document.querySelectorAll(".leaflet-control, .leaflet-popup");
+  controls.forEach(c => {
+    c.style.transition = "transform 0.3s linear";
+    c.style.transformOrigin = "50% 50%";
+    c.style.transform = `rotate(${lastHeading}deg)`;
+  });
+}
+
+
+
+// ---------- ROUTE HANDLING (ORS) ----------
+async function showRouteFromCard(card, silent = false) {
   ensureMapReady();
   clearRoute();
 
-  const dc = driverCoords;
-  if (!dc) {
-    alert("Driver GPS not available.");
+  if (!driverCoords) {
+    if (!silent) alert("Driver GPS not available.");
     return;
   }
 
@@ -306,7 +361,7 @@ async function showRouteFromCard(card) {
   if (latStr && lngStr) {
     const lat = parseFloat(latStr), lng = parseFloat(lngStr);
     if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
-      custCoords = [lng, lat];
+      custCoords = [lat, lng]; // [lat, lng]
     }
   }
 
@@ -316,10 +371,18 @@ async function showRouteFromCard(card) {
     return;
   }
 
-  document.getElementById("directionsPanel").innerText = "Requesting route...";
+  if (!silent) document.getElementById("directionsPanel").innerText = "Requesting route...";
 
   try {
-    const body = { coordinates: [dc, custCoords], instructions: true };
+    // ORS expects coordinates in [lng, lat] order
+    const dc = [driverCoords[1], driverCoords[0]];
+    const cc = [custCoords[1], custCoords[0]];
+
+    if (!ORS_API_KEY) {
+      throw new Error("ORS API key missing (ORS_API_KEY is empty)");
+    }
+
+    const body = { coordinates: [dc, cc], instructions: true };
     const routeRes = await fetch("https://api.openrouteservice.org/v2/directions/driving-car/geojson", {
       method: "POST",
       headers: {
@@ -329,7 +392,10 @@ async function showRouteFromCard(card) {
       body: JSON.stringify(body)
     });
 
-    if (!routeRes.ok) throw new Error("ORS failed: " + routeRes.status);
+    if (!routeRes.ok) {
+      let txt = await routeRes.text();
+      throw new Error("ORS failed: " + routeRes.status + " - " + txt);
+    }
     const routeJson = await routeRes.json();
 
     let lineCoords = null;
@@ -343,11 +409,21 @@ async function showRouteFromCard(card) {
     if (!lineCoords || !lineCoords.length) throw new Error("Route has no coordinates");
 
     const latlngs = lineCoords.map(c => [c[1], c[0]]);
-    routeLayer = L.polyline(latlngs, { color: "#1976d2", weight: 6, opacity: 0.9 }).addTo(mapInstance);
+    routeLayer = L.polyline(latlngs, { color: "#1976d2", weight: 6, opacity: 0.95 }).addTo(mapInstance);
 
-    customerMarker = L.marker([custCoords[1], custCoords[0]]).addTo(markersGroup).bindPopup("Delivery Location");
-    mapInstance.fitBounds(routeLayer.getBounds(), { padding: [40, 40] });
+    customerMarker = L.marker([custCoords[0], custCoords[1]], { title: "Delivery Location" }).addTo(markersGroup);
+    customerMarker.bindPopup("Delivery Location");
 
+    // Fit bounds but preserve orientation by computing bounds and centering rather than fitBounds (fitBounds will still work with rotated container visually)
+    try {
+      mapInstance.fitBounds(routeLayer.getBounds(), { padding: [40, 40] });
+    } catch (e) {
+      // fallback to center on route mid-point if fitBounds fails
+      const mid = latlngs[Math.floor(latlngs.length / 2)];
+      mapInstance.setView(mid, Math.max(13, mapInstance.getZoom()));
+    }
+
+    // render directions steps
     let html = "<h4>Directions</h4><ol>";
     steps.forEach(s => {
       const dist = s.distance ? ` — ${Math.round(s.distance)} m` : "";
@@ -356,8 +432,35 @@ async function showRouteFromCard(card) {
     html += "</ol>";
     document.getElementById("directionsPanel").innerHTML = html;
 
+    // remember last route update time & position
+    lastRouteUpdate = Date.now();
+    lastRouteUpdatePos = driverCoords.slice();
+
   } catch (err) {
     console.error("Routing error:", err);
-    document.getElementById("directionsPanel").innerText = "Error loading route.";
+    if (!silent) document.getElementById("directionsPanel").innerText = "Error loading route.";
   }
+}
+
+// ---------- AUTO-REFRESH ROUTE WHEN DRIVER DEVIATES ----------
+function maybeUpdateRoute() {
+  if (!currentCard) return;
+  const now = Date.now();
+
+  // time throttle
+  if (now - lastRouteUpdate < ROUTE_UPDATE_INTERVAL_MS) return;
+
+  // distance throttle — update if moved enough from lastRouteUpdatePos
+  if (lastRouteUpdatePos) {
+    const moved = mapInstance ? mapInstance.distance(L.latLng(lastRouteUpdatePos[0], lastRouteUpdatePos[1]), L.latLng(driverCoords[0], driverCoords[1])) : Infinity;
+    if (moved < ROUTE_UPDATE_DISTANCE_M) return;
+  }
+
+  // ok — update route silently (no extra "Requesting route..." message)
+  showRouteFromCard(currentCard, true);
+}
+
+// ---------- UTILITY: convert [lat,lng] -> ORS [lng,lat]
+function latLngToOrs(l) {
+  return [l[1], l[0]];
 }

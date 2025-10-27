@@ -1,7 +1,6 @@
 <?php
 include __DIR__ . "/../buttonTemplate.php";
 // <?= htmlspecialchars($userAddress["street_address"] ?? '') ?>
-?>
 <div class="modal-overlay" id="modalOverlay">
   <div id="setAddressModal">
     <span class="close-btn" onclick="closeModal()">&times;</span>

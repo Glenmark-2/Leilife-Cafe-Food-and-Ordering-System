@@ -8,14 +8,14 @@ $guestToken = $_COOKIE['guest_token'] ?? null;
 
 // --- Get cart row ---
 if ($userId) {
-    $sql = "SELECT cart_id, sub_total, delivery_fee, total 
+    $sql = "SELECT cart_id, sub_total, delivery_fee, total, option_type
             FROM carts 
             WHERE user_id = :uid 
             LIMIT 1";
     $stmt = $pdo->prepare($sql);
     $stmt->execute(['uid' => $userId]);
 } else {
-    $sql = "SELECT cart_id, sub_total, delivery_fee, total 
+    $sql = "SELECT cart_id, sub_total, delivery_fee, total, option_type
             FROM carts 
             WHERE guest_token = :gtoken 
                OR session_id = :sid 
@@ -34,9 +34,10 @@ if (!$cartRow) {
     echo json_encode([
         'success' => true,
         'cart' => [],
+        'option_type' => 'delivery', // default
         'totals' => [
             'subtotal'     => 0,
-            'delivery_fee' => 0,   // ✅ delivery fee = 0
+            'delivery_fee' => 0,
             'total'        => 0
         ]
     ]);
@@ -44,6 +45,7 @@ if (!$cartRow) {
 }
 
 $cartId = $cartRow['cart_id'];
+$optionType = strtolower($cartRow['option_type'] ?? 'delivery');
 
 // --- Fetch items ---
 $stmt = $pdo->prepare("
@@ -87,20 +89,31 @@ foreach ($items as &$item) {
     $subtotal += $item['final_price'] * $item['quantity'];
 }
 
-// ✅ Delivery fee rule: 0 if no items
-$deliveryFee = $subtotal > 0 ? (float)($cartRow['delivery_fee'] ?? 50) : 0;
+// ✅ Apply delivery fee only if mode = delivery
+if ($optionType === 'delivery') {
+    $deliveryFee = $subtotal > 0 ? (float)($cartRow['delivery_fee'] ?? 50) : 0;
+} else {
+    $deliveryFee = 0;
+}
+
 $total = $subtotal + $deliveryFee;
 
-// --- Sync totals back to DB (keeps persistence consistent) ---
-$upd = $pdo->prepare("UPDATE carts SET sub_total=?, delivery_fee=?, total=?, updated_at=NOW() WHERE cart_id=?");
-$upd->execute([$subtotal, $deliveryFee, $total, $cartId]);
+// --- Sync totals back to DB ---
+$upd = $pdo->prepare("
+    UPDATE carts 
+    SET sub_total=?, delivery_fee=?, total=?, option_type=?, updated_at=NOW() 
+    WHERE cart_id=?
+");
+$upd->execute([$subtotal, $deliveryFee, $total, $optionType, $cartId]);
 
 echo json_encode([
     'success' => true,
     'cart' => $items,
+    'option_type' => $cartRow['option_type'] ?? 'delivery', // ✅ include this
     'totals' => [
         'subtotal'     => $subtotal,
         'delivery_fee' => $deliveryFee,
         'total'        => $total
     ]
 ]);
+

@@ -39,11 +39,11 @@ $totalActiveDriver = $appData->activeDriver();
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     --radius: 12px;
     --transition: all 0.25s ease;
-    --pending: #facc15;
-    --preparing: #fb923c;
-    --ready: #38bdf8;
-    --delivered: #10b981;
-    --cancelled: #ef4444;
+  --pending: #fbeda8;         /* soft warm yellow */
+  --preparing: #bde7f5;       /* light blue */
+  --ready: #7ac37e;           /* green (ready for delivery) */
+  --delivered: #10b981;
+  --cancelled: #ef4444;
     font-family: "Poppins", "Inter", sans-serif;
   }
 
@@ -403,24 +403,43 @@ $totalActiveDriver = $appData->activeDriver();
     transition: background 0.2s ease, transform 0.1s ease;
   }
 
-  .status-btn[data-status="pending"] {
-    background: #fff3cd;
-    color: #856404;
-  }
+/* ==== STATUS BUTTON COLORS ==== */
+.status-btn[data-status="pending"] {
+  background: color-mix(in srgb, var(--pending) 60%, #fff);
+  color: #6f5e00;
+  border: 1px solid color-mix(in srgb, var(--pending) 70%, #aaa);
+}
 
-  .status-btn[data-status="preparing"] {
-    background: #d1ecf1;
-    color: #0c5460;
-  }
+.status-btn[data-status="preparing"] {
+  background: color-mix(in srgb, var(--preparing) 60%, #fff);
+  color: #004a5a;
+  border: 1px solid color-mix(in srgb, var(--preparing) 70%, #aaa);
+}
 
-  .status-btn[data-status="ready_for_delivery"] {
-    background: #d4edda;
-    color: #155724;
-  }
+.status-btn[data-status="ready_for_delivery"] {
+  background: color-mix(in srgb, var(--ready) 60%, #fff);
+  color: #094a13;
+  border: 1px solid color-mix(in srgb, var(--ready) 70%, #aaa);
+}
 
-  .status-btn:hover {
-    transform: scale(1.05);
-  }
+.status-btn[data-status="delivered"] {
+  background: color-mix(in srgb, var(--delivered) 60%, #fff);
+  color: #004a2d;
+  border: 1px solid color-mix(in srgb, var(--delivered) 70%, #aaa);
+}
+
+.status-btn[data-status="cancelled"] {
+  background: color-mix(in srgb, var(--cancelled) 60%, #fff);
+  color: #5a0000;
+  border: 1px solid color-mix(in srgb, var(--cancelled) 70%, #aaa);
+}
+
+.status-btn:hover {
+  transform: scale(1.05);
+  filter: brightness(1.03);
+}
+
+
 
   /* ==== STATUS MENU ==== */
   .status-menu {
@@ -565,6 +584,31 @@ $totalActiveDriver = $appData->activeDriver();
   .close:hover {
     color: var(--accent);
   }
+  .updated-total { background: #dff7df; transition: background 0.6s ease; }
+  /* ==================================================
+   ORDER ITEM ROW COLORS
+   ================================================== */
+/* ==== ORDER ROW BACKGROUND ==== */
+.status-pending {
+  background-color: color-mix(in srgb, var(--pending) 25%, #fff);
+}
+
+.status-preparing {
+  background-color: color-mix(in srgb, var(--preparing) 25%, #fff);
+}
+
+.status-ready_for_delivery {
+  background-color: color-mix(in srgb, var(--ready) 25%, #fff);
+}
+
+.status-delivered {
+  background-color: color-mix(in srgb, var(--delivered) 25%, #fff);
+}
+
+.status-cancelled {
+  background-color: color-mix(in srgb, var(--cancelled) 25%, #fff);
+}
+
 
   @keyframes slideUp {
     from {
@@ -614,8 +658,6 @@ $totalActiveDriver = $appData->activeDriver();
       padding: 4px 10px;
     }
   }
-</style>
-
 </style>
 
 <div class="container">
@@ -806,6 +848,9 @@ $totalActiveDriver = $appData->activeDriver();
         };
       }
     }
+    document.querySelectorAll('.status-btn').forEach(btn => {
+  updateStatusButtonColor(btn, btn.dataset.status);
+});
 
     // Inbox modal
     initInboxModal();
@@ -937,6 +982,7 @@ $totalActiveDriver = $appData->activeDriver();
       });
     });
   }
+  
 
   // ==================================================
   // LOAD ORDERS
@@ -987,7 +1033,7 @@ $totalActiveDriver = $appData->activeDriver();
         row.innerHTML = `
                 <p style="width:23%;">${escapeHtml(order.order_number)}</p>
                 <p style="width:18%;">${escapeHtml(order.customer_name || 'Unknown User')}</p>
-                <p style="width:13%;">₱${parseFloat(order.total || 0).toFixed(2)}</p>
+                <p id="order-total-${order.order_id}" style="width:13%;">₱${parseFloat(order.total || 0).toFixed(2)}</p>
                 <p style="width:8%; text-align:left;">${order.items_count}</p>
                 <div style="width:18%; position:relative;">
                     <button class="status-btn" data-id="${order.order_id}" data-status="${order.status}">
@@ -1079,102 +1125,174 @@ function downloadReceipt(order_number, user_id) {
 
 
 
-
-  // ==================================================
-  // ITEM TABLE
-  // ==================================================
-  function renderItemTable(items) {
-    return `
+// ==================================================
+// ITEM TABLE
+// ==================================================
+function renderItemTable(items) {
+  return `
   <table class="item-table">
-      <thead>
-          <tr>
-              <th>Item</th>
-              <th>Qty</th>
-              <th>Status</th>
-          </tr>
-      </thead>
-      <tbody>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Qty</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
       ${items.map(i => {
-          const st = (i.status || 'pending').toLowerCase();
-          return `
-          <tr data-item-id="${i.order_item_id}">
-              <td>${escapeHtml(i.product_name)}</td>
-              <td class="text-center">${i.quantity}</td>
-              <td class="text-center">
-                  <select class="item-status" data-prev="${st}">
-                      <option value="pending" ${st === 'pending' ? 'selected' : ''}>Pending</option>
-                      <option value="preparing" ${st === 'preparing' ? 'selected' : ''}>Preparing</option>
-                      <option value="finished" ${st === 'finished' ? 'selected' : ''}>Finished</option>
-                  </select>
-                  <span class="status-feedback"></span>
-              </td>
+        const st = (i.status || 'pending').toLowerCase();
+        return `
+          <tr data-item-id="${i.order_item_id}" class="status-${st}">
+            <td>${escapeHtml(i.product_name)}</td>
+            <td class="text-center">${i.quantity}</td>
+            <td class="text-center">
+              <select class="item-status" data-prev="${st}">
+                <option value="pending" ${st === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="preparing" ${st === 'preparing' ? 'selected' : ''}>Preparing</option>
+                <option value="finished" ${st === 'finished' ? 'selected' : ''}>Finished</option>
+                <option value="cancelled" ${st === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+              </select>
+              <span class="status-feedback"></span>
+            </td>
           </tr>`;
       }).join('')}
-      </tbody>
+    </tbody>
   </table>`;
-  }
+}
 
 
-  // ==================================================
-  // ITEM STATUS LISTENER
-  // ==================================================
-  function attachItemDelegatedListener(container, orderId) {
-    if (container._itemListener) container.removeEventListener('change', container._itemListener);
+// ==================================================
+// ITEM STATUS LISTENER (fixed, complete, robust)
+// ==================================================
+function attachItemDelegatedListener(container, orderId) {
+  // Remove old listener if any
+  if (container._itemListener)
+    container.removeEventListener('change', container._itemListener);
 
-    const listener = async function(e) {
-      if (!e.target.matches('.item-status')) return;
-      const select = e.target;
-      const tr = select.closest('tr');
-      const itemId = tr?.dataset?.itemId;
-      if (!itemId) return;
+  const listener = async (e) => {
+    if (!e.target.matches('.item-status')) return;
 
-      const newStatus = select.value;
-      const prev = select.dataset.prev;
-      const feedback = tr.querySelector('.status-feedback');
+    const select = e.target;
+    const tr = select.closest('tr');
+    const itemId = tr?.dataset?.itemId;
+    if (!itemId) return;
 
-      select.disabled = true;
-      if (feedback) feedback.textContent = '⏳';
+    // orderId parameter passed when attaching listener is the fallback
+    const fallbackOrderId = orderId;
 
+    const newStatus = select.value;
+    const prevStatus = select.dataset.prev;
+    const feedback = tr.querySelector('.status-feedback');
+
+    select.disabled = true;
+    if (feedback) feedback.textContent = '⏳';
+
+    try {
+      const res = await fetch('/Leilife/backend/admin/update_order_item_status.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_item_id: itemId, status: newStatus })
+      });
+
+      // Always inspect what the server returned for quick debugging
+      let result;
       try {
-        const res = await fetch('/Leilife/backend/admin/update_order_item_status.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            order_item_id: itemId,
-            status: newStatus
-          })
-        });
-        const result = await res.json();
-        if (result.success) {
-          select.dataset.prev = newStatus;
-          if (feedback) {
-            feedback.textContent = '✅';
-            setTimeout(() => feedback.textContent = '', 700);
-          }
-        } else {
-          if (feedback) {
-            feedback.textContent = '❌';
-            setTimeout(() => feedback.textContent = '', 900);
-          }
-          if (prev) select.value = prev;
-        }
-      } catch (err) {
-        if (feedback) {
-          feedback.textContent = '⚠️';
-          setTimeout(() => feedback.textContent = '', 900);
-        }
-        if (prev) select.value = prev;
-        console.error(err);
-      } finally {
-        select.disabled = false;
+        result = await res.json();
+      } catch (jsonErr) {
+        console.error('Failed to parse JSON from update_order_item_status:', jsonErr);
+        result = { success: false, _rawStatus: res.status };
       }
-    };
+      console.log('update_order_item_status result:', result);
 
-    container._itemListener = listener;
-    container.addEventListener('change', listener);
-  }
+      if (result.success) {
+        // ✅ Backend success — update dataset + visuals
+        select.dataset.prev = newStatus;
+        tr.className = `status-${newStatus}`; // change row color by status
+        if (feedback) {
+          feedback.textContent = '✅';
+          setTimeout(() => feedback.textContent = '', 800);
+        }
+
+        // Determine order id to update UI: prefer server value, else fallback
+        const effectiveOrderId =
+          result.order_id ||
+          fallbackOrderId ||
+          tr.closest('.expandable-row')?.dataset?.orderId;
+
+        // 🪄 Update the main order row’s status immediately if backend returned it
+        if (result.order_status && effectiveOrderId) {
+          const orderStatusBtn = document.querySelector(`.status-btn[data-id="${effectiveOrderId}"]`);
+          if (orderStatusBtn) {
+            orderStatusBtn.textContent = formatStatus(result.order_status);
+            orderStatusBtn.dataset.status = result.order_status;
+            updateStatusButtonColor(orderStatusBtn, result.order_status);
+          }
+        }
+
+        // 🪄 Update UI total if backend returned a new_total or fallback to asking server again
+        if (result.new_total !== undefined && effectiveOrderId) {
+          const totalEl = document.querySelector(`#order-total-${effectiveOrderId}`);
+          if (totalEl) {
+            totalEl.textContent = `₱${parseFloat(result.new_total).toFixed(2)}`;
+            totalEl.classList.add('updated-total');
+            setTimeout(() => totalEl.classList.remove('updated-total'), 1000);
+          }
+        } else if (effectiveOrderId) {
+          // If server didn't return new_total, fetch the latest order (safe fallback)
+          try {
+            const r2 = await fetch(
+              `/Leilife/backend/admin/get_orders.php?view=${encodeURIComponent(currentView)}&sort=order_date&order_number=`
+            );
+            const d2 = await r2.json();
+            if (d2.success && Array.isArray(d2.orders)) {
+              const updatedOrder = d2.orders.find(
+                (o) => String(o.order_id) === String(effectiveOrderId)
+              );
+              if (updatedOrder) {
+                const totalEl = document.querySelector(`#order-total-${effectiveOrderId}`);
+                if (totalEl) {
+                  totalEl.textContent = `₱${parseFloat(updatedOrder.total || 0).toFixed(2)}`;
+                }
+
+                // Also update order status if changed
+                const orderStatusBtn = document.querySelector(`.status-btn[data-id="${effectiveOrderId}"]`);
+                if (orderStatusBtn && updatedOrder.status) {
+                  orderStatusBtn.textContent = formatStatus(updatedOrder.status);
+                  orderStatusBtn.dataset.status = updatedOrder.status;
+                  updateStatusButtonColor(orderStatusBtn, updatedOrder.status);
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('Fallback fetch of orders failed:', e);
+          }
+        }
+      } else {
+        // ❌ Backend rejected — revert UI
+        select.value = prevStatus;
+        if (feedback) {
+          feedback.textContent = '❌';
+          setTimeout(() => (feedback.textContent = ''), 900);
+        }
+        console.warn('update_order_item_status returned success=false', result);
+      }
+    } catch (err) {
+      // ⚠️ Network error — revert UI
+      console.error('Status update failed (network):', err);
+      select.value = prevStatus;
+      if (feedback) {
+        feedback.textContent = '⚠️';
+        setTimeout(() => (feedback.textContent = ''), 900);
+      }
+    } finally {
+      select.disabled = false;
+    }
+  };
+
+  container._itemListener = listener;
+  container.addEventListener('change', listener);
+}
+
 
   // ==================================================
   // ORDER STATUS
@@ -1269,29 +1387,19 @@ function downloadReceipt(order_number, user_id) {
     });
   }
 
-  // Helper function: change button color based on status
-  function updateStatusButtonColor(btn, status) {
-    const colors = {
-      pending: '#e0e0e0',
-      preparing: '#f7d774',
-      ready_for_delivery: '#7bc47f',
-      delivered: '#5cb85c',
-      cancelled: '#f26c6c'
-    };
-    const textColors = {
-      pending: '#555',
-      preparing: '#8a6d00',
-      ready_for_delivery: '#0c5d18',
-      delivered: '#fff',
-      cancelled: '#fff'
-    };
-    btn.style.background = colors[status] || '#eee';
-    btn.style.color = textColors[status] || '#333';
-  }
+// ==================================================
+// ORDER STATUS BUTTON COLOR UPDATER (uses CSS variables)
+// ==================================================
+function updateStatusButtonColor(btn, status) {
+  if (!btn) return;
 
+  // Normalize status
+  const normalized = status?.toLowerCase() || 'pending';
+  btn.dataset.status = normalized; // this connects to CSS attribute selectors
 
-
-
+  // Optional: Smooth transition
+  btn.style.transition = 'background-color 0.25s ease, color 0.25s ease';
+}
   // ==================================================
   // HELPERS
   // ==================================================
@@ -1323,6 +1431,7 @@ function downloadReceipt(order_number, user_id) {
 
   function formatStatus(status) {
     return status ? status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '';
+    
   }
 
   function escapeHtml(str) {

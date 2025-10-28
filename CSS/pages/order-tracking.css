@@ -97,6 +97,10 @@
     gap: 10px;
 }
 
+.right-content p{
+    margin: 0;
+}
+
 /* Delivery info and payment - horizontal alignment */
 .info-row {
     display: flex;
@@ -160,7 +164,7 @@
         width: 100%;
     }
 
-    #motor{
+    #motor,#cancel-order-pic{
         width: 30%;
     }
 
@@ -173,6 +177,8 @@
     justify-content: center;
     align-items: center;
     gap: 10px;
+
+    
 }
 }
 /* Review Section */

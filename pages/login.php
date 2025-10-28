@@ -27,16 +27,17 @@ if (!isset($_SESSION['csrf_token'])) {
                <input type="password" id="password" name="password" placeholder="Enter your password" required>
 
                <button type="submit" class="login-btn">Login</button>
+               <button type="button" class="google-btn" onclick="window.location.href='/Leilife/backend/google_login.php'">
+               <img id="google-logo" src="/Leilife/public/assests/google.logo.webp" alt="Google Logo"
+                    style="width: 25px; height:25px;">
+               Continue with Google
+            </button>
             </form>
 
             <div id="spinner" class="spinner"></div>
             <div id="login-error-container" class="error-messages"></div>
 
-            <button type="button" class="google-btn" onclick="window.location.href='/Leilife/backend/google_login.php'">
-               <img id="google-logo" src="/Leilife/public/assests/google.logo.webp" alt="Google Logo"
-                    style="width: 25px; height:25px;">
-               Continue with Google
-            </button>
+            
 
             <button id="forgot-pass">Forgot your password?</button>
 
@@ -45,7 +46,7 @@ if (!isset($_SESSION['csrf_token'])) {
             </div>
 
             <div class="signup">
-               <p>Don't have an account? <a href="/Leilife/pages/signup.php">Sign up</a></p>
+               <p>Don't have an account? <a href="../public/index.php?page=signUp">Sign up</a></p>
             </div>
          </div>
       </div>

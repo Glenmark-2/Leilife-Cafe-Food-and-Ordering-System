@@ -13,11 +13,11 @@ $token = $_GET['token'] ?? '';
         <h1>Forgot your password?</h1>
         <p class="subtitle">Enter your Gmail to receive a reset link.</p>
 
-        <label for="reset-email">Email</label>
+        <!-- <label for="reset-email">Email</label> -->
         <input type="email" id="reset-email" name="email" placeholder="Enter your Gmail" required>
 
-        <div class="button-wrapper">
-          <?php echo createButton(45, 360, "Send Verification", "reset-btn", 16, "submit"); ?>
+        <div class="button-wrapper" style="margin-top: 10px;">
+          <?php echo createButton(40,420, "Send Verification", "reset-btn", 16, "submit"); ?>
         </div>
       </form>
     <?php endif; ?>
@@ -60,7 +60,7 @@ $token = $_GET['token'] ?? '';
 
 
         <div class="button-wrapper">
-          <?php echo createButton(45, 360, "Change Password", "reset-btn", 16, "submit"); ?>
+          <?php echo createButton(40, 420, "Change Password", "reset-btn", 16, "submit"); ?>
         </div>
       </form>
     <?php endif; ?>

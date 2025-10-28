@@ -21,33 +21,66 @@ function updateModeUI(modeType) {
   if (motor) motor.src = newIcon;
 }
 
-// -------------------------------
-// Helper: Update totals UI (single canonical function)
-// Element IDs used: #subtotal, #delivery-fee, #total
-function updateTotals(totals) {
-  if (!totals) return;
-  const subtotalEl = document.getElementById("subtotal");
-  const deliveryEl = document.getElementById("delivery-fee");
-  const totalEl = document.getElementById("total");
+// ===============================
+// Render cart items
+// ===============================
+function renderCart() {
+    const midDiv = document.getElementById("mid-div");
+    midDiv.innerHTML = "";
 
-  if (subtotalEl && totals.subtotal !== undefined) {
-    subtotalEl.textContent = `₱${Number(totals.subtotal).toFixed(2)}`;
-  }
-  if (deliveryEl && totals.delivery_fee !== undefined) {
-    deliveryEl.textContent = `₱${Number(totals.delivery_fee).toFixed(2)}`;
-  }
-  if (totalEl && totals.total !== undefined) {
-    totalEl.textContent = `₱${Number(totals.total).toFixed(2)}`;
-  }
+    if (!cart || cart.length === 0) {
+        midDiv.innerHTML = `
+            <div style="display:flex; justify-content:center; align-items:center; height:80px; width:100%;">
+                <p style="color:gray; margin:0;">Your cart is empty</p>
+            </div>
+        `;
+        return;
+    }
+
+    cart.forEach((item, index) => {
+        const itemDiv = document.createElement("div");
+        itemDiv.classList.add("cart-item");
+
+        const price = item.final_price;
+
+        const minusOrTrash = item.quantity > 1
+            ? `<button class="qty-btn" onclick="changeItemQty(${index}, -1)">−</button>`
+            : `<button class="qty-btn" onclick="removeItem(${index})">
+                <img src="../public/assests/trash-bin.png" alt="trash" class="trash-icon">
+            </button>`;
+
+        itemDiv.innerHTML = `
+            <div class="qty-controls">
+                ${minusOrTrash}
+                <input type="number" value="${item.quantity}" readonly>
+                <button class="qty-btn" onclick="changeItemQty(${index}, 1)">+</button>
+            </div>
+            <p class="product-name">
+                ${item.product_name ? toTitleCase(item.product_name.trim()) : "Unknown Product"}
+                ${item.size ? ` (${toTitleCase(item.size.trim())})` : ""}
+                ${item.flavor_names ? ` - ${toTitleCase(item.flavor_names.trim())}` : ""}
+            </p>
+            <p class="product-price">₱${(price * item.quantity).toFixed(2)}</p>
+        `;
+
+        midDiv.appendChild(itemDiv);
+    });
+    toggleCheckoutButton(); // ✅ check after rendering
 }
 
-// -------------------------------
-// Fetch cart (items + totals + option_type) and render
-async function fetchCart() {
-  try {
-    const res = await fetch("../backend/get_cart.php");
-    const data = await res.json();
-    if (!data.success) return console.error("Failed to fetch cart");
+function toTitleCase(str) {
+    return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+}
+
+// ===============================
+// Update item quantity
+// ===============================
+function changeItemQty(index, change) {
+    const item = cart[index];
+      const currentQty = parseInt(item.quantity, 10);
+    const newQty = currentQty + change;
+    console.log("Changing quantity:", item, "New Qty:", newQty);
+    if (newQty < 1) return;
 
     cart = data.cart || [];
     renderCart();

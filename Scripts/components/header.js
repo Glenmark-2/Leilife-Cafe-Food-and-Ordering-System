@@ -4,6 +4,7 @@
     const mobileMenu = document.getElementById('mobileMenu');
     const loginBtn = document.getElementById('loginBtn');
     const loginModal = document.getElementById('loginModal');
+    const loginBtnMbl = document.getElementById('loginBtnMbl');
 
     /* --- Mobile burger toggle (keeps header visible when menu is open) --- */
     burger && burger.addEventListener('click', () => {
@@ -20,15 +21,34 @@
     });
 
     /* --- Login modal toggle (simple) --- */
-    if (loginBtn && loginModal || isset($_SESSION['user_id'])) {
-      loginBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        // toggle display
-        loginModal.style.display = loginModal.style.display === 'flex' ? 'none' : 'flex';
-        // make sure header remains visible when modal opens
-        navbar.classList.remove('navbar--hidden');
-      });
-    }
+    // if (((loginBtn || loginBtnMbl) && loginModal) || isset($_SESSION['user_id'])) {
+    //   loginBtn.addEventListener('click', (e) => {
+    //     e.preventDefault();
+    //     // toggle display
+    //     loginModal.style.display = loginModal.style.display === 'flex' ? 'none' : 'flex';
+    //     // make sure header remains visible when modal opens
+    //     navbar.classList.remove('navbar--hidden');
+    //   });
+    // }
+    /* --- Login modal toggle (simple) --- */
+if (loginModal) {
+  if (loginBtn) {
+    loginBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      loginModal.style.display = loginModal.style.display === 'flex' ? 'none' : 'flex';
+      navbar.classList.remove('navbar--hidden');
+    });
+  }
+
+  if (loginBtnMbl) {
+    loginBtnMbl.addEventListener('click', (e) => {
+      e.preventDefault();
+      loginModal.style.display = loginModal.style.display === 'flex' ? 'none' : 'flex';
+      navbar.classList.remove('navbar--hidden');
+    });
+  }
+}
+
 
     /* --- Measure header height and set CSS variable & body padding --- */
     function setNavHeight() {
@@ -102,6 +122,16 @@
 
 
 
+/* --- Auto-close mobile menu when a link is clicked --- */
+const mobileLinks = mobileMenu ? mobileMenu.querySelectorAll('a') : [];
+
+mobileLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    mobileMenu.classList.remove('show');
+    burger.classList.remove('active');
+    mobileMenu.setAttribute('aria-hidden', 'true');
+  });
+});
 
     window.addEventListener('scroll', handleScroll, { passive: true });
   })();

@@ -1,6 +1,6 @@
 
-<div id="db-container" class="collapsed"> <!-- default collapsed on mobile -->
-    <div id="top" onclick="toggleSidebar()"> <!-- click to expand -->
+<div id="db-container"> <!-- default collapsed on mobile -->
+    <div id="top" > <!-- click to expand -->
         <div style="margin: auto;">
             <img id="logo" src="public/assests/Mask group.png" alt="logo">
 

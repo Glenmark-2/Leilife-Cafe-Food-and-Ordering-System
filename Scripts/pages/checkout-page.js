@@ -555,14 +555,14 @@ function bindPlaceOrderHandler() {
       body = new FormData(checkoutForm);
       body.set('action', 'place_order');
       body.set('payment_method', paymentMethod);
-      body.set('delivery_option', deliveryEl.value);
+      body.set('delivery_method', deliveryEl.value);
       isFormData = true;
     } else {
       // Fallback: JSON minimal payload
       body = JSON.stringify({
         action: 'place_order',
         payment_method: paymentMethod,
-        delivery_option: deliveryEl.value,
+        delivery_method: deliveryEl.value, // ✅ fixed
         note: (document.getElementById('note')?.value || '').trim()
       });
       headers = { 'Content-Type': 'application/json' };
@@ -581,25 +581,27 @@ function bindPlaceOrderHandler() {
         body
       });
       const result = await res.json();
-
+      console.log('PLACE ORDER RESULT:', result); // helpful for debugging
+    
       if (result?.success) {
-        showModal(result.message || 'Order placed successfully!', 'success');
-        // Optionally redirect if server sends a redirect or order id
-        if (result.redirect) {
-          setTimeout(() => (window.location.href = result.redirect), 900);
-        } else {
-          // reload cart & totals
-          await fetchCartData();
-          // small delay to show success
-          setTimeout(() => location.reload(), 800);
-        }
+  showModal(result.message || 'Order placed successfully!', 'success');
+
+      // ✅ Redirect to GCash / PayMongo checkout URL if provided
+      if (result.checkout_url) {
+        setTimeout(() => {
+          window.location.href = result.checkout_url;
+        }, 900);
       } else {
-        showModal(result?.message || 'Failed to place order.', 'error');
-        // If server indicates payment unavailable (keep consistent with UI)
-        if (result?.payment_unavailable) {
-          applyPaymentMethodRules();
-        }
+        // Otherwise, reload cart & page for non-online payments
+        await fetchCartData();
+        setTimeout(() => location.reload(), 800);
       }
+    } else {
+      showModal(result?.message || 'Failed to place order.', 'error');
+      if (result?.payment_unavailable) {
+        applyPaymentMethodRules();
+      }
+    }
     } catch (err) {
       console.error('Place order error', err);
       showModal('Network error while placing order.', 'error');

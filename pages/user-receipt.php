@@ -17,7 +17,7 @@ if (!$order_number || !$user_id) {
     die("Order number or user ID missing.");
 }
 
-$order_info = $appData->getOrderWithItems($user_id,$order_number);
+$order_info = $appData->getOrderWithItems($user_id, $order_number);
 // var_dump($order_info);
 // exit;
 // Create a standard A4 PDF
@@ -48,23 +48,22 @@ if (!empty($order_info['order'])) {
 
     $order_type = ($order['delivery_method'] ?? '') === 'home' ? 'Delivery' : 'Pick up';
 
-    $formatted_date = !empty($order['order_date']) 
-                      ? date('F d, Y', strtotime($order['order_date'])) 
-                      : '';
+    $formatted_date = !empty($order['order_date'])
+        ? date('F d, Y', strtotime($order['order_date']))
+        : '';
 
     $orderDetails = [
         ['date' => $formatted_date],
-        ['order_number' => $on?? ''],
+        ['order_number' => $on ?? ''],
         ['order_type' => $order_type],
         ['payment_method' => !empty($order['payment_method']) ? ucfirst($order['payment_method']) : ''],
-        ['customer' => !empty($order['customer_name']) ? ucfirst($order['customer_name']) : 'Unknown Customer'],
+        ['customer' => !empty($order['customer_name']) ? ucwords(strtolower($order['customer_name'])) : 'Unknown Customer'],
     ];
 
     // Add delivery address only if order type is Delivery
     if ($order_type === 'Delivery') {
-        $orderDetails[] = ['delivery_address' => $order['delivery_address'] ?? ''];
+        $orderDetails[] = ['delivery_address' => !empty($order['delivery_address']) ? ucwords(($order['delivery_address'])) : ''];
     }
-
 } else {
     $orderDetails = []; // no order found
 }
@@ -94,12 +93,17 @@ $pdf->Cell(40, 8, 'PRICE', 0, 1, 'R');
 $pdf->SetFont('Arial', '', 10);
 if (!empty($order_info['items'])) {
     $items = [];
-
     foreach ($order_info['items'] as $item) {
+        $productName = ucwords(strtolower($item['product_name']));
+
+        $flavors = !empty($item['flavors']) 
+            ? ' (' . implode(', ', array_map(function($f){ return ucwords(strtolower($f)); }, $item['flavors'])) . ')' 
+            : '';
+
+        $size = !empty($item['size']) ? ' - ' . ucwords(strtolower($item['size'])) : '';
+
         $items[] = [
-            'item'  => $item['product_name'] 
-                       . (!empty($item['flavors']) ? ' (' . implode(', ', $item['flavors']) . ')' : '')
-                       . (!empty($item['size']) ? ' - ' . $item['size'] : ''),
+            'item'  => $productName . $flavors . $size,
             'qty'   => $item['quantity'],
             'price' => number_format($item['price'], 2)
         ];
@@ -107,6 +111,7 @@ if (!empty($order_info['items'])) {
 } else {
     $items = [];
 }
+
 
 foreach ($items as $p) {
     $pdf->Cell(20, 8, $p['qty'], 0, 0, 'C');
@@ -125,9 +130,9 @@ $pdf->SetFont('Arial', 'B', 10);
 $pdf->Cell(130, 8, "Subtotal", 0, 0, 'R');
 $pdf->Cell(40, 8, $subtotal, 0, 1, 'R');
 
-if($order_type === "Delivery"){
+if ($order_type === "Delivery") {
     $pdf->Cell(130, 8, "Delivery Fee", 0, 0, 'R');
-$pdf->Cell(40, 8, $deliveryFee, 0, 1, 'R');
+    $pdf->Cell(40, 8, $deliveryFee, 0, 1, 'R');
 }
 
 $pdf->SetFont('Arial', 'B', 11);

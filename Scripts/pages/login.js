@@ -99,10 +99,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --- Close button logic ---
-document.getElementById("close-btn")?.addEventListener("click", () => {
-  document.getElementById("box-container").style.display = "none";
+// document.getElementById("close-btn")?.addEventListener("click", () => {
+//   document.getElementById("box-container").style.display = "none";
 
-});
+// });
 document.getElementById("close-btn").addEventListener("click", () => {
   document.getElementById("login-overlay").style.display = "none";
 
@@ -131,10 +131,6 @@ overlay.addEventListener("click", (e) => {
     closeLoginModal();
   }
 });
-
-// Example: auto-show modal on page load
-// openLoginModal();
-
 
 
 

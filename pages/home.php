@@ -38,8 +38,8 @@ include "../backend/db_script/appData.php";
 
 <!-- GREETING SECTION -->
 <div class="section">
-  <p class="greating">Good Afternoon!</p>
-  <p class="statementGreating">Take a break and enjoy the flavors of Leilife Cafe and Resto!</p>
+  <p class="greating">Hey there!</p>
+  <p class="statementGreating">Unwind with the comforting taste of Leilife Café and Resto!</p>
 
   <div class="row">
     <?php
@@ -231,40 +231,4 @@ include "../backend/db_script/appData.php";
   </div>
 </div>
 
-<script>
-  const contactForm = document.getElementById("contactForm");
-  const submitBtn = document.getElementById("submitBtn");
-
-  contactForm.addEventListener("submit", function (e) {
-    e.preventDefault(); // prevent default form submission
-    const formData = new FormData(contactForm);
-
-    // Disable button + show loading state
-    submitBtn.disabled = true;
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = "Sending...";
-
-    fetch("../backend/mail.php", {
-      method: "POST",
-      body: formData
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          showModal("Your message has been sent!", "success");
-          contactForm.reset();
-        } else {
-          showModal(data.message || "Your message did not send!", "error");
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        showModal("Network error. Please try again.", "error");
-      })
-      .finally(() => {
-        // Restore button
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-      });
-  });
-</script>
+<script src="/Leilife/Scripts/pages/home.js"></script>

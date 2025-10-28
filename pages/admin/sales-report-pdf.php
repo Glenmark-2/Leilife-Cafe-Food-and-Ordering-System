@@ -37,11 +37,6 @@ $payment = $_GET['payment'] ?? 'all';
 // --- FETCH SALES DATA ---
 $salesData = $appData->getSalesSummary($fromDate, $toDate, $status, $payment);
 
-// Peso function (P only)
-function peso($amount) {
-    if ($amount === null || $amount === '') return 'P0.00';
-    return 'P' . number_format((float)$amount, 2);
-}
 
 class PDF extends FPDF
 {
@@ -68,9 +63,9 @@ class PDF extends FPDF
 
         if ($this->isFirstPage) {
             $this->SetFillColor(245, 222, 179);
-            $this->Rect(0, 0, 210, 45, 'F');
+            $this->Rect(0, 0, 210, 50, 'F');
             $this->SetFont('Arial', 'B', 18);
-            $this->Cell(0, 10, 'Leilife Cafe & Resto - Sales Report', 0, 1, 'C');
+            $this->Cell(0, 10, 'LEILIFE CAFE & RESTO - SALES REPORT', 0, 1, 'C');
             $this->Ln(3);
             $this->SetFont('Arial', '', 11);
             $this->Cell(0, 6, 'Generated on: ' . date('Y-m-d H:i:s'), 0, 1, 'C');
@@ -79,7 +74,7 @@ class PDF extends FPDF
             $periodText = ($fromDate && $toDate)
                 ? "Period: $fromDate to $toDate"
                 : "All Time Summary";
-            $filterText = "Status: " . ucfirst($status) . " | Payment: " . ucfirst($payment);
+            $filterText = "Status: " . ucwords($status) . " | Payment: " . ucwords($payment);
 
             $this->SetFont('Arial', 'B', 12);
             $this->Cell(0, 7, $periodText, 0, 1, 'C');
@@ -87,7 +82,7 @@ class PDF extends FPDF
             $this->Ln(10);
         } else {
             $this->SetFont('Arial', 'B', 12);
-            $this->Cell(0, 8, 'Leilife Cafe & Resto - Sales Report (continued)', 0, 1, 'C');
+            $this->Cell(0, 8, 'LEILIFE CAFE & RESTO - SALES REPORT (CONTINUED)', 0, 1, 'C');
             $this->Ln(4);
         }
     }
@@ -108,12 +103,13 @@ class PDF extends FPDF
         }
     }
 
+    // FancyTable with dynamic row height
     function FancyTable($title, $headers, $data, $fillColor, $altColor = null)
     {
         $this->Ln(10);
         $this->SetFont('Arial', 'B', 14);
         $this->SetTextColor($this->textDark[0], $this->textDark[1], $this->textDark[2]);
-        $this->Cell(0, 10, iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $title), 0, 1, 'L');
+        $this->Cell(0, 10, strtoupper($title), 0, 1, 'L');
         $this->Ln(5);
 
         $this->SetFillColor($fillColor[0], $fillColor[1], $fillColor[2]);
@@ -122,35 +118,93 @@ class PDF extends FPDF
 
         $count = count($headers);
         $width = (180 / $count);
+
+        // Table headers
         foreach ($headers as $head) {
-            $this->Cell($width, 9, iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $head), 1, 0, 'C', true);
+            $this->Cell($width, 9, strtoupper($head), 1, 0, 'C', true);
         }
         $this->Ln();
 
         $this->SetFont('Arial', '', 10);
         $fill = false;
+
         foreach ($data as $row) {
             $this->CheckPageBreak(10);
+
             $fillColorUsed = $fill && $altColor ? $altColor : $this->dataFill;
             $this->SetFillColor($fillColorUsed[0], $fillColorUsed[1], $fillColorUsed[2]);
 
+            // Calculate max number of lines for the row
+            $maxLines = 1;
             foreach ($row as $col) {
-                $this->Cell($width, 8, iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $col), 1, 0, 'C', true);
+                $lines = $this->NbLines($width, strtoupper($col));
+                if ($lines > $maxLines) $maxLines = $lines;
             }
-            $this->Ln();
+            $rowHeight = 6 * $maxLines;
+
+            // Draw each cell with same height
+            $xStart = $this->GetX();
+            $yStart = $this->GetY();
+
+            foreach ($row as $col) {
+                $x = $this->GetX();
+                $y = $this->GetY();
+                $this->Rect($x, $y, $width, $rowHeight);
+                $this->MultiCell($width, 6, strtoupper($col), 0, 'C');
+                $this->SetXY($x + $width, $yStart);
+            }
+
+            $this->Ln($rowHeight);
             $fill = !$fill;
         }
+    }
+
+    // Calculate number of lines a cell needs
+    function NbLines($w, $txt)
+    {
+        $cw = &$this->CurrentFont['cw'];
+        if ($w == 0) $w = $this->w - $this->rMargin - $this->x;
+        $wmax = ($w - 2 * $this->cMargin) * 1000 / $this->FontSize;
+        $s = str_replace("\r", '', $txt);
+        $nb = strlen($s);
+        if ($nb > 0 && $s[$nb - 1] == "\n") $nb--;
+        $sep = -1;
+        $i = $j = $l = 0;
+        $nl = 1;
+        while ($i < $nb) {
+            $c = $s[$i];
+            if ($c == "\n") {
+                $i++;
+                $sep = -1;
+                $j = $i;
+                $l = 0;
+                $nl++;
+                continue;
+            }
+            if ($c == ' ') $sep = $i;
+            $l += $cw[$c];
+            if ($l > $wmax) {
+                if ($sep == -1) {
+                    if ($i == $j) $i++;
+                } else $i = $sep + 1;
+                $sep = -1;
+                $j = $i;
+                $l = 0;
+                $nl++;
+            } else $i++;
+        }
+        return $nl;
     }
 
     function OverallSummary($summary)
     {
         $this->Ln(15);
         $this->SetFont('Arial', 'B', 14);
-        $this->Cell(0, 10, 'Overall Summary', 0, 1, 'L');
+        $this->Cell(0, 10, 'OVERALL SUMMARY', 0, 1, 'L');
         $this->Ln(5);
         $this->SetFont('Arial', '', 11);
         foreach ($summary as $item) {
-            $this->Cell(0, 7, iconv('UTF-8', 'ISO-8859-1//TRANSLIT', '• ' . $item), 0, 1, 'L');
+            $this->Cell(0, 7, '• ' . strtoupper($item), 0, 1, 'L');
         }
     }
 }
@@ -164,8 +218,8 @@ $summary = $salesData['summary'] ?? [];
 $summary_headers = ['Metric', 'Value'];
 $summary_data = [
     ['Total Orders', number_format($summary['total_orders'] ?? 0)],
-    ['Total Revenue (with charges)', peso($summary['total_revenue'] ?? 0)],
-    ['Total Revenue (products only)', peso($summary['total_product_revenue'] ?? 0)]
+    ['Total Revenue (with charges)', number_format($summary['total_revenue'] ?? 0, 2)],
+    ['Total Revenue (products only)', number_format($summary['total_product_revenue'] ?? 0, 2)]
 ];
 $pdf->FancyTable('Sales Summary', $summary_headers, $summary_data, [222, 184, 135], [255, 248, 220]);
 
@@ -175,12 +229,13 @@ $top_headers = ['Product', 'Orders', 'Revenue'];
 $top_data = [];
 foreach ($top as $row) {
     $top_data[] = [
-        $row['product_name'] ?? '—',
+        ucwords(strtolower($row['product_name'])) ?? '—',
         number_format($row['orders'] ?? 0),
-        peso($row['revenue'] ?? 0)
+        number_format($row['revenue'] ?? 0, 2)
     ];
 }
-$pdf->FancyTable('Top Selling Products', $top_headers, $top_data, [205, 133, 63], [255, 239, 213]);
+$pdf->FancyTable('Top Selling Products', $top_headers, $top_data, [245, 245, 220], [255, 239, 213]);
+
 
 // === MAIN CATEGORIES TABLE ===
 $main = $salesData['main_categories'] ?? [];
@@ -188,12 +243,12 @@ $main_headers = ['Main Category', 'Orders', 'Revenue'];
 $main_data = [];
 foreach ($main as $row) {
     $main_data[] = [
-        $row['category'] ?? '—',
+        ucwords(strtolower($row['category'])) ?? '—',
         number_format($row['total_orders'] ?? 0),
-        peso($row['total_revenue'] ?? 0)
+        number_format($row['total_revenue'] ?? 0, 2)
     ];
 }
-$pdf->FancyTable('Main Categories Summary', $main_headers, $main_data, [188, 143, 143], [255, 248, 220]);
+$pdf->FancyTable('Main Categories Summary', $main_headers, $main_data, [194, 177, 165], [255, 248, 220]);
 
 // === SUBCATEGORIES BREAKDOWN ===
 $subs = $salesData['sub_categories'] ?? [];
@@ -203,24 +258,23 @@ if (!empty($subs)) {
         $rows = [];
         foreach ($products as $p) {
             $rows[] = [
-                $p['product_name'] ?? '—',
-                peso($p['sold_price'] ?? 0),
+                ucwords(strtolower($p['product_name'])) ?? '—',
+                number_format($p['sold_price'] ?? 0),
                 number_format($p['total_quantity'] ?? 0),
                 number_format($p['total_orders'] ?? 0),
-                peso($p['total_revenue'] ?? 0)
+                number_format($p['total_revenue'] ?? 0, 2)
             ];
         }
-        $pdf->FancyTable("Category: $categoryName", $headers, $rows, [210, 180, 140], [255, 248, 220]);
+        $pdf->FancyTable("Category: " . ucwords(str_replace('_', ' ', strtolower($categoryName))), $headers, $rows, [210, 180, 140], [255, 248, 220]);
     }
 }
 
 // === FINAL SUMMARY ===
 $summary_points = [
     'Total Orders: ' . number_format($summary['total_orders'] ?? 0),
-    'Total Revenue (with charges): ' . peso($summary['total_revenue'] ?? 0),
-    'Total Revenue (products only): ' . peso($summary['total_product_revenue'] ?? 0),
-    'Status: ' . ucfirst($status),
-    'Payment: ' . ucfirst($payment),
+    'Total Revenue (with charges): ' . number_format($summary['total_revenue'] ?? 0, 2),
+    'Total Revenue (products only): ' . number_format($summary['total_product_revenue'] ?? 0, 2),
+    'Payment: ' . ucwords($payment),
     'Report Period: ' . (($fromDate && $toDate) ? "$fromDate to $toDate" : "All Time"),
     'Generated Automatically via Online Ordering System'
 ];

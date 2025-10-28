@@ -134,9 +134,9 @@ function renderCart() {
                 <button class="qty-btn" onclick="changeItemQty(${index}, 1)">+</button>
             </div>
             <p class="product-name">
-                ${item.product_name || "Unknown Product"}
-                ${item.size ? ' (' + item.size + ')' : ''}
-                ${item.flavor_names ? ' - ' + item.flavor_names : ''}
+                ${item.product_name ? toTitleCase(item.product_name.trim()) : "Unknown Product"}
+                ${item.size ? ` (${toTitleCase(item.size.trim())})` : ""}
+                ${item.flavor_names ? ` - ${toTitleCase(item.flavor_names.trim())}` : ""}
             </p>
             <p class="product-price">₱${(price * item.quantity).toFixed(2)}</p>
         `;
@@ -144,6 +144,10 @@ function renderCart() {
         midDiv.appendChild(itemDiv);
     });
     toggleCheckoutButton(); // ✅ check after rendering
+}
+
+function toTitleCase(str) {
+    return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
 }
 
 // ===============================

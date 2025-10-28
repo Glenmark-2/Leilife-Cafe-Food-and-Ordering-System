@@ -968,9 +968,9 @@ if (!class_exists('AppData')) {
         SELECT 
             street_address, 
             barangay, 
-            city, 
-            region, 
-            province 
+            city_name, 
+            region_name, 
+            province_name 
         FROM addresses 
         WHERE user_id = :uid
         LIMIT 1
@@ -981,12 +981,12 @@ if (!class_exists('AppData')) {
             if ($address) {
                 // Combine address parts into a readable string
                 $order['delivery_address'] = sprintf(
-                    "%s, %s, %s, %s, %s",
+                    "%s, Barangay %s, %s, %s, %s",
                     $address['street_address'] ?? '',
                     $address['barangay'] ?? '',
-                    $address['city'] ?? '',
-                    $address['region'] ?? '',
-                    $address['province'] ?? ''
+                    $address['city_name'] ?? '',
+                    $address['region_name'] ?? '',
+                    $address['province_name'] ?? ''
                 );
             }
 
@@ -1020,6 +1020,56 @@ if (!class_exists('AppData')) {
             $stmt = $this->db->prepare("SELECT * FROM payment_methods ORDER BY payment_id ASC");
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+
+        // queries for solo product page
+
+        public function product($productId)
+        {
+            $stmt = $this->db->prepare("
+                SELECT p.product_id, p.category_id, p.product_name, p.product_price, p.price_large,
+                    p.status, p.product_picture, c.category_name, c.main_category_name,
+                    p.has_flavor, p.has_size, p.flavor_set_id
+
+                    FROM products p
+                    JOIN categories c ON p.category_id = c.category_id
+                    WHERE p.product_id = :id AND p.status = 'available'
+                ");
+            $stmt->execute(['id' => $productId]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        public function flavors($flavor_set_id)
+        {
+            $flavorStmt = $this->db->prepare("
+                SELECT flavor_id, flavor_name 
+                FROM product_flavors 
+                WHERE status = 'available' 
+                AND flavor_set_id = :set_id
+                ORDER BY flavor_name ASC
+            ");
+            $flavorStmt->execute([':set_id' => $flavor_set_id]);
+            return $flavorStmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        public function sizes()
+        {
+            $sizeStmt = $this->db->prepare("SELECT size_name FROM drink_size WHERE status = 'available'");
+            $sizeStmt->execute(); // you need to execute prepared statements
+            return $sizeStmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        public function isFavorite($userId, $productId)
+        {
+            $stmtFav = $this->db->prepare("
+                SELECT favorite_id 
+                FROM favorites 
+                WHERE user_id = ? AND product_id = ? 
+                LIMIT 1
+            ");
+            $stmtFav->execute([$userId, $productId]);
+            return (bool) $stmtFav->fetch(PDO::FETCH_ASSOC);
         }
     }
 }

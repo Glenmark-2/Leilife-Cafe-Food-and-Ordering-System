@@ -64,6 +64,15 @@
   flex: 1;
 }
 
+
+#edit-div{
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+.label{
+  font-size: 0.9rem;
+}
 /* ===== Form Inputs ===== */
 input[type="text"], 
 input[type="tel"], 
@@ -289,6 +298,9 @@ textarea {
     max-height: none;
     overflow-y: visible;
   }
+    #place-order-btn{
+    width: 900px !important;
+  }
 }
 
 @media (max-width: 600px) {
@@ -305,7 +317,32 @@ textarea {
   }
 }
 
+@media (max-width: 425px) {
+  .card h3 {
+    font-size: 0.8rem;
+    
+  }
+  input, textarea {
+    font-size: 0.9rem;
+    padding: 10px 12px;
+  }
+  .edit-btn, .place-btn {
+    font-size: 0.9rem;
+    padding: 10px 14px;
+  }
+
+  #place-order-btn{
+    width: 280px !important;
+  }
+
+  /* .contact-row-two{
+    display: flex;
+    flex-direction: column;
+  } */
+}
+
 
 #full-name{
   border: 1px solid #d1d0d0;
 }
+

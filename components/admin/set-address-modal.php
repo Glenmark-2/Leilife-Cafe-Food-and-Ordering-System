@@ -87,14 +87,14 @@ include __DIR__ . "/../buttonTemplate.php";
   </div>
 </div>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- ✅ MapLibre -->
+<link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const southBarangays = [
-      1, 2, 3, 4,
-      77, 78, 79, 80, 81, 82, 83, 84, 85,
+      1, 2, 3, 4, 77, 78, 79, 80, 81, 82, 83, 84, 85,
       132, 133, 134, 135, 136, 137, 138, 139, 140,
       141, 142, 143, 144, 145, 146, 147, 148, 149, 150,
       151, 152, 153, 154, 155, 156, 157, 158, 159, 160,
@@ -106,26 +106,10 @@ include __DIR__ . "/../buttonTemplate.php";
       sel.innerHTML = "<option value=''>-- Select --</option>";
     }
 
-    // window.onRegionChange = function() {
-    //   const r = document.getElementById("region").value;
-    //   resetDropdown("province");
-    //   resetDropdown("city");
-    //   resetDropdown("barangay");
-    //   if (r === "130000000") {
-    //     const pSel = document.getElementById("province");
-    //     let opt = document.createElement("option");
-    //     opt.value = "137500000";
-    //     opt.text = "Metro Manila";
-    //     pSel.add(opt);
-    //   }
-    // }
-
     window.onRegionChange = function() {
       const regionSelect = document.getElementById("region");
       const regionCode = regionSelect.value;
       const regionName = regionSelect.options[regionSelect.selectedIndex]?.text || "";
-
-      // Set hidden field
       document.getElementById("region_name").value = regionName;
 
       resetDropdown("province");
@@ -141,26 +125,10 @@ include __DIR__ . "/../buttonTemplate.php";
       }
     };
 
-
-
-    // window.onProvinceChange = function() {
-    //   const p = document.getElementById("province").value;
-    //   resetDropdown("city");
-    //   resetDropdown("barangay");
-    //   if (p === "137500000") {
-    //     const cSel = document.getElementById("city");
-    //     let opt = document.createElement("option");
-    //     opt.value = "137501";
-    //     opt.text = "Caloocan City";
-    //     cSel.add(opt);
-    //   }
-    // }
-
     window.onProvinceChange = function() {
       const provinceSelect = document.getElementById("province");
       const provinceCode = provinceSelect.value;
       const provinceName = provinceSelect.options[provinceSelect.selectedIndex]?.text || "";
-
       document.getElementById("province_name").value = provinceName;
 
       resetDropdown("city");
@@ -175,26 +143,10 @@ include __DIR__ . "/../buttonTemplate.php";
       }
     };
 
-
-    // window.onCityChange = function() {
-    //   const c = document.getElementById("city").value;
-    //   resetDropdown("barangay");
-    //   if (c === "137501") {
-    //     const bSel = document.getElementById("barangay");
-    //     southBarangays.forEach(num => {
-    //       let opt = document.createElement("option");
-    //       opt.value = num; // you can change to 'Barangay X' if backend expects names
-    //       opt.text = "Barangay " + num;
-    //       bSel.add(opt);
-    //     });
-    //   }
-    // }
-
     window.onCityChange = function() {
       const citySelect = document.getElementById("city");
       const cityCode = citySelect.value;
       const cityName = citySelect.options[citySelect.selectedIndex]?.text || "";
-
       document.getElementById("city_name").value = cityName;
 
       resetDropdown("barangay");
@@ -212,126 +164,104 @@ include __DIR__ . "/../buttonTemplate.php";
 
     window.closeModal = function() {
       document.getElementById("modalOverlay").style.display = "none";
-    }
+    };
 
-    // --- Pin UI helpers ---
+    // --- Map + Pin setup ---
     const openMapBtn = document.getElementById("openMapModal");
     const pinStatus = document.getElementById("pinStatus");
     const latInput = document.getElementById("latitude");
     const lngInput = document.getElementById("longitude");
     const mapModal = document.getElementById("mapModal");
     const confirmBtn = document.getElementById("confirmPinBtn");
-
-    // ✅ Require pin location before form submit
     const addressForm = document.querySelector('#setAddressModal form');
 
     addressForm.addEventListener('submit', function(e) {
-      const lat = document.getElementById('latitude').value.trim();
-      const lng = document.getElementById('longitude').value.trim();
-
+      const lat = latInput.value.trim();
+      const lng = lngInput.value.trim();
       if (!lat || !lng) {
         e.preventDefault();
-        const pinStatus = document.getElementById('pinStatus');
         pinStatus.style.color = 'red';
         pinStatus.textContent = '❌ You must pin your location before saving.';
-        // openMapModal(); // automatically open the map
         return false;
       }
-
     });
 
-
-    // Remove any accidental reload listener on save button (you had this before)
-    const saveBtn = document.getElementById("saveAddressBtn");
-    if (saveBtn) {
-      // ensure no reload handler that conflicts:
-      // (if any leftover listener exists that does reload, remove? can't remove anonymous handlers,
-      //  but we ensured we won't add one here.)
-    }
-
-    // Map variables
-    let map, marker;
-    const DEFAULT_CENTER = [14.5995, 120.9842];
+    let map, markerEl, marker;
+    const DEFAULT_CENTER = [120.9842, 14.5995]; // [lng, lat]
     const DEFAULT_ZOOM = 12;
 
     function openMapModal() {
       mapModal.style.display = "block";
 
-      // initialize map first time
       if (!map) {
-        map = L.map('map', {
-          zoomControl: true
-        }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+        map = new maplibregl.Map({
+          container: 'map',
+          style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+          center: DEFAULT_CENTER,
+          zoom: DEFAULT_ZOOM,
+        });
 
-        // When user clicks map, set or move marker
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
         map.on('click', function(e) {
-          placeMarker(e.latlng.lat, e.latlng.lng);
+          placeMarker(e.lngLat.lat, e.lngLat.lng);
         });
       } else {
-        setTimeout(() => {
-          map.invalidateSize();
-        }, 200);
+        setTimeout(() => map.resize(), 200);
       }
 
-      // Check if inputs already have coords
       const existingLat = parseFloat(latInput.value) || null;
       const existingLng = parseFloat(lngInput.value) || null;
 
       if (existingLat && existingLng) {
-        // If already pinned before, restore that pin
         placeMarker(existingLat, existingLng, true);
-        map.setView([existingLat, existingLng], 16);
+        map.setCenter([existingLng, existingLat]);
+        map.setZoom(16);
+      } else if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            const { latitude, longitude } = pos.coords;
+            map.setCenter([longitude, latitude]);
+            map.setZoom(16);
+            placeMarker(latitude, longitude);
+          },
+          () => map.setCenter(DEFAULT_CENTER),
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
       } else {
-        // Try geolocation first
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            function(pos) {
-              const userLat = pos.coords.latitude;
-              const userLng = pos.coords.longitude;
-              map.setView([userLat, userLng], 16);
-              placeMarker(userLat, userLng); // auto-pin at user location
-            },
-            function(err) {
-              console.warn("Geolocation failed:", err.message);
-              map.setView(DEFAULT_CENTER, DEFAULT_ZOOM); // fallback
-            }, {
-              enableHighAccuracy: true,
-              timeout: 5000
-            }
-          );
-        } else {
-          // fallback if no geolocation support
-          map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
-        }
+        map.setCenter(DEFAULT_CENTER);
       }
     }
 
     function placeMarker(lat, lng, skipInputUpdate = false) {
-      const latlng = {
-        lat: parseFloat(lat),
-        lng: parseFloat(lng)
-      };
+      if (!markerEl) {
+        markerEl = document.createElement('div');
+        markerEl.className = 'map-marker';
+        markerEl.style.width = '24px';
+        markerEl.style.height = '24px';
+        markerEl.style.background = 'url(https://cdn-icons-png.flaticon.com/512/684/684908.png) no-repeat center';
+        markerEl.style.backgroundSize = 'contain';
+        markerEl.style.cursor = 'grab';
+      }
+
       if (marker) {
-        marker.setLatLng(latlng);
+        marker.setLngLat([lng, lat]);
       } else {
-        marker = L.marker(latlng, {
-          draggable: true
-        }).addTo(map);
-        // update coords when dragging finished
-        marker.on('dragend', function(evt) {
-          const pos = evt.target.getLatLng();
+        marker = new maplibregl.Marker({ element: markerEl, draggable: true })
+          .setLngLat([lng, lat])
+          .addTo(map);
+
+        marker.on('dragend', function() {
+          const pos = marker.getLngLat();
           latInput.value = pos.lat.toFixed(6);
           lngInput.value = pos.lng.toFixed(6);
-          updatePinStatus(); // update UI
+          updatePinStatus();
         });
       }
 
       if (!skipInputUpdate) {
-        latInput.value = latlng.lat.toFixed(6);
-        lngInput.value = latlng.lng.toFixed(6);
+        latInput.value = lat.toFixed(6);
+        lngInput.value = lng.toFixed(6);
         updatePinStatus();
       }
     }
@@ -341,7 +271,7 @@ include __DIR__ . "/../buttonTemplate.php";
       const lng = lngInput.value;
       if (lat && lng) {
         pinStatus.textContent = `Pinned: ${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
-        pinStatus.style.color = "#1e7e34"; // green
+        pinStatus.style.color = "#1e7e34";
       } else {
         pinStatus.textContent = "No location pinned";
         pinStatus.style.color = "#666";
@@ -352,7 +282,6 @@ include __DIR__ . "/../buttonTemplate.php";
       mapModal.style.display = "none";
     }
 
-    // confirm pin -> close modal and keep hidden inputs set and UI updated
     function confirmPin() {
       const lat = latInput.value;
       const lng = lngInput.value;
@@ -362,20 +291,13 @@ include __DIR__ . "/../buttonTemplate.php";
       }
       closeMapModal();
       updatePinStatus();
-      // small success toast instead of alert is better UX; keep alert for now
-      // alert("Location pinned successfully!");
     }
 
-    // wire DOM events
     openMapBtn && openMapBtn.addEventListener('click', openMapModal);
     confirmBtn && confirmBtn.addEventListener('click', confirmPin);
 
-    // expose closeMapModal & confirmPin to global if other code uses them
     window.closeMapModal = closeMapModal;
     window.confirmPin = confirmPin;
-
-    // initialize pin status on load if coordinates are already present in the hidden inputs
     updatePinStatus();
-
-  }); // DOMContentLoaded
+  });
 </script>

@@ -29,11 +29,11 @@
 
 /* Pull-to-refresh header */
 .menu-header{
+  display:none;
   position:fixed;
   top:-160px;
   left:0;right:0;
   height:300px;
-  background:linear-gradient(180deg,#ffd97a 0%,#ffb347 100%);
   border-radius:0 0 24px 24px;
   display:flex;
   align-items:center;
@@ -51,7 +51,6 @@
 .menu{
   position:relative;
   background:#fff;
-  border-radius:18px 18px 0 0;
   background: #ebe8e1;
   /* margin-top: calc(var(--header-height,56px) - 8px); */
   padding:8px;
@@ -172,7 +171,6 @@ background: none;  }
   .menu-card img{ height:140px; }
   .category-section{ max-width:960px; margin:0 auto; }
   .category-bar{ max-width:960px; margin:25px auto; padding:10px 0; }
-  
 }
 
 /* Card visuals */
@@ -273,6 +271,13 @@ button[role="tab"]{ -webkit-tap-highlight-color: transparent; }
   .category-buttons button:active {
     transform: scale(0.97);
   }
+  .menu {
+     border-radius:18px 18px 0 0;
+  }
+  .menu-header{
+    background:linear-gradient(180deg,#ffd97a 0%,#ffb347 100%);
+  }
+
 }
 
 .mobile-category-header {

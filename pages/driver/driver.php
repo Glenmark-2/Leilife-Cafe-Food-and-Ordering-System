@@ -21,22 +21,33 @@ $rider = ["name" => $_SESSION['driver_name'] ?? "Driver", "shift" => "9:00 AM - 
 
 <!-- Modal -->
 <div class="modal" id="orderModal" style="display:none;">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Order Details</h3>
-      <span class="close-btn">&times;</span>
+  <div id="mapContainer"></div>
+
+  <div class="order-sheet" id="orderSheet">
+    <div class="sheet-header" id="sheetHeader">
+      <div class="drag-handle"></div>
+      <div class="sheet-title">
+        <h3>Order Details</h3>
+        <span class="close-btn">&times;</span>
+      </div>
     </div>
-    <div id="modalBody"></div>
-    <div id="mapContainer"></div>
-    <div id="directionsPanel"></div>
+
+    <div class="sheet-body" id="modalBody"></div>
+    <div class="sheet-directions" id="directionsPanel"></div>
   </div>
 </div>
 
 
 
+
 <!-- Scripts -->
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script> -->
+
+<link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 <script src="/Leilife/Scripts/driver/driver.js"></script>
+
+
 <script>
   window.currentDriverPage = 'driver';
 </script>

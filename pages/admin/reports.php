@@ -9,7 +9,7 @@ if (!isset($_SESSION['admin_id'])) {
 ?>
 
 <style>
-:root{
+:root {
   --bg:#f4f6f8;
   --surface:#ffffff;
   --muted:#8a8f98;
@@ -31,42 +31,23 @@ body{
   background:
     linear-gradient(180deg, #f8fafb 0%, #f3f5f7 40%),
     url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="%23f7f7f8"/><stop offset="1" stop-color="%23f1f3f5"/></linearGradient></defs><rect width="100%" height="100%" fill="url(%23g)"/></svg>') no-repeat center/cover;
-
   color:var(--text-dark, #2f2b24);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
 }
 
-/* Page wrapper */
-.page {
-  max-width:1200px;
-  margin:0 auto;
-}
+.page { max-width:1200px; margin:0 auto; }
+.header { display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:22px; }
+.header-actions { display:flex; gap:12px; align-items:center; }
 
-/* Top header */
-.header {
-  display:flex;
-  gap:16px;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:22px;
-}
-
-.header-actions {
-  display:flex;
-  gap:12px;
-  align-items:center;
-}
-
-/* Page title */
 h2 {
   color:var(--primary);
-  margin: 0px 0 0;
+  margin:0;
   font-size:20px;
   font-weight:700;
 }
 
-/* Content surface */
+/* Content container */
 .surface {
   background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.95));
   border-radius:18px;
@@ -88,16 +69,8 @@ h2 {
   margin-bottom:20px;
   flex-wrap:wrap;
 }
-.report-filters > div {
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-.report-filters label {
-  font-weight:600;
-  color:var(--muted);
-  font-size:13px;
-}
+.report-filters > div { display:flex; gap:8px; align-items:center; }
+.report-filters label { font-weight:600; color:var(--muted); font-size:13px; }
 .report-filters select,
 .report-filters input[type="date"] {
   padding:9px 12px;
@@ -105,7 +78,7 @@ h2 {
   border:1px solid #e6e7ea;
   background:transparent;
   font-size:14px;
-  color: #222;
+  color:#222;
   min-width:150px;
   box-shadow:0 2px 6px rgba(16,24,32,0.03);
 }
@@ -117,146 +90,163 @@ h2 {
   color:white;
   font-weight:600;
   cursor:pointer;
-  box-shadow: 0 6px 18px rgba(139,111,71,0.12);
+  box-shadow:0 6px 18px rgba(139,111,71,0.12);
 }
-.report-filters .spacer {
-  flex:1;
-  min-width:0;
-}
+.report-filters .spacer { flex:1; min-width:0; }
 
-/* KPI cards grid */
+/* KPI Cards */
 .report-cards {
   display:grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns:repeat(3,1fr);
   gap:16px;
   margin-bottom:26px;
 }
 .report-card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(249,249,249,0.6));
+  background:linear-gradient(180deg,rgba(255,255,255,0.8),rgba(249,249,249,0.6));
   border-radius:12px;
   padding:16px;
-  box-shadow: var(--shadow-2);
+  box-shadow:var(--shadow-2);
   border:1px solid rgba(14,20,30,0.03);
   display:flex;
   flex-direction:column;
   gap:10px;
 }
-.report-card h4 {
-  color:var(--muted);
-  font-size:13px;
-  margin:0;
-  font-weight:600;
-}
-.report-card p {
-  font-size:18px;
-  color:var(--primary);
-  font-weight:700;
-  margin:0;
-  letter-spacing:0.2px;
-}
-.report-card small{color:#6b7280; font-size:12px}
+.report-card h4 { color:var(--muted); font-size:13px; margin:0; font-weight:600; }
+.report-card p { font-size:18px; color:var(--primary); font-weight:700; margin:0; letter-spacing:0.2px; }
 
-/* Charts grid */
-.analytics-charts {
+/* Charts unified layout */
+.analytics-wrapper {
   display:grid;
-  grid-template-columns: 1.2fr .8fr;
+  grid-template-columns: 2fr 1fr;
   gap:20px;
   margin-bottom:26px;
-}
-/* right column holds two stacked charts */
-.charts-right {
-  display:grid;
-  grid-template-rows: 1fr 1fr;
-  gap:20px;
+  align-items:start;
 }
 
-/* Chart box style */
-.chart-box {
+/* Chart "Table" Section */
+.chart-table {
+  background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(250,250,250,0.9));
+  border-radius:14px;
+  box-shadow:var(--shadow-2);
+  border:1px solid rgba(14,20,30,0.03);
+  padding:16px;
+}
+.chart-selector {
+  display:flex;
+  justify-content:flex-start;
+  gap:8px;
+  margin-bottom:14px;
+  flex-wrap:wrap;
+}
+.chart-selector button {
+  border:none;
+  background:linear-gradient(180deg,#8b6f47,#a0784f);
+  color:#fff;
+  font-weight:600;
+  padding:8px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+.chart-selector button:hover {
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(139,111,71,0.15);
+}
+.chart-selector button.active {
+  background: var(--secondary);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(139,111,71,0.2);
+  transform: translateY(-1px);
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: 340px !important;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 340px;
+  overflow: hidden;
+}
+
+.chart-container canvas.active {
+  opacity: 1;
+  visibility: visible;
+  position: relative;
+}
+/* Sentiment Section on the side */
+.sentiment-side {
   background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(250,250,250,0.88));
-  padding:14px;
+  padding:16px;
   border-radius:12px;
   box-shadow:var(--shadow-2);
   border:1px solid rgba(14,20,30,0.03);
 }
-.chart-box h4 {
+.sentiment-side h4 {
   color:var(--primary);
   margin:0 0 10px 0;
   font-size:15px;
   font-weight:600;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
 }
-.chart-box canvas{ width:100% !important; height:320px !important; }
+.sentiment-side canvas {
+  width:100% !important;
+  height:320px !important;
+}
 
-/* small helper styles */
-.no-data-note { font-size:13px; color:#6b7280; padding:12px; }
-.pending-badge { font-size:13px; color:#826000; }
-
-/* Export buttons */
+/* Export Buttons */
 .export-section {
   display:flex;
   gap:10px;
   justify-content:flex-end;
-  margin-top:6px;
+  margin-top:18px;
 }
 .export-section button {
   padding:9px 14px;
   border-radius:10px;
-  background-color: #826000;
+  background-color:#826000;
   min-width:120px;
   cursor:pointer;
   font-weight:300;
   color:white;
-  border: none;
- 
+  border:none;
 }
 .export-section button:hover { transform:translateY(-3px); transition:transform .18s ease; }
 
-/* Toggle small button */
-.btn-toggle {
-  background:transparent;
-  border:1px solid rgba(14,20,30,0.06);
-  color:var(--muted);
-  border-radius:8px;
-  padding:6px 10px;
-  cursor:pointer;
-  font-size:13px;
-}
-.btn-toggle:hover{background:rgba(0,0,0,0.02)}
-
 /* Responsive */
-@media (max-width: 1000px) {
-  .report-cards { grid-template-columns: repeat(2,1fr); }
-  .analytics-charts { grid-template-columns: 1fr; }
-  .charts-right { grid-template-rows: 1fr 1fr; }
-  .chart-box canvas { height:260px !important; }
+@media(max-width:1000px){
+  .report-cards{grid-template-columns:repeat(2,1fr);}
+  .analytics-wrapper{grid-template-columns:1fr;}
+  .chart-container canvas{height:280px !important;}
+  .sentiment-side{margin-top:14px;}
 }
-@media (max-width:640px) {
-  body{ padding:14px; }
-  .report-cards { grid-template-columns: 1fr; gap:12px; }
-  .report-filters { padding:12px; gap:8px; }
-  .header { flex-direction:column; align-items:flex-start; gap:8px; }
-  .brand h1 { font-size:16px; }
-  .chart-box canvas { height:220px !important; }
-  .export-section { justify-content:stretch; gap:8px; flex-wrap:wrap }
+@media(max-width:640px){
+  body{padding:14px;}
+  .report-cards{grid-template-columns:1fr;gap:12px;}
+  .report-filters{padding:12px;gap:8px;}
+  .header{flex-direction:column;align-items:flex-start;gap:8px;}
+  .chart-container canvas{height:220px !important;}
+  .chart-selector{justify-content:center;}
+  .export-section{justify-content:stretch;gap:8px;flex-wrap:wrap;}
 }
 </style>
-</head>
+
 <body>
   <div class="page">
     <div class="header">
-  
-
       <div class="header-actions">
-        <!-- preserve any existing control IDs/classes (none required) -->
         <div style="text-align:right;font-size:13px;color:#6b7280">Welcome, Admin</div>
       </div>
     </div>
 
     <div class="surface">
-
-      <!-- Filters (kept classes & ids intact) -->
       <div class="report-filters">
         <div>
           <label for="reportType">Report Type:</label>
@@ -276,12 +266,10 @@ h2 {
         <div class="spacer"></div>
 
         <div style="display:flex;gap:10px;align-items:center">
-          <button id="generateBtn" onclick="/* kept for semantics, JS uses querySelector anyway */">Generate</button>
-          
+          <button id="generateBtn">Generate</button>
         </div>
       </div>
 
-      <!-- KPI Summary (IDs preserved) -->
       <div class="report-cards">
         <div class="report-card">
           <h4>Total Sales</h4>
@@ -302,40 +290,33 @@ h2 {
         <div class="report-card">
           <h4>Top Product</h4>
           <p id="topProductName">Loading…</p>
-          <small id="topProductDetails" style="color:#666;font-size:13px;"></small>
+          <small id="topProductDetails"></small>
         </div>
         <div class="report-card">
           <h4>Top Customer</h4>
           <p id="topCustomerName">Loading…</p>
-          <small id="topCustomerDetails" style="color:#666;font-size:13px;"></small>
+          <small id="topCustomerDetails"></small>
         </div>
       </div>
 
-      <!-- Charts Section -->
-      <div class="analytics-charts">
-        <div class="chart-box">
-          <h4>Sales Trend (₱)</h4>
-          <canvas id="salesTrend"></canvas>
-        </div>
+      <!-- Unified Chart Section -->
+      <div class="analytics-wrapper">
+  <div class="chart-table">
+    <div class="chart-selector">
+      <button data-chart="salesTrend" class="active">Sales Trend</button>
+      <button data-chart="revenueBreakdown">Revenue by Category</button>
+      <button data-chart="userGrowth">Customer Growth</button>
+    </div>
 
-        <div class="charts-right">
-          <div class="chart-box">
-            <h4>Revenue by Category</h4>
-            <canvas id="revenueBreakdown"></canvas>
-          </div>
+    <div class="chart-container">
+      <canvas id="salesTrend"></canvas>
+      <canvas id="revenueBreakdown"></canvas>
+      <canvas id="userGrowth"></canvas>
+    </div>
+  </div>
 
-          <div class="chart-box" style="display:flex;flex-direction:column;gap:12px;">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <h4 style="margin:0">Customer Growth</h4>
-              <button id="toggleChartType" class="btn-toggle">Switch to Line View</button>
-            </div>
-            <canvas id="userGrowth"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <div class="analytics-charts" style="grid-template-columns:1fr;">
-        <div class="chart-box">
+        <!-- Sentiment Summary stays on the side -->
+        <div class="sentiment-side">
           <h4>Customer Sentiment Summary</h4>
           <canvas id="sentimentChart"></canvas>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
@@ -345,15 +326,113 @@ h2 {
         </div>
       </div>
 
-      <!-- Export Buttons -->
-      <div class="export-section" style="margin-top:18px;">
+      <div class="export-section">
         <button>Export PDF</button>
         <button>Export Excel</button>
         <button>Export CSV</button>
       </div>
-
     </div>
   </div>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const chartContainer = document.querySelector('.chart-container');
+  const chartButtons = document.querySelectorAll('.chart-selector button');
+
+  // Make sure a canvas with the given id exists inside .chart-container.
+  function ensureCanvasExists(id) {
+    let c = document.getElementById(id);
+    if (c) return c;
+    // Create and append a canvas with same id (preserves layout)
+    c = document.createElement('canvas');
+    c.id = id;
+    // match styling rules (display will be controlled by showChart)
+    c.style.width = '100%';
+    c.style.height = '340px';
+    chartContainer.appendChild(c);
+    return c;
+  }
+
+  async function showChart(target) {
+  const canvases = chartContainer.querySelectorAll('canvas');
+
+  // Find the currently visible chart
+  const currentCanvas = chartContainer.querySelector('canvas.active');
+  const newCanvas = document.getElementById(target) || ensureCanvasExists(target);
+
+  // If already showing the requested chart, skip
+  if (currentCanvas === newCanvas) return;
+
+  // Prepare transition
+  canvases.forEach(cv => cv.classList.remove('active'));
+
+  if (currentCanvas) {
+    // Fade out the current chart smoothly
+    currentCanvas.style.opacity = '0';
+    currentCanvas.style.visibility = 'hidden';
+  }
+
+  // Wait a short delay before switching
+  setTimeout(async () => {
+    // Fade in new chart
+    newCanvas.classList.add('active');
+    newCanvas.style.opacity = '1';
+    newCanvas.style.visibility = 'visible';
+
+    // Update active button styling
+    chartButtons.forEach(btn => btn.classList.remove('active'));
+    const activeBtn = document.querySelector(`.chart-selector button[data-chart="${target}"]`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    const fromDate = document.getElementById('fromDate')?.value || '';
+    const toDate   = document.getElementById('toDate')?.value || '';
+
+    try {
+      if (target === 'salesTrend') {
+        await fetchSalesTrend(fromDate, toDate);
+      } else if (target === 'revenueBreakdown') {
+        await fetchRevenueBreakdown(fromDate, toDate);
+      } else if (target === 'userGrowth') {
+        await fetchUserGrowth(fromDate, toDate);
+      }
+    } catch (e) {
+      console.error('Error while showing chart', target, e);
+    }
+  }, 200); // Small delay for smooth fade transition
+}
+
+  // Attach listeners to selector buttons
+  chartButtons.forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      const target = btn.getAttribute('data-chart');
+      if (!target) return;
+      showChart(target);
+    });
+  });
+
+  // Pick default to show:
+  // 1) If one of the buttons already has class "active", use it
+  // 2) Else use the first button
+  let defaultTarget = null;
+  const preActive = document.querySelector('.chart-selector button.active');
+  if (preActive) defaultTarget = preActive.dataset.chart;
+  if (!defaultTarget && chartButtons.length) defaultTarget = chartButtons[0].dataset.chart;
+
+  if (defaultTarget) {
+    // show default chart (no await needed)
+    showChart(defaultTarget);
+  }
+});
+</script>
+
+
+
+
+
+
+
+
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -599,30 +678,29 @@ async function fetchUserGrowth(fromDate, toDate) {
     const labels = sorted.map(r => String(r.label));
     const values = sorted.map(r => parseInt(r.count, 10) || 0);
 
-    // No data fallback
-    if (!labels.length) {
+  if (!labels.length) {
       if (userGrowthChart) {
         userGrowthChart.destroy();
         userGrowthChart = null;
       }
-      const parent = document.getElementById('userGrowth').parentElement;
-      let notice = parent.querySelector('.no-data-note');
-      if (!notice) {
+
+      let notice = canvas.nextElementSibling;
+      if (!notice || !notice.classList.contains('no-data-note')) {
         notice = document.createElement('div');
         notice.className = 'no-data-note';
         notice.style.color = '#666';
         notice.style.padding = '12px';
         notice.textContent = 'No user registrations found for the selected range.';
-        parent.appendChild(notice);
-      } else {
-        notice.style.display = '';
+        canvas.insertAdjacentElement('afterend', notice);
       }
+      notice.style.display = 'block';
       return;
     } else {
-      const parent = document.getElementById('userGrowth').parentElement;
-      const notice = parent.querySelector('.no-data-note');
-      if (notice) notice.style.display = 'none';
+      const notice = canvas.nextElementSibling;
+      if (notice && notice.classList.contains('no-data-note')) notice.style.display = 'none';
     }
+
+
 
     const ctx = document.getElementById('userGrowth').getContext('2d');
     const datasetLabel =

@@ -1,24 +1,102 @@
 // ===============================
-// Delivery / Pickup toggle + Cart logic (fixed)
+// Delivery / Pickup toggle
 // ===============================
 const changeBtn = document.getElementById("change");
-const mode = document.getElementById("mode");
-const motor = document.getElementById("motor");
+let mode = document.getElementById("mode");
+let motor = document.getElementById("motor");
 
-let currentMode = "delivery"; // fallback default
+if (changeBtn) {
+    changeBtn.addEventListener("click", () => {
+        if (mode.textContent === "Delivery") {
+            motor.src = "../public/assests/walk.png";
+            mode.textContent = "Pick up";
+        } else {
+            motor.src = "../public/assests/motorbike.png";
+            mode.textContent = "Delivery";
+        }
+    });
+}
+
+// ===============================
+// Modal notification (success, error, warning)
+// ===============================
+function showModal(message, type = "success", autoClose = true, duration = 2500) {
+    let modal = document.getElementById("notif-modal");
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "notif-modal";
+        modal.style.cssText = `
+            display:none; position:fixed; z-index:10000; left:0; top:0;
+            width:100%; height:100%; background:rgba(0,0,0,0.4);
+            justify-content:center; align-items:center;
+        `;
+        modal.innerHTML = `
+            <div class="notif-content" style="
+                background:white; padding:20px 30px; border-radius:10px;
+                text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3);
+                min-width:250px; animation:popin .3s ease;
+            ">
+                <p id="notif-message" style="margin-bottom:15px; font-size:16px;"></p>
+                <button id="notif-close" style="
+                    padding:6px 16px; border:none; border-radius:6px;
+                    cursor:pointer; font-size:14px; color:white;
+                ">OK</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const style = document.createElement("style");
+        style.innerHTML = `
+            @keyframes popin {
+                from { transform:scale(0.8); opacity:0; }
+                to { transform:scale(1); opacity:1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    document.getElementById("notif-message").textContent = message;
+    const closeBtn = document.getElementById("notif-close");
+
+    if (type === "success") closeBtn.style.background = "#4caf50";
+    else if (type === "error") closeBtn.style.background = "#f44336";
+    else if (type === "warning") closeBtn.style.background = "#ff9800";
+
+    modal.style.display = "flex";
+
+    const closeModal = () => modal.style.display = "none";
+    closeBtn.onclick = closeModal;
+    modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+    if (autoClose) setTimeout(closeModal, duration);
+}
+
+// ===============================
+// Cart state
+// ===============================
 let cart = [];
 
-// -------------------------------
-// Helper: Update mode UI (label + icon)
-function updateModeUI(modeType) {
-  const newLabel = modeType === "delivery" ? "Delivery" : "Pick up";
-  const newIcon =
-    modeType === "delivery"
-      ? "../public/assests/motorbike.png"
-      : "../public/assests/walk.png";
+// ===============================
+// Fetch cart from backend
+// ===============================
+async function fetchCart() {
+    try {
+        const res = await fetch("../backend/get_cart.php");
+        const data = await res.json();
+        if (data.success) {
+            cart = data.cart;
+            renderCart();
+            updateTotals(data.totals);
 
-  if (mode) mode.textContent = newLabel;
-  if (motor) motor.src = newIcon;
+            // 🔔 Notify other pages/components
+            document.dispatchEvent(new CustomEvent("cart:updated", {
+                detail: { cart: cart, totals: data.totals }
+            }));
+            toggleCheckoutButton();
+        }
+    } catch (err) {
+        console.error("Failed to fetch cart:", err);
+    }
 }
 
 // ===============================
@@ -82,308 +160,237 @@ function changeItemQty(index, change) {
     console.log("Changing quantity:", item, "New Qty:", newQty);
     if (newQty < 1) return;
 
-    cart = data.cart || [];
+    item.quantity = newQty;
     renderCart();
-    updateTotals(data.totals);
-    currentMode = data.option_type || "delivery";
-    updateModeUI(currentMode);
 
-    // Notify other components
+    updateSession({
+        action: "update",
+        cart_item_id: item.cart_item_id,
+        quantity: newQty
+    });
+
+    // 🔔 Notify locally right away
     document.dispatchEvent(new CustomEvent("cart:updated", {
-      detail: { cart: cart, totals: data.totals }
+        detail: { cart: cart }
+    }));
+    toggleCheckoutButton(); // ✅ check after rendering
+}
+
+// ===============================
+// Remove item
+// ===============================
+async function removeItem(index) {
+    const confirmed = await showConfirm("Are you sure you want to remove this item?");
+    if (!confirmed) return; // cancel if user pressed "No"
+
+    const removedItem = cart[index];
+    cart.splice(index, 1);
+    console.log("Removed item:", removedItem);
+    renderCart();
+
+    updateSession({
+        action: "remove",
+        cart_item_id: removedItem.cart_item_id
+    });
+
+    if (removedItem) {
+        showModal(`Item removed from the cart.`, "success");
+    }
+
+    // 🔔 Notify listeners
+    document.dispatchEvent(new CustomEvent("cart:updated", {
+        detail: { cart: cart }
     }));
     toggleCheckoutButton();
-  } catch (err) {
-    console.error("Failed to fetch cart:", err);
-  }
 }
-
-// -------------------------------
-// Render cart items (keeps your original markup)
-function renderCart() {
-  const midDiv = document.getElementById("mid-div");
-  if (!midDiv) return;
-
-  midDiv.innerHTML = "";
-
-  if (!cart || cart.length === 0) {
-    midDiv.innerHTML = `
-      <div style="display:flex; justify-content:center; align-items:center; height:80px; width:100%;">
-        <p style="color:gray; margin:0;">Your cart is empty</p>
-      </div>
-    `;
-    toggleCheckoutButton();
-    return;
-  }
-
-  cart.forEach((item, index) => {
-    const itemDiv = document.createElement("div");
-    itemDiv.classList.add("cart-item");
-
-    const price = item.final_price;
-
-    const minusOrTrash = item.quantity > 1
-      ? `<button class="qty-btn" onclick="changeItemQty(${index}, -1)">−</button>`
-      : `<button class="qty-btn" onclick="removeItem(${index})">
-          <img src="../public/assests/trash-bin.png" alt="trash" class="trash-icon">
-        </button>`;
-
-    itemDiv.innerHTML = `
-      <div class="qty-controls">
-        ${minusOrTrash}
-        <input type="number" value="${item.quantity}" readonly>
-        <button class="qty-btn" onclick="changeItemQty(${index}, 1)">+</button>
-      </div>
-      <p class="product-name">
-        ${item.product_name || "Unknown Product"}
-        ${item.size ? ' (' + item.size + ')' : ''}
-        ${item.flavor_names ? ' - ' + item.flavor_names : ''}
-      </p>
-      <p class="product-price">₱${(price * item.quantity).toFixed(2)}</p>
-    `;
-
-    midDiv.appendChild(itemDiv);
-  });
-  toggleCheckoutButton();
-}
-
-// -------------------------------
-// Update item quantity (local + server)
-function changeItemQty(index, change) {
-  const item = cart[index];
-  const currentQty = parseInt(item.quantity, 10);
-  const newQty = currentQty + change;
-  if (newQty < 1) return;
-
-  item.quantity = newQty;
-  renderCart();
-
-  updateSession({
-    action: "update",
-    cart_item_id: item.cart_item_id,
-    quantity: newQty
-  });
-
-  document.dispatchEvent(new CustomEvent("cart:updated", {
-    detail: { cart: cart }
-  }));
-  toggleCheckoutButton();
-}
-
-// -------------------------------
-// Remove item
-async function removeItem(index) {
-  const confirmed = await showConfirm("Are you sure you want to remove this item?");
-  if (!confirmed) return;
-
-  const removedItem = cart[index];
-  cart.splice(index, 1);
-  renderCart();
-
-  updateSession({
-    action: "remove",
-    cart_item_id: removedItem.cart_item_id
-  });
-
-  showModal(`Item removed from the cart.`, "success");
-  document.dispatchEvent(new CustomEvent("cart:updated", {
-    detail: { cart: cart }
-  }));
-  toggleCheckoutButton();
-}
-
-// -------------------------------
-// Toggle checkout button
-function toggleCheckoutButton() {
-  const checkoutBtn = document.getElementById("check-out");
-  if (!checkoutBtn) return;
-  if (!cart || cart.length === 0) {
-    checkoutBtn.disabled = true;
-    checkoutBtn.classList.add("disabled");
-  } else {
-    checkoutBtn.disabled = false;
-    checkoutBtn.classList.remove("disabled");
-  }
-}
-
-// -------------------------------
-// Sync session cart with backend
-// Accepts payload; backend returns totals in response
-function updateSession(payload) {
-  fetch("../backend/update_cart.php", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      // Backend should return totals; use them
-      if (data.totals) {
-        updateTotals(data.totals);
-        // keep local option state in sync if backend returned it
-        if (data.option_type) {
-          currentMode = data.option_type;
-          updateModeUI(currentMode);
-        }
-      } else {
-        // fallback: re-fetch full cart if totals not returned
-        fetchCart();
-      }
-
-      document.dispatchEvent(new CustomEvent("cart:updated", {
-        detail: { cart: cart, totals: data.totals || null }
-      }));
-    } else {
-      console.error("Failed to sync cart:", data.message);
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.currentPage === "checkout-page") {
+        const contents = document.getElementsByClassName("second-div-content");
+        Array.from(contents).forEach(el => (el.style.display = "none"));
+        const checkoutWrapper = document.querySelector(".checkout-wrapper");
+        if (checkoutWrapper) checkoutWrapper.style.display = "none";
     }
-  })
-  .catch(err => console.error("Error updating cart:", err));
+
+    const cartModal = document.getElementById('cartModal');
+    if (!cartModal) return;
+
+    let startY = 0, currentY = 0, dragging = false;
+    let isAnimating = false;
+    let hasClosed = false;
+
+    const resetPosition = () => {
+        cartModal.style.transition = 'none';
+        cartModal.style.transform = 'translateY(0)';
+    };
+
+    const onTouchStart = (e) => {
+        if (isAnimating) return;
+        startY = e.touches[0].clientY;
+        dragging = true;
+        hasClosed = false;
+        cartModal.style.transition = 'none';
+    };
+
+    const onTouchMove = (e) => {
+        if (!dragging) return;
+        currentY = e.touches[0].clientY;
+        const diff = currentY - startY;
+        if (diff > 0) {
+            cartModal.style.transform = `translateY(${diff}px)`;
+        }
+    };
+
+    const onTouchEnd = () => {
+        if (!dragging) return;
+        dragging = false;
+        isAnimating = true;
+        const diff = currentY - startY;
+
+        cartModal.style.transition = 'transform 0.25s ease-out';
+
+        if (diff > 120) {
+            hasClosed = true;
+            // Slide down
+            cartModal.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+                cartModal.classList.remove('show');
+                isAnimating = false;
+                // Delay reset until it's *hidden* fully
+                requestAnimationFrame(() => {
+                    setTimeout(resetPosition, 100);
+                });
+            }, 250);
+        } else {
+            // Snap back up
+            cartModal.style.transform = 'translateY(0)';
+            setTimeout(() => (isAnimating = false), 250);
+        }
+    };
+
+    // 🔄 Reset transform properly when the modal reopens
+    const observer = new MutationObserver(() => {
+        if (cartModal.classList.contains('show') && !hasClosed) {
+            // Wait a tick to ensure styles reapply correctly
+            requestAnimationFrame(() => resetPosition());
+        }
+    });
+    observer.observe(cartModal, { attributes: true, attributeFilter: ['class'] });
+
+    cartModal.addEventListener('touchstart', onTouchStart);
+    cartModal.addEventListener('touchmove', onTouchMove);
+    cartModal.addEventListener('touchend', onTouchEnd);
+});
+
+function openCart() {
+  document.getElementById('cartModal').classList.add('show');
+  document.body.classList.add('cart-open');
 }
 
-// -------------------------------
-// Toggle button click handler (uses update_cart.php and updates UI)
-if (changeBtn) {
-  changeBtn.addEventListener("click", async () => {
-    // Toggle locally and update UI immediately
-    currentMode = currentMode === "delivery" ? "pickup" : "delivery";
-    updateModeUI(currentMode);
+function closeCart() {
+  document.getElementById('cartModal').classList.remove('show');
+  document.body.classList.remove('cart-open');
+}
 
-    try {
-      const res = await fetch("../backend/update_cart.php", {
+
+function toggleCheckoutButton() {
+    const checkoutBtn = document.getElementById("check-out");
+    if (!checkoutBtn) return; // not on all pages
+
+    if (!cart || cart.length === 0) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.classList.add("disabled"); // optional for styling
+    } else {
+        checkoutBtn.disabled = false;
+        checkoutBtn.classList.remove("disabled");
+    }
+}
+
+// ===============================
+// Update totals (subtotal, fee, total)
+// ===============================
+function updateTotals(totals) {
+    if (!totals) return;
+    document.getElementById("subtotal").textContent = `₱${totals.subtotal.toFixed(2)}`;
+    document.getElementById("delivery-fee").textContent = `₱${totals.delivery_fee.toFixed(2)}`;
+    document.getElementById("total").textContent = `₱${totals.total.toFixed(2)}`;
+}
+
+// ===============================
+// Sync session cart with backend
+// ===============================
+function updateSession(payload) {
+    fetch("../backend/update_cart.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "update_option_type",
-          option_type: currentMode,
-        }),
-      });
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            updateTotals(data.totals);
 
-      const data = await res.json();
-
-      if (data.success) {
-        // Prefer totals returned by update_cart.php (fast)
-        if (data.totals) {
-          updateTotals(data.totals);
+            // 🔔 Notify with fresh totals
+            document.dispatchEvent(new CustomEvent("cart:updated", {
+                detail: { cart: cart, totals: data.totals }
+            }));
         } else {
-          // fallback: fetch cart again
-          await fetchCart();
+            console.error("Failed to sync cart:", data.message);
         }
-        // ensure UI reflects confirmed option_type
-        currentMode = data.option_type || currentMode;
-        updateModeUI(currentMode);
-      } else {
-        console.error("⚠️ Failed to update option type:", data.message);
-        // revert UI on failure: re-fetch authoritative cart state
-        await fetchCart();
-      }
-    } catch (err) {
-      console.error("❌ Network error updating option_type:", err);
-      // on network error, re-fetch cart to ensure UI accuracy
-      await fetchCart();
-    }
-  });
+    })
+    .catch(err => console.error("Error updating cart:", err));
 }
 
-// -------------------------------
-// Modal helpers (unchanged from your original script)
-function showModal(message, type = "success", autoClose = true, duration = 2500) {
-  let modal = document.getElementById("notif-modal");
-  if (!modal) {
-    modal = document.createElement("div");
-    modal.id = "notif-modal";
-    modal.style.cssText = `
-      display:none; position:fixed; z-index:10000; left:0; top:0;
-      width:100%; height:100%; background:rgba(0,0,0,0.4);
-      justify-content:center; align-items:center;
-    `;
-    modal.innerHTML = `
-      <div class="notif-content" style="
-        background:white; padding:20px 30px; border-radius:10px;
-        text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3);
-        min-width:250px; animation:popin .3s ease;
-      ">
-        <p id="notif-message" style="margin-bottom:15px; font-size:16px;"></p>
-        <button id="notif-close" style="
-          padding:6px 16px; border:none; border-radius:6px;
-          cursor:pointer; font-size:14px; color:white;
-        ">OK</button>
-      </div>
-    `;
-    document.body.appendChild(modal);
-
-    const style = document.createElement("style");
-    style.innerHTML = `
-      @keyframes popin {
-        from { transform:scale(0.8); opacity:0; }
-        to { transform:scale(1); opacity:1; }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  document.getElementById("notif-message").textContent = message;
-  const closeBtn = document.getElementById("notif-close");
-
-  if (type === "success") closeBtn.style.background = "#4caf50";
-  else if (type === "error") closeBtn.style.background = "#f44336";
-  else if (type === "warning") closeBtn.style.background = "#ff9800";
-
-  modal.style.display = "flex";
-
-  const closeModal = () => modal.style.display = "none";
-  closeBtn.onclick = closeModal;
-  modal.onclick = (e) => { if (e.target === modal) closeModal(); };
-
-  if (autoClose) setTimeout(closeModal, duration);
-}
-
+// ===============================
+// Confirmation modal (Yes/No)
+// ===============================
 function showConfirm(message) {
-  return new Promise((resolve) => {
-    let modal = document.getElementById("confirm-modal");
-    if (!modal) {
-      modal = document.createElement("div");
-      modal.id = "confirm-modal";
-      modal.style.cssText = `
-        display:none; position:fixed; z-index:10000; left:0; top:0;
-        width:100%; height:100%; background:rgba(0,0,0,0.4);
-        justify-content:center; align-items:center;
-      `;
-      modal.innerHTML = `
-        <div class="confirm-content" style="
-          background:white; padding:20px 30px; border-radius:10px;
-          text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3);
-          min-width:280px; animation:popin .3s ease;
-        ">
-          <p id="confirm-message" style="margin-bottom:20px; font-size:16px;"></p>
-          <div style="display:flex; gap:15px; justify-content:center;">
-            <button id="confirm-yes" style="
-              padding:6px 16px; border:none; border-radius:6px;
-              cursor:pointer; font-size:14px; color:white; background:#4caf50;
-            ">Yes</button>
-            <button id="confirm-no" style="
-              padding:6px 16px; border:none; border-radius:6px;
-              cursor:pointer; font-size:14px; color:white; background:#f44336;
-            ">No</button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-    }
+    return new Promise((resolve) => {
+        let modal = document.getElementById("confirm-modal");
+        if (!modal) {
+            modal = document.createElement("div");
+            modal.id = "confirm-modal";
+            modal.style.cssText = `
+                display:none; position:fixed; z-index:10000; left:0; top:0;
+                width:100%; height:100%; background:rgba(0,0,0,0.4);
+                justify-content:center; align-items:center;
+            `;
+            modal.innerHTML = `
+                <div class="confirm-content" style="
+                    background:white; padding:20px 30px; border-radius:10px;
+                    text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3);
+                    min-width:280px; animation:popin .3s ease;
+                ">
+                    <p id="confirm-message" style="margin-bottom:20px; font-size:16px;"></p>
+                    <div style="display:flex; gap:15px; justify-content:center;">
+                        <button id="confirm-yes" style="
+                            padding:6px 16px; border:none; border-radius:6px;
+                            cursor:pointer; font-size:14px; color:white; background:#4caf50;
+                        ">Yes</button>
+                        <button id="confirm-no" style="
+                            padding:6px 16px; border:none; border-radius:6px;
+                            cursor:pointer; font-size:14px; color:white; background:#f44336;
+                        ">No</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
 
-    document.getElementById("confirm-message").textContent = message;
-    const yesBtn = document.getElementById("confirm-yes");
-    const noBtn = document.getElementById("confirm-no");
+        document.getElementById("confirm-message").textContent = message;
+        const yesBtn = document.getElementById("confirm-yes");
+        const noBtn = document.getElementById("confirm-no");
 
-    modal.style.display = "flex";
+        modal.style.display = "flex";
 
-    const closeModal = () => { modal.style.display = "none"; };
+        const closeModal = () => { modal.style.display = "none"; };
 
-    yesBtn.onclick = () => { closeModal(); resolve(true); };
-    noBtn.onclick = () => { closeModal(); resolve(false); };
-    modal.onclick = (e) => { if (e.target === modal) { closeModal(); resolve(false); } };
-  });
+        yesBtn.onclick = () => { closeModal(); resolve(true); };
+        noBtn.onclick = () => { closeModal(); resolve(false); };
+        modal.onclick = (e) => { if (e.target === modal) { closeModal(); resolve(false); } };
+    });
 }
+
+
 
 // -------------------------------
 // Misc UI modal / drag logic (keep existing DOMContentLoaded handler from your file)

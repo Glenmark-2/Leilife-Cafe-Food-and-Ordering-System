@@ -6,7 +6,8 @@
     :root { --nav-h: 64px; }
     body {
       margin: 0;
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Noto Sans', sans-serif;
+      font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
       background-color: #ebe8e2;
       
     }

@@ -40,48 +40,57 @@ header('Content-Disposition: attachment; filename="sales_report_' . date('Y-m-d_
 
 $output = fopen('php://output', 'w');
 
+// --- HEADER ---
 fputcsv($output, ['Leilife Café & Resto - Sales Report']);
 fputcsv($output, ['Generated on:', date('Y-m-d H:i:s')]);
 fputcsv($output, ($fromDate && $toDate) ? ["Period: $fromDate to $toDate"] : ["All Time Summary"]);
 fputcsv($output, ['Status: ' . ucfirst($status) . ' | Payment: ' . ucfirst($payment)]);
-fputcsv($output, []); 
+fputcsv($output, []);
 
+// --- SALES SUMMARY ---
 fputcsv($output, ['Sales Summary']);
 $summary = $salesData['summary'] ?? [];
 fputcsv($output, ['Metric', 'Value']);
+
 $metrics = [
-    ['Total Orders', $summary['total_orders'] ?? 0],
-    ['Total Revenue (with charges)', $summary['total_revenue'] ?? 0],
-    ['Total Revenue (products only)', $summary['total_product_revenue'] ?? 0],
+    ['Total Orders', number_format($summary['total_orders'] ?? 0, 0)],
+    ['Total Revenue (with charges)', '₱' . number_format($summary['total_revenue'] ?? 0, 2)],
+    ['Total Revenue (products only)', '₱' . number_format($summary['total_product_revenue'] ?? 0, 2)],
 ];
+
 foreach ($metrics as $row) {
     fputcsv($output, $row);
 }
 
 fputcsv($output, []);
+
+// --- TOP SELLING PRODUCTS ---
 fputcsv($output, ['Top Selling Products']);
 fputcsv($output, ['Product', 'Orders', 'Revenue']);
 $top = $salesData['top_products'] ?? [];
 foreach ($top as $row) {
     fputcsv($output, [
         $row['product_name'] ?? '—',
-        $row['orders'] ?? 0,
-        $row['revenue'] ?? 0
+        number_format($row['orders'] ?? 0, 0),
+        '₱' . number_format($row['revenue'] ?? 0, 2)
     ]);
 }
 
 fputcsv($output, []);
+
+// --- MAIN CATEGORIES ---
 fputcsv($output, ['Main Categories Summary']);
 fputcsv($output, ['Category', 'Orders', 'Revenue']);
 $main = $salesData['main_categories'] ?? [];
 foreach ($main as $row) {
     fputcsv($output, [
         $row['category'] ?? '—',
-        $row['total_orders'] ?? 0,
-        $row['total_revenue'] ?? 0
+        number_format($row['total_orders'] ?? 0, 0),
+        '₱' . number_format($row['total_revenue'] ?? 0, 2)
     ]);
 }
 
+// --- SUBCATEGORIES ---
 $subs = $salesData['sub_categories'] ?? [];
 foreach ($subs as $categoryName => $products) {
     fputcsv($output, []);
@@ -90,10 +99,10 @@ foreach ($subs as $categoryName => $products) {
     foreach ($products as $p) {
         fputcsv($output, [
             $p['product_name'] ?? '—',
-            $p['sold_price'] ?? 0,
-            $p['total_quantity'] ?? 0,
-            $p['total_orders'] ?? 0,
-            $p['total_revenue'] ?? 0
+            '₱' . number_format($p['sold_price'] ?? 0, 2),
+            number_format($p['total_quantity'] ?? 0, 0),
+            number_format($p['total_orders'] ?? 0, 0),
+            '₱' . number_format($p['total_revenue'] ?? 0, 2)
         ]);
     }
 }

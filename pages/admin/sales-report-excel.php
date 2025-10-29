@@ -3,7 +3,6 @@ require __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
-
 if (session_status() === PHP_SESSION_NONE) {
   session_start();
 }
@@ -27,11 +26,7 @@ $toDate = $_GET['toDate'] ?? null;
 $status = $_GET['status'] ?? 'all';
 $payment = $_GET['payment'] ?? 'all';
 
-// If no date, fetch all data
-$fromDateParam = $fromDate ?: null;
-$toDateParam = $toDate ?: null;
-
-$salesData = $appData->getSalesSummary($fromDateParam, $toDateParam, $status, $payment);
+$salesData = $appData->getSalesSummary($fromDate ?: null, $toDate ?: null, $status, $payment);
 
 // === CREATE SHEET ===
 $spreadsheet = new Spreadsheet();
@@ -49,15 +44,15 @@ $sheet->getStyle('B2:U3')->applyFromArray([
 
 $sheet->mergeCells('B4:U4');
 $sheet->setCellValue('B4', 'Generated on: ' . date('Y-m-d H:i:s'));
-$sheet->getStyle('B4:U4')->getAlignment()->setHorizontal('center');
+$sheet->getStyle('B4:U4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
 $sheet->mergeCells('B5:U5');
 $sheet->setCellValue('B5', ($fromDate && $toDate) ? "Period: $fromDate to $toDate" : "All Time Summary");
-$sheet->getStyle('B5:U5')->getAlignment()->setHorizontal('center');
+$sheet->getStyle('B5:U5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
 $sheet->mergeCells('B6:U6');
 $sheet->setCellValue('B6', 'Status: ' . ucfirst($status) . ' | Payment: ' . ucfirst($payment));
-$sheet->getStyle('B6:U6')->getAlignment()->setHorizontal('center');
+$sheet->getStyle('B6:U6')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
 $currentRow = 7;
 
@@ -69,41 +64,40 @@ $currentRow++;
 
 $sheet->mergeCells("B{$currentRow}:E{$currentRow}");
 $sheet->setCellValue("B{$currentRow}", "Metric");
-$sheet->getStyle("B{$currentRow}:I{$currentRow}")->applyFromArray([
+$sheet->getStyle("B{$currentRow}:E{$currentRow}")->applyFromArray([
     'font' => ['bold' => true],
     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'e0b37d']],
 ]);
 
 $sheet->mergeCells("F{$currentRow}:I{$currentRow}");
 $sheet->setCellValue("F{$currentRow}", "Value");
-$sheet->getStyle("F{$currentRow}:I{$currentRow}")->getFont()->setBold(true);
+$sheet->getStyle("F{$currentRow}:I{$currentRow}")->applyFromArray([
+    'font' => ['bold' => true],
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'e0b37d']],
+]);
 $currentRow++;
 
 $summary = $salesData['summary'] ?? [];
 $metrics = [
-    ['Total Orders', ($summary['total_orders'] ?? 0)],
-    ['Total Revenue (with charges)', '₱' . number_format($summary['total_revenue'] ?? 0, 2)],
-    ['Total Revenue (products only)', '₱' . number_format($summary['total_product_revenue'] ?? 0, 2)]
+    ['Total Orders', $summary['total_orders'] ?? 0, '0'],
+    ['Total Revenue (with charges)', $summary['total_revenue'] ?? 0, '"₱"#,##0.00'],
+    ['Total Revenue (products only)', $summary['total_product_revenue'] ?? 0, '"₱"#,##0.00']
 ];
 
 foreach ($metrics as $row) {
     $sheet->mergeCells("B{$currentRow}:E{$currentRow}");
-    $sheet->setCellValue("B{$currentRow}", $row[0]);
+    $sheet->setCellValue("B{$currentRow}", ucwords($row[0]));
     $sheet->getStyle("B{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
     $sheet->mergeCells("F{$currentRow}:I{$currentRow}");
     $sheet->setCellValue("F{$currentRow}", $row[1]);
     $sheet->getStyle("F{$currentRow}:I{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-    if (strpos($row[0], 'Revenue') !== false) {
-        $sheet->getStyle("F{$currentRow}:I{$currentRow}")
-              ->getNumberFormat()
-              ->setFormatCode('#,##0.00'); 
-    }
+    $sheet->getStyle("F{$currentRow}:I{$currentRow}")
+          ->getNumberFormat()
+          ->setFormatCode($row[2]);
 
     $currentRow++;
 }
-
 
 // === TOP SELLING PRODUCTS ===
 $currentRow++;
@@ -127,15 +121,18 @@ $currentRow++;
 $top = $salesData['top_products'] ?? [];
 foreach ($top as $row) {
     $sheet->mergeCells("B{$currentRow}:E{$currentRow}");
-    $sheet->setCellValue("B{$currentRow}", $row['product_name'] ?? '—');
+    $sheet->setCellValue("B{$currentRow}", ucwords($row['product_name'] ?? '—'));
     $sheet->getStyle("B{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
     $sheet->mergeCells("F{$currentRow}:I{$currentRow}");
-    $sheet->setCellValue("F{$currentRow}", number_format($row['orders'] ?? 0));
+    $sheet->setCellValue("F{$currentRow}", $row['orders'] ?? 0);
     $sheet->getStyle("F{$currentRow}:I{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle("F{$currentRow}:I{$currentRow}")
+          ->getNumberFormat()
+          ->setFormatCode('0');
 
     $sheet->mergeCells("J{$currentRow}:M{$currentRow}");
-    $sheet->setCellValue("J{$currentRow}", number_format($row['revenue'] ?? 0, 2));
+    $sheet->setCellValue("J{$currentRow}", $row['revenue'] ?? 0);
     $sheet->getStyle("J{$currentRow}:M{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     $sheet->getStyle("J{$currentRow}:M{$currentRow}")
           ->getNumberFormat()
@@ -165,15 +162,18 @@ $currentRow++;
 $main = $salesData['main_categories'] ?? [];
 foreach ($main as $row) {
     $sheet->mergeCells("B{$currentRow}:E{$currentRow}");
-    $sheet->setCellValue("B{$currentRow}", $row['category'] ?? '—');
+    $sheet->setCellValue("B{$currentRow}", ucwords($row['category'] ?? '—'));
     $sheet->getStyle("B{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
     $sheet->mergeCells("F{$currentRow}:I{$currentRow}");
-    $sheet->setCellValue("F{$currentRow}", number_format($row['total_orders'] ?? 0));
+    $sheet->setCellValue("F{$currentRow}", $row['total_orders'] ?? 0);
     $sheet->getStyle("F{$currentRow}:I{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle("F{$currentRow}:I{$currentRow}")
+          ->getNumberFormat()
+          ->setFormatCode('0');
 
     $sheet->mergeCells("J{$currentRow}:M{$currentRow}");
-    $sheet->setCellValue("J{$currentRow}", number_format($row['total_revenue'] ?? 0, 2));
+    $sheet->setCellValue("J{$currentRow}", $row['total_revenue'] ?? 0);
     $sheet->getStyle("J{$currentRow}:M{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     $sheet->getStyle("J{$currentRow}:M{$currentRow}")
           ->getNumberFormat()
@@ -187,7 +187,7 @@ if(!empty($subs)){
     foreach ($subs as $categoryName => $products) {
         $currentRow++;
         $sheet->mergeCells("B{$currentRow}:U{$currentRow}");
-        $sheet->setCellValue("B{$currentRow}", "Category: $categoryName");
+        $sheet->setCellValue("B{$currentRow}", "Category: " . ucwords(str_replace('_',' ',$categoryName)));
         $sheet->getStyle("B{$currentRow}:U{$currentRow}")->getFont()->setBold(true);
         $currentRow++;
 
@@ -195,12 +195,9 @@ if(!empty($subs)){
         $cols = ['B','F','J','N','R'];
         foreach ($headers as $i => $h) {
             $sheet->mergeCells("{$cols[$i]}{$currentRow}:" . chr(ord($cols[$i])+3) . "{$currentRow}");
-            $sheet->setCellValue("{$cols[$i]}{$currentRow}", $h);
-            if($i === 0){
-                $sheet->getStyle("{$cols[$i]}{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-            } else {
-                $sheet->getStyle("{$cols[$i]}{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            }
+            $sheet->setCellValue("{$cols[$i]}{$currentRow}", ucwords($h));
+            $sheet->getStyle("{$cols[$i]}{$currentRow}")->getAlignment()
+                  ->setHorizontal($i === 0 ? Alignment::HORIZONTAL_LEFT : Alignment::HORIZONTAL_CENTER);
         }
         $sheet->getStyle("B{$currentRow}:U{$currentRow}")->applyFromArray([
             'font' => ['bold' => true],
@@ -210,30 +207,37 @@ if(!empty($subs)){
 
         foreach ($products as $p) {
             $sheet->mergeCells("B{$currentRow}:E{$currentRow}");
-            $sheet->setCellValue("B{$currentRow}", $p['product_name'] ?? '—');
+            $sheet->setCellValue("B{$currentRow}", ucwords($p['product_name'] ?? '—'));
             $sheet->getStyle("B{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
             $sheet->mergeCells("F{$currentRow}:I{$currentRow}");
-            $sheet->setCellValue("F{$currentRow}", number_format($p['sold_price'] ?? 0, 2));
-            $sheet->getStyle("F{$currentRow}:I{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("F{$currentRow}:I{$currentRow}")
-                  ->getNumberFormat()
+            $sheet->setCellValue("F{$currentRow}", $p['sold_price'] ?? 0);
+            $sheet->getStyle("F{$currentRow}:I{$currentRow}")->getNumberFormat()
                   ->setFormatCode('"₱"#,##0.00');
+            $sheet->getStyle("F{$currentRow}:I{$currentRow}")->getAlignment()
+                  ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
             $sheet->mergeCells("J{$currentRow}:M{$currentRow}");
-            $sheet->setCellValue("J{$currentRow}", number_format($p['total_quantity'] ?? 0));
-            $sheet->getStyle("J{$currentRow}:M{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->setCellValue("J{$currentRow}", $p['total_quantity'] ?? 0);
+            $sheet->getStyle("J{$currentRow}:M{$currentRow}")->getNumberFormat()
+                  ->setFormatCode('0');
+            $sheet->getStyle("J{$currentRow}:M{$currentRow}")->getAlignment()
+                  ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
             $sheet->mergeCells("N{$currentRow}:Q{$currentRow}");
-            $sheet->setCellValue("N{$currentRow}", number_format($p['total_orders'] ?? 0));
-            $sheet->getStyle("N{$currentRow}:Q{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->setCellValue("N{$currentRow}", $p['total_orders'] ?? 0);
+            $sheet->getStyle("N{$currentRow}:Q{$currentRow}")->getNumberFormat()
+                  ->setFormatCode('0');
+            $sheet->getStyle("N{$currentRow}:Q{$currentRow}")->getAlignment()
+                  ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
             $sheet->mergeCells("R{$currentRow}:U{$currentRow}");
-            $sheet->setCellValue("R{$currentRow}", number_format($p['total_revenue'] ?? 0, 2));
-            $sheet->getStyle("R{$currentRow}:U{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("R{$currentRow}:U{$currentRow}")
-                  ->getNumberFormat()
+            $sheet->setCellValue("R{$currentRow}", $p['total_revenue'] ?? 0);
+            $sheet->getStyle("R{$currentRow}:U{$currentRow}")->getNumberFormat()
                   ->setFormatCode('"₱"#,##0.00');
+            $sheet->getStyle("R{$currentRow}:U{$currentRow}")->getAlignment()
+                  ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
             $currentRow++;
         }
     }

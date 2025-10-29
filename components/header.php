@@ -8,6 +8,8 @@
   
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="public/assests/global.css">
 
   <!-- always needed -->
@@ -79,16 +81,16 @@ if (isset($page_styles[$page])) {
   <a href="index.php?page=menu">Menu</a>
   <a href="index.php?page=home#about-us">About</a>
   <a href="index.php?page=home#contact-section">Contact</a>
-  <a href="index.php?page=cart" id="cartBtnMobile">Cart</a>
+  
 
   <!-- Dynamic auth links (mobile) -->
   <div class="auth-links">
     <?php if (isset($_SESSION['user_id'])): ?>
         <a href="index.php?page=user-profile">Profile</a>
-        <a href="index.php?page=cart" id="cartBtnMobile">Cart</a>
+        <a href="../backend/logout.php">Sign out</a>
         
     <?php else: ?>
-        <a id="loginBtn" href="index.php?page=login">Login</a>
+        <a href="#"  id="loginBtnMbl" >Login</a>
         <a href="index.php?page=signUp">Sign Up</a>
     <?php endif; ?>
   </div>

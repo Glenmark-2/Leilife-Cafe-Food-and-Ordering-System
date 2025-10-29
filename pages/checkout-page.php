@@ -22,12 +22,19 @@ createModal();
         </div>
 
         <!-- Phone Number -->
-        <div class="contact-field">
+        <div class="contact-field ">
           <label for="phone">Phone Number</label>
           <div class="phone-wrapper">
             <input type="tel" id="phone" readonly>
             <!-- <button type="button" id="phone-edit-btn" class="edit-btn">Edit</button> -->
-            <?php
+            
+          </div>
+          
+        </div>
+        
+      </div>
+      <div id="edit-div">
+        <?php
             echo createButton(
               30,
               70,
@@ -38,8 +45,6 @@ createModal();
               ['data-state' => 'edit']
             );
             ?>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -50,19 +55,19 @@ createModal();
 
       <label class="options">
         <input type="radio" name="delivery" value="pickup" onchange="toggleDelivery()">
-        <span>Pick-Up</span>
+        <span class="label">Pick-Up</span>
       </label>
 
       <div id="pickup-options" style="display: none; margin-left: 20px; margin-top: 10px;">
         <label class="options sub-option">
           <input type="radio" name="pickup_location" value="store1">
-          <span>Lunduyan Langaray Village, Barangay 14 Caloocan City</span>
+          <span class="label">Lunduyan Langaray Village, Barangay 14 Caloocan City</span>
         </label>
       </div>
 
       <label class="options">
         <input type="radio" name="delivery" value="home" onchange="toggleDelivery()">
-        <span>Home Delivery</span>
+        <span class="label">Home Delivery</span>
       </label>
 
       <div id="home-options" style="display: none; margin-left: 20px; margin-top: 10px;">
@@ -99,22 +104,22 @@ createModal();
 
 
     <!-- Payment Method -->
-    <div class="card">
+    <div class="card" style="margin-bottom: 0;">
       <h3>Payment Method</h3>
       <label class="options">
         <input type="radio" name="payment_method" id="pm-cash" value="cash" checked>
-        <span>Cash</span>
+        <span class="label">Cash</span>
       </label>
       <label class="options">
         <input type="radio" name="payment_method" id="pm-gcash" value="gcash">
-        <span>GCash</span>
+        <span class="label">GCash</span>
       </label>
     </div>
   </div>
 
 
   <!-- RIGHT COLUMN -->
-  <div class="card order-summary">
+  <div class="card order-summary" style="margin: 0;">
     <h3>Order Summary</h3>
 
     <!-- Scrollable product list -->
@@ -138,7 +143,8 @@ createModal();
           <td id="total" style="text-align:right;">₱0.00</td>
         </tr>
       </table>
-      <?php 
+      <div style="display: flex; justify-content:center">
+        <?php 
        echo createButton(
               40,
               300,
@@ -149,6 +155,7 @@ createModal();
               ['data-state' => 'edit']
             );
       ?>
+      </div>
     </div>
   </div>
 
@@ -157,81 +164,3 @@ createModal();
 <?php include "../components/admin/set-address-modal.php"; ?>
 <script src="../Scripts/pages/cart.js"></script>
 <script src="../Scripts/pages/checkout-page.js"></script>
-
-
-<!-- <script>
-  // -------------------------
-  // Address Edit (Open Modal)
-  // -------------------------
-  const addressBtn = document.getElementById("edit-address");
-  const modalOverlay = document.getElementById("modalOverlay");
-  const addressModalForm = modalOverlay?.querySelector("form");
-
-  if (addressBtn && modalOverlay) {
-    addressBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      modalOverlay.style.display = "flex";
-    });
-  }
-
-  // -------------------------
-  // Address Modal Submit via AJAX
-  // -------------------------
-  if (addressModalForm) {
-    addressModalForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const fd = new FormData(addressModalForm);
-
-      try {
-        const resp = await fetch(addressModalForm.action, {
-          method: "POST",
-          body: fd
-        });
-        const result = await resp.json();
-
-        if (result.success) {
-          alert(result.message || "Address updated!");
-          modalOverlay.style.display = "none";
-          console.log("Opening modal...");
-          window.location.href = "index.php?page=checkout-page";
-        } else {
-          alert(result.error || "Save failed");
-        }
-      } catch (err) {
-        // alert("Request error: " + err.message);
-      }
-    });
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-  const placeOrderBtn = document.getElementById("place-order-btn");
-
-  placeOrderBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-
-    const delivery = document.querySelector('input[name="delivery"]:checked');
-    if (!delivery) {
-      showModal("Please select a delivery option before placing your order.", "warning");
-      return;
-    }
-
-    if (delivery.value === "home") {
-      const address = document.getElementById("full-address").value.trim();
-      if (address === "") {
-        showModal("Please provide your full delivery address.", "warning");
-        return;
-      }
-    }
-
-    const payment = document.querySelector('input[name="payment_method"]:checked');
-    if (!payment) {
-      showModal("Please select a payment method before placing your order.", "warning");
-      return;
-    }
-
-    showModal("Order placed successfully!", "success");
-  });
-});
-</script> -->
-
-

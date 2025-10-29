@@ -1,127 +1,270 @@
-/* Base desktop layout */
+/* ==============================
+   ✅ PAGE LAYOUT FIX
+============================== */
+#pageContent {
+  flex: 1;
+  padding-bottom: 100px; /* space before footer */
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh; /* ensures footer never overlaps */
+}
+
+/* ==============================
+   ✅ PRODUCT CONTAINER (DESKTOP)
+============================== */
+.product-section {
+  padding: 60px 0;
+}
+
 .product-container {
-    margin: 50px 200px;
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-    align-items: flex-start; /* 🔑 prevent image from stretching */
+  margin: 0 auto;
+  width: 60%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 30px;
+}
+
+.product-image-wrapper {
+  flex: 1;
+  width: 100%;
 }
 
 .product-image {
-    width: 30%;
-    height: auto;      /* make sure it scales naturally */
-    object-fit: cover; /* if you later give it fixed height */
-    border-radius: 15px;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  margin: 0;
 }
-
 
 .product-details {
-    background-color: aliceblue;
-    width: 70%;
-    padding: 30px;
-    border-radius: 20px;
+  flex: 1.2;
+  background-color: aliceblue;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-/* Mobile view */
-@media (max-width: 768px) {
-    .product-container {
-        flex-direction: column; /* stack vertically */
-        margin: 20px; /* reduce side margin */
-        gap: 15px;
-    }
-
-    .product-image {
-        width: 60%; /* full width */
-        margin: 0 auto;
-    }
-
-    .product-details {
-        width: 80%;
-        padding: 20px;
-        border-radius: 15px;
-        margin: auto;
-    }
-
-    /* Optional: adjust spacing inside details */
-    .product-details > div {
-        margin-bottom: 20px;
-    }
-
-    .product-details h2{
-        font-size: medium;
-    }
+/* ==============================
+   ✅ HEADER (TITLE + HEART)
+============================== */
+.product-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
 }
 
-/* ✅ Flavor section */
-.flavor-section {
-    margin-bottom: 25px;
+#heartBtn {
+  border: 2px solid black;
+  background: transparent;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
+#heartBtn.active {
+  background-color: #08284f;
+  color: white;
+  border-color: #08284f;
+}
+
+/* ==============================
+   ✅ FLAVOR SECTION
+============================== */
 .flavor-section h3 {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 15px;
-    color: #333;
-    text-align: left; /* keep title left aligned */
+  text-align: left;
+  margin-bottom: 10px;
 }
 
-/* ✅ 2-column grid for flavors */
 .flavor-options {
-    display: grid;
-    grid-template-columns: repeat(2, auto); /* shrink columns to content */
-    gap: 8px 20px; /* space between rows/columns */
-    justify-content: flex-start; /* align left by default */
-    margin-left: 100px; /* add left spacing on desktop */
-    
-    width: auto; /* let content define width */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 20px;
 }
 
-/* 📱 Mobile: center when screen is small */
-@media (max-width: 768px) {
-    .flavor-options {
-        justify-content: center; /* center options */
-        margin-left: 0; /* remove desktop margin */
-    }
-}
-
-
-
-/* ✅ individual option */
 .flavor-option {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start; /* keep radio/checkbox left of text */
-    font-size: 14px;
-    font-weight: 500;
-    color: #222;
-    cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 14px;
+  font-weight: 500;
+  color: #222;
+  line-height: 1.2;
 }
-
 
 .flavor-option input[type="radio"],
 .flavor-option input[type="checkbox"] {
-    margin-right: 8px;
-    accent-color: #0077cc; /* modern browsers */
-    transform: scale(1.1);
-    cursor: pointer;
-    width: fit-content;
-    height: fit-content;
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  accent-color: #0077cc;
+  transform: scale(0.85);
+  vertical-align: middle;
 }
 
-#heartBtn{
-    border:2px solid black; 
-    background:transparent; 
-    border-radius:50%; 
-    width:35px;
-    height:35px; 
-    font-size:16px;
-    display:flex; 
-    align-items:center; 
-    justify-content:center;
-    cursor:pointer;
+/* Extra tweak for smaller screens */
+@media (max-width: 480px) {
+  .flavor-option input[type="radio"],
+  .flavor-option input[type="checkbox"] {
+    width: 12px;
+    height: 12px;
+    transform: scale(0.8);
+    margin-right: 6px;
+  }
 }
-#heartBtn.active {
-    background-color: #08284f; /* filled color when clicked */
-    color: white;          /* change heart color if you want */
-    border-color: #08284f;     /* optional: match border */
+
+/* ==============================
+   ✅ PRICE & QUANTITY
+============================== */
+#price-display {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.quantity-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.quantity-container button {
+  width: 35px;
+  height: 35px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quantity-container button:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.05);
+}
+
+#quantity {
+  width: 50px;
+  height: 35px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* ==============================
+   ✅ RESPONSIVE DESIGN
+============================== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .product-container {
+    width: 90%;
+    gap: 20px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .product-container {
+    flex-direction: row;
+    width: 90%;
+    gap: 25px;
+  }
+
+  .product-image-wrapper {
+    width: 100%;
+  }
+
+  .product-details {
+    width: 50%;
+    padding: 20px;
+  }
+
+  .flavor-options {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .product-header h2 {
+    font-size: 18px;
+  }
+
+  #heartBtn {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+  }
+
+  .product-image {
+    width: 100%;
+  }
+}
+
+/* Very Small Mobile (image on top, info below) */
+@media (max-width: 480px) {
+  .product-container {
+    flex-direction: column;
+    align-items: center;
+    width: 85%;
+    margin: 0 auto;
+  }
+
+  .product-image-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .product-image {
+    width: 80%;
+  }
+
+  .product-details {
+    width: 95%;
+    padding: 20px;
+    margin-top: 15px;
+  }
+
+  .flavor-options {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 10px;
+  }
+
+  .quantity-container button {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+  }
+
+  #quantity {
+    width: 40px;
+  }
+
+  /* ✅ Mobile-specific button width */
+  #add-to-cart-btn {
+    width: 240px !important;
+    display: block;
+    margin: 0 auto;
+  }
+}
+
+/* Tiny devices (like older phones) */
+@media (max-width: 400px) {
+  #add-to-cart-btn {
+    width: 220px !important;
+  }
 }

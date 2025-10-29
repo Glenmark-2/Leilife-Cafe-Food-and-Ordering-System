@@ -7,18 +7,18 @@
     <!-- Contact Info -->
     <div class="footer-column">
       <h3>Contact Us</h3>
-      <p><img src="fb-icon.png" alt="Facebook"> Leilife Café & Restaurant</p>
-      <p><img src="location-icon.png" alt="Address"> Lunduyan Langaray, Brgy 14. Caloocan City</p>
-      <p><img src="phone-icon.png" alt="Phone"> 0912345678</p>
-      <p><img src="mail-icon.png" alt="Email"> leilifecafe@gmail.com</p>
+      <p><img src="../public/assests/facebook.png" alt="Facebook"> Leilife Café & Restaurant</p>
+      <p><img src="../public/assests/white-pin.png" alt="Address"> Lunduyan Langaray, Brgy 14. Caloocan City</p>
+      <p><img src="../public/assests/white-call.png"  alt="Phone"> 0912345678</p>
+      <p><img src="../public/assests/white-messages.png"alt="Email"> leilifecafe@gmail.com</p>
     </div>
 
     <!-- Links -->
     <div class="footer-column">
       <h3>Quick Links</h3>
-      <p><a href="#">Home</a></p>
-      <p><a href="#">About</a></p>
-      <p><a href="#">Contact</a></p>
+      <p><a href="../public/index.php?page=home">Home</a></p>
+      <p><a href="index.php?page=home#about-us">About</a></p>
+      <p><a href="index.php?page=home#contact-section">Contact</a></p>
     </div>
   </div>
 </footer>

@@ -135,3 +135,43 @@ mobileLinks.forEach(link => {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
   })();
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const signOutModal = document.getElementById("signOutModal");
+  const cancelBtn = document.getElementById("cancelSignOut");
+  const confirmBtn = document.getElementById("confirmSignOut");
+
+  // Select all sign-out links (desktop + mobile)
+  const signOutLinks = document.querySelectorAll('a[href="../backend/logout.php"]');
+
+  signOutLinks.forEach(link => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault(); // stop direct logout
+      signOutModal.style.display = "flex"; // show modal
+      // store logout URL from the clicked link (for safety)
+      confirmBtn.dataset.logoutUrl = link.getAttribute("href");
+    });
+  });
+
+  // Cancel button hides the modal
+  cancelBtn.addEventListener("click", () => {
+    signOutModal.style.display = "none";
+  });
+
+  // Confirm button actually logs out
+  confirmBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    const logoutUrl = confirmBtn.dataset.logoutUrl || "../backend/logout.php";
+    window.location.href = logoutUrl; // redirect to logout
+  });
+
+  // Optional: close modal by clicking outside the modal box
+  signOutModal.addEventListener("click", (e) => {
+    if (e.target === signOutModal) {
+      signOutModal.style.display = "none";
+    }
+  });
+});
+

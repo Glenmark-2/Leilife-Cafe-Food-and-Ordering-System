@@ -100,4 +100,16 @@ if (isset($page_styles[$page])) {
   <?php include "../pages/login.php" ?>
 </div>
 
+
+<div id="signOutModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <h3>Confirm Sign Out</h3>
+    <p>Are you sure you want to sign out of your account?</p>
+    <div class="modal-actions">
+      <button id="cancelSignOut" class="btn-outline">Cancel</button>
+      <a href="../backend/logout.php" id="confirmSignOut" class="btn-dark">Sign Out</a>
+    </div>
+  </div>
+</div>
+
 <script src="../Scripts/components/header.js"></script>

@@ -100,6 +100,28 @@ if (isset($_SESSION['user_id'])) {
       ?>
     </div>
   </div>
+
+  <!-- 🟡 Confirmation Modal -->
+<div id="confirmAddModal" class="modal-overlay">
+  <div class="modal-box">
+    <h3>Confirm Add to Cart</h3>
+    <p>Are you sure you want to add this item to your cart?</p>
+    <div class="modal-actions">
+      <button id="confirmYes" class="yes">Yes</button>
+      <button id="confirmNo" class="no">No</button>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ Success Modal -->
+<div id="successModal" class="modal-overlay">
+  <div class="modal-box success">
+    <div class="checkmark">✔</div>
+    <h3>Item Added!</h3>
+    <p>Your product was successfully added to your cart.</p>
+  </div>
+</div>
+
 </section>
 
 
@@ -150,6 +172,18 @@ if (isset($_SESSION['user_id'])) {
         // Add to cart
         const addBtn = document.getElementById('add-to-cart-btn');
         addBtn?.addEventListener('click',()=>{
+           const confirmModal = document.getElementById('confirmAddModal');
+  const successModal = document.getElementById('successModal');
+
+  confirmModal.style.display = 'flex'; // show confirmation
+
+  // Handle "No"
+  document.getElementById('confirmNo').onclick = () => {
+    confirmModal.style.display = 'none';
+  };
+
+   document.getElementById('confirmYes').onclick = () => {
+    confirmModal.style.display = 'none'; // close confirm
             const quantity = parseInt(document.getElementById('quantity').value) || 1;
             let size = null;
             if(isDrink){
@@ -181,11 +215,20 @@ if (isset($_SESSION['user_id'])) {
             })
             .then(res=>res.json())
             .then(data=>{
-                if(data.success){  window.location.href='/Leilife/public/index.php?page=menu'; }
+                if(data.success){  
+                   successModal.style.display = 'flex';
+
+        // auto-close both after 2s
+        setTimeout(() => {
+          successModal.style.display = 'none';window.location.href='/Leilife/public/index.php?page=menu';
+        }, 1000);
+                  
+                 }
                 // else alert(data.message || 'Failed to add item');
             })
             .catch(err=>alert('Error: '+err.message));
-        });
+        };
+      });
 
         // Favorites
         const heartBtn = document.getElementById('heartBtn');

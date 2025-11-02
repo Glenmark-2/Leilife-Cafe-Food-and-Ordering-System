@@ -3,18 +3,16 @@ if (session_status() === PHP_SESSION_NONE) {
   session_start();
 }
 require_once __DIR__ . '/../../backend/db_script/db.php';
+require_once __DIR__ . '/../../backend/db_script/appData.php';
 
 if (!isset($_SESSION['admin_id'])) {
   header('Location: /leilife/public/index.php');
   exit;
 }
 
-// fetch the logged-in admin info
-$stmt = $pdo->prepare("SELECT username FROM admin_accounts WHERE admin_id = :id");
-$stmt->execute(['id' => $_SESSION['admin_id']]);
-$currentAdmin = $stmt->fetch(PDO::FETCH_ASSOC);
+$currentAdmin =  $appData->getCurrentAdmin();
+$isMainAdmin = $currentAdmin['isMainAdmin'];
 
-$isMainAdmin = $currentAdmin && $currentAdmin['username'] === 'mAdmin';
 
 $showArchived = $_GET['archived'] ?? 0; // 0 = active, 1 = archived
 $stmt = $pdo->prepare("SELECT * FROM staff_roles WHERE is_archive = :archived");

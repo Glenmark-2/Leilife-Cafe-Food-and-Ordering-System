@@ -375,7 +375,7 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
             const offset = serverNow - clientNow; // difference between server and client
 
             // Auto-cancel duration (example: 10 minutes)
-            const AUTO_CANCEL_DURATION = 5 * 1000; // 10 mins in ms
+            const AUTO_CANCEL_DURATION = 20 * 60 * 1000;
             const endTime = orderTimestamp + AUTO_CANCEL_DURATION;
 
             const updateTimer = async () => {

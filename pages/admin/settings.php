@@ -11,6 +11,15 @@ require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
 $appData = new AppData($pdo);
+
+$currentAdmin =  $appData->getCurrentAdmin();
+$isMainAdmin = $currentAdmin['isMainAdmin'];
+
+if(!$isMainAdmin){
+  header('Location: /leilife/public/index.php');
+  exit;
+}
+
 $payment_info = $appData->payment_info();
 $payment_methods = $appData->getPaymentMethods();
 ?>

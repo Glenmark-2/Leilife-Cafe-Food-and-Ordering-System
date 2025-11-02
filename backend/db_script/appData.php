@@ -578,56 +578,65 @@ if (!class_exists('AppData')) {
 
 
         //for sales report
-        public function getSalesSummary($fromDate = null, $toDate = null, $status = null, $payment = null)
-        {
-            $params = [];
-            $where = [];
+public function getSalesSummary($fromDate = null, $toDate = null, $status = null, $payment = null)
+{
+    $params = [];
+    $where = [];
 
-            // 📅 Date filters
-            if ($fromDate) {
-                $where[] = "DATE(o.order_date) >= :fromDate";
-                $params[':fromDate'] = $fromDate;
-            }
-            if ($toDate) {
-                $where[] = "DATE(o.order_date) <= :toDate";
-                $params[':toDate'] = $toDate;
-            }
+    // 📅 Date filters
+    if ($fromDate) {
+        $where[] = "DATE(o.order_date) >= :fromDate";
+        $params[':fromDate'] = $fromDate;
+    }
+    if ($toDate) {
+        $where[] = "DATE(o.order_date) <= :toDate";
+        $params[':toDate'] = $toDate;
+    }
 
-            // 🟢 Status filter
-            if ($status && strtolower($status) !== 'all') {
-                $where[] = "LOWER(o.status) = :status";
-                $params[':status'] = strtolower($status);
-            }
+    // 🟢 Status filter — exclude cancelled by default
+    if ($status && strtolower($status) !== 'all') {
+        $where[] = "LOWER(o.status) = :status";
+        $params[':status'] = strtolower($status);
+    } else {
+        // Default: only include completed/finalized orders
+        $where[] = "LOWER(o.status) IN ('delivered', 'picked_up')";
+    }
 
-            // 🟢 Payment filter
-            if ($payment && strtolower($payment) !== 'all') {
-                $where[] = "LOWER(o.payment_method) = :payment";
-                $params[':payment'] = strtolower($payment);
-            }
+    // 💳 Payment filter
+    if ($payment && strtolower($payment) !== 'all') {
+        $where[] = "LOWER(COALESCE(o.payment_method, '')) = :payment";
+        $params[':payment'] = strtolower($payment);
+    }
 
-            $whereSQL = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
+    $whereSQL = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
-            // === 🧾 SALES SUMMARY ===
-
-
-            $sqlSummary = "
+    // === 🧾 SALES SUMMARY ===
+$sqlSummary = "
     SELECT 
+        -- Count orders
         COUNT(DISTINCT o.order_id) AS total_orders,
-        COALESCE(SUM(o.total), 0) AS total_revenue, -- includes other charges
-        COALESCE(SUM(oi.quantity * oi.price), 0) AS total_product_revenue -- only products
+
+        -- Get total revenue from orders table (includes delivery & charges)
+        COALESCE(SUM(o.total), 0) AS total_revenue,
+
+        -- Get total product revenue from order_items table only
+        COALESCE((
+            SELECT SUM(oi.quantity * oi.price)
+            FROM order_items oi
+            WHERE oi.order_id IN (
+                SELECT o2.order_id FROM orders o2 " . str_replace('o.', '', $whereSQL) . "
+            )
+        ), 0) AS total_product_revenue
     FROM orders o
-    LEFT JOIN order_items oi ON o.order_id = oi.order_id
     $whereSQL
 ";
 
+    $stmt = $this->db->prepare($sqlSummary);
+    $stmt->execute($params);
+    $summary = $stmt->fetch(PDO::FETCH_ASSOC);
 
-
-            $stmt = $this->db->prepare($sqlSummary);
-            $stmt->execute($params);
-            $summary = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            // === 🏆 TOP 5 PRODUCTS ===
-            $sqlTop5 = "
+    // === 🏆 TOP 5 PRODUCTS ===
+    $sqlTop5 = "
         SELECT 
             p.product_name,
             COUNT(oi.order_id) AS orders,
@@ -636,16 +645,16 @@ if (!class_exists('AppData')) {
         JOIN products p ON oi.product_id = p.product_id
         JOIN orders o ON o.order_id = oi.order_id
         $whereSQL
-        GROUP BY p.product_id
+        GROUP BY p.product_id, p.product_name
         ORDER BY revenue DESC
         LIMIT 5
     ";
-            $stmtTop5 = $this->db->prepare($sqlTop5);
-            $stmtTop5->execute($params);
-            $topProducts = $stmtTop5->fetchAll(PDO::FETCH_ASSOC);
+    $stmtTop5 = $this->db->prepare($sqlTop5);
+    $stmtTop5->execute($params);
+    $topProducts = $stmtTop5->fetchAll(PDO::FETCH_ASSOC);
 
-            // === 🗂 MAIN CATEGORIES (correct revenue per filtered orders) ===
-            $sqlMain = "
+    // === 🗂 MAIN CATEGORIES ===
+    $sqlMain = "
         SELECT 
             mc.main_category_name AS category,
             COUNT(DISTINCT o.order_id) AS total_orders,
@@ -663,12 +672,12 @@ if (!class_exists('AppData')) {
         GROUP BY mc.main_category_id, mc.main_category_name
         ORDER BY total_revenue DESC
     ";
-            $stmtMain = $this->db->prepare($sqlMain);
-            $stmtMain->execute($params);
-            $mainCategories = $stmtMain->fetchAll(PDO::FETCH_ASSOC);
+    $stmtMain = $this->db->prepare($sqlMain);
+    $stmtMain->execute($params);
+    $mainCategories = $stmtMain->fetchAll(PDO::FETCH_ASSOC);
 
-            // === 📊 SUBCATEGORIES (TABLE PER CATEGORY, PRODUCT LISTED WITH SOLD PRICE) ===
-            $sqlSub = "
+    // === 📊 SUBCATEGORIES ===
+    $sqlSub = "
         SELECT 
             sc.category_id,
             sc.category_name,
@@ -685,33 +694,33 @@ if (!class_exists('AppData')) {
         GROUP BY sc.category_id, sc.category_name, p.product_id, p.product_name, oi.price
         ORDER BY sc.category_name, total_revenue DESC
     ";
-            $stmtSub = $this->db->prepare($sqlSub);
-            $stmtSub->execute($params);
-            $rows = $stmtSub->fetchAll(PDO::FETCH_ASSOC);
+    $stmtSub = $this->db->prepare($sqlSub);
+    $stmtSub->execute($params);
+    $rows = $stmtSub->fetchAll(PDO::FETCH_ASSOC);
 
-            // 🧩 Group products under their subcategory
-            $subCategories = [];
-            foreach ($rows as $r) {
-                $cat = $r['category_name'] ?? 'Uncategorized';
-                if (!isset($subCategories[$cat])) {
-                    $subCategories[$cat] = [];
-                }
-                $subCategories[$cat][] = [
-                    'product_name' => $r['product_name'],
-                    'sold_price' => $r['sold_price'],
-                    'total_quantity' => $r['total_quantity'],
-                    'total_orders' => $r['total_orders'],
-                    'total_revenue' => $r['total_revenue']
-                ];
-            }
-
-            return [
-                'summary' => $summary,
-                'top_products' => $topProducts,
-                'main_categories' => $mainCategories,
-                'sub_categories' => $subCategories
-            ];
+    // 🧩 Group products under their subcategory
+    $subCategories = [];
+    foreach ($rows as $r) {
+        $cat = $r['category_name'] ?? 'Uncategorized';
+        if (!isset($subCategories[$cat])) {
+            $subCategories[$cat] = [];
         }
+        $subCategories[$cat][] = [
+            'product_name' => $r['product_name'],
+            'sold_price' => $r['sold_price'],
+            'total_quantity' => $r['total_quantity'],
+            'total_orders' => $r['total_orders'],
+            'total_revenue' => $r['total_revenue']
+        ];
+    }
+
+    return [
+        'summary' => $summary,
+        'top_products' => $topProducts,
+        'main_categories' => $mainCategories,
+        'sub_categories' => $subCategories
+    ];
+}
 
 
         public function reorder($order_id, $user_id, $session_id, $option_type = 'delivery')
@@ -1071,21 +1080,22 @@ if (!class_exists('AppData')) {
             $stmtFav->execute([$userId, $productId]);
             return (bool) $stmtFav->fetch(PDO::FETCH_ASSOC);
         }
-     
-// ...existing code...
-public function getBusinessAnalyticsSummary($fromDate, $toDate){
-    try {
-        // Ensure $this->db is a PDO (or similar) instance
-        // Total sales (coalesce to 0) and total orders
-        $totalSales = (float) $this->db->query("SELECT COALESCE(SUM(total_price), 0) FROM orders")->fetchColumn();
-        $totalOrders = (int) $this->db->query("SELECT COUNT(*) FROM orders")->fetchColumn();
-        $avgOrderValue = $totalOrders ? $totalSales / $totalOrders : 0;
 
-        // Placeholder growth — replace with real monthly comparison in production
-        $growthRate = rand(5, 20) . '%';
+        // ...existing code...
+        public function getBusinessAnalyticsSummary($fromDate, $toDate)
+        {
+            try {
+                // Ensure $this->db is a PDO (or similar) instance
+                // Total sales (coalesce to 0) and total orders
+                $totalSales = (float) $this->db->query("SELECT COALESCE(SUM(total_price), 0) FROM orders")->fetchColumn();
+                $totalOrders = (int) $this->db->query("SELECT COUNT(*) FROM orders")->fetchColumn();
+                $avgOrderValue = $totalOrders ? $totalSales / $totalOrders : 0;
 
-        // Fixed arrow operator and robust fallback
-        $topProduct = $this->db->query("
+                // Placeholder growth — replace with real monthly comparison in production
+                $growthRate = rand(5, 20) . '%';
+
+                // Fixed arrow operator and robust fallback
+                $topProduct = $this->db->query("
             SELECT p.name
             FROM order_items oi
             JOIN products p ON oi.product_id = p.id
@@ -1094,7 +1104,7 @@ public function getBusinessAnalyticsSummary($fromDate, $toDate){
             LIMIT 1
         ")->fetchColumn() ?: 'N/A';
 
-        $topCustomer = $this->db->query("
+                $topCustomer = $this->db->query("
             SELECT c.name
             FROM orders o
             JOIN customers c ON o.customer_id = c.id
@@ -1103,31 +1113,45 @@ public function getBusinessAnalyticsSummary($fromDate, $toDate){
             LIMIT 1
         ")->fetchColumn() ?: 'N/A';
 
-        $summary['metrics'] = [
-            'Total Sales' => '₱' . number_format($totalSales, 2),
-            'Total Orders' => $totalOrders,
-            'Avg Order Value' => '₱' . number_format($avgOrderValue, 2),
-            'Revenue Growth' => $growthRate,
-            'Top Product' => $topProduct,
-            'Top Customer' => $topCustomer
-        ];
+                $summary['metrics'] = [
+                    'Total Sales' => '₱' . number_format($totalSales, 2),
+                    'Total Orders' => $totalOrders,
+                    'Avg Order Value' => '₱' . number_format($avgOrderValue, 2),
+                    'Revenue Growth' => $growthRate,
+                    'Top Product' => $topProduct,
+                    'Top Customer' => $topCustomer
+                ];
 
-        $summary['graphs'] = [
-            'sales_trend' => __DIR__ . '/../../graphs/sales_trend.png',
-            'revenue_breakdown' => __DIR__ . '/../../graphs/revenue_breakdown.png',
-            'customer_growth' => __DIR__ . '/../../graphs/customer_growth.png',
-            'customer_sentiment' => __DIR__ . '/../../graphs/customer_sentiment.png'
-        ];
+                $summary['graphs'] = [
+                    'sales_trend' => __DIR__ . '/../../graphs/sales_trend.png',
+                    'revenue_breakdown' => __DIR__ . '/../../graphs/revenue_breakdown.png',
+                    'customer_growth' => __DIR__ . '/../../graphs/customer_growth.png',
+                    'customer_sentiment' => __DIR__ . '/../../graphs/customer_sentiment.png'
+                ];
 
-        $summary['summary'] = "This business analytics report provides an overview of key performance metrics including revenue growth, top-performing products, and customer engagement patterns. Continued performance improvements can be achieved through targeted marketing and operational efficiency.";
+                $summary['summary'] = "This business analytics report provides an overview of key performance metrics including revenue growth, top-performing products, and customer engagement patterns. Continued performance improvements can be achieved through targeted marketing and operational efficiency.";
+            } catch (Exception $e) {
+                $summary['error'] = "Error fetching analytics data: " . $e->getMessage();
+            }
+            return $summary;
+        }
+        // ...existing code...
 
-    } catch (Exception $e) {
-        $summary['error'] = "Error fetching analytics data: " . $e->getMessage();
+        public function getCurrentAdmin()
+        {
+            if (!isset($_SESSION['admin_id'])) {
+                return null;
+            }
+
+            $stmt = $this->db->prepare("SELECT username FROM admin_accounts WHERE admin_id = :id");
+            $stmt->execute(['id' => $_SESSION['admin_id']]);
+            $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($admin) {
+                $admin['isMainAdmin'] = ($admin['username'] === 'mAdmin');
+            }
+
+            return $admin ?: null;
+        }
     }
-    return $summary;
 }
-// ...existing code...
-    }
-    
-}
-

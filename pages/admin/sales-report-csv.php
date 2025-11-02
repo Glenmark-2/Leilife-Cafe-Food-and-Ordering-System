@@ -43,8 +43,19 @@ $output = fopen('php://output', 'w');
 // --- HEADER ---
 fputcsv($output, ['Leilife Café & Resto - Sales Report']);
 fputcsv($output, ['Generated on:', date('Y-m-d H:i:s')]);
-fputcsv($output, ($fromDate && $toDate) ? ["Period: $fromDate to $toDate"] : ["All Time Summary"]);
-fputcsv($output, ['Status: ' . ucfirst($status) . ' | Payment: ' . ucfirst($payment)]);
+if ($fromDate && $toDate) {
+    $periodText = "Period: $fromDate to $toDate";
+} elseif ($fromDate && !$toDate) {
+    $periodText = "Period: From $fromDate Onwards";
+} elseif (!$fromDate && $toDate) {
+    $periodText = "Period: Up to $toDate";
+} else {
+    $periodText = "All Time Summary";
+}
+
+fputcsv($output, [$periodText]);
+
+fputcsv($output, ['Status: ' . ucwords(str_replace('_', ' ', $status)) . ' | Payment: ' . ucfirst($payment)]);
 fputcsv($output, []);
 
 // --- SALES SUMMARY ---

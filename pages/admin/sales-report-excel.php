@@ -47,11 +47,22 @@ $sheet->setCellValue('B4', 'Generated on: ' . date('Y-m-d H:i:s'));
 $sheet->getStyle('B4:U4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
 $sheet->mergeCells('B5:U5');
-$sheet->setCellValue('B5', ($fromDate && $toDate) ? "Period: $fromDate to $toDate" : "All Time Summary");
+if ($fromDate && $toDate) {
+    $periodText = "Period: $fromDate to $toDate";
+} elseif ($fromDate && !$toDate) {
+    $periodText = "Period: From $fromDate Onwards";
+} elseif (!$fromDate && $toDate) {
+    $periodText = "Period: Up to $toDate";
+} else {
+    $periodText = "All Time Summary";
+}
+
+$sheet->setCellValue('B5', $periodText);
+
 $sheet->getStyle('B5:U5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
 $sheet->mergeCells('B6:U6');
-$sheet->setCellValue('B6', 'Status: ' . ucfirst($status) . ' | Payment: ' . ucfirst($payment));
+$sheet->setCellValue('B6', 'Status: ' . ucwords(str_replace('_', ' ', $status)) . ' | Payment: ' . ucfirst($payment));
 $sheet->getStyle('B6:U6')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
 $currentRow = 7;

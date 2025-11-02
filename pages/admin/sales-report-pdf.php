@@ -71,10 +71,18 @@ class PDF extends FPDF
             $this->Cell(0, 6, 'Generated on: ' . date('Y-m-d H:i:s'), 0, 1, 'C');
             $this->Ln(5);
 
-            $periodText = ($fromDate && $toDate)
-                ? "Period: $fromDate to $toDate"
-                : "All Time Summary";
-            $filterText = "Status: " . ucwords($status) . " | Payment: " . ucwords($payment);
+            if ($fromDate && $toDate) {
+                $periodText = "Period: $fromDate to $toDate";
+            } elseif ($fromDate && !$toDate) {
+                $periodText = "Period: From $fromDate Onwards";
+            } elseif (!$fromDate && $toDate) {
+                $periodText = "Period: Up to $toDate";
+            } else {
+                $periodText = "All Time Summary";
+            }
+
+            $filterText = "Status: " . ucwords(str_replace('_', ' ', $status)) . " | Payment: " . ucwords(str_replace('_', ' ', $payment));
+
 
             $this->SetFont('Arial', 'B', 12);
             $this->Cell(0, 7, $periodText, 0, 1, 'C');
@@ -283,4 +291,3 @@ $pdf->OverallSummary($summary_points);
 ob_end_clean();
 $pdf->Output('I', 'leilife_sales_report.pdf');
 exit;
-?>

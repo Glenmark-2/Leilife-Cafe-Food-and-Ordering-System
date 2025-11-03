@@ -1,13 +1,13 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-  session_start();
+    session_start();
 }
 require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
 if (!isset($_SESSION['admin_id'])) {
-  header('Location: /leilife/public/index.php');
-  exit;
+    header('Location: /leilife/public/index.php');
+    exit;
 }
 
 $currentAdmin =  $appData->getCurrentAdmin();
@@ -19,38 +19,44 @@ $stmt = $pdo->prepare("SELECT * FROM staff_roles WHERE is_archive = :archived");
 $stmt->execute(['archived' => $showArchived]);
 $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
+<style>
 
-<div id="first-row">
-    <h2>Staff</h2>
-    <button type="button" id="view-archive"><span><?= $showArchived ? "View Active" : "View Archive" ?></span></button>
-</div>
+</style>
 
-<div id="third-row">
+<div class="container">
+    <div id="first-row" style="padding: 0;">
+        <h2 >Staff Management</h2>
+        <button type="button" id="view-archive">
+            <span><?= $showArchived ? "View Active" : "View Archive" ?></span>
+        </button>
+    </div>
+
     <div id="search_add">
-        <form class="search-bar" role="search">
-            <input type="search" id="search-input" placeholder="🔍 Search staff" aria-label="Search staff">
+        <form class="search-bar" role="search" style="margin-bottom: 0;">
+            <label for="search-input">Search Staff :</label>
+            <input type="search" id="search-input" placeholder="Enter name" aria-label="Search staff">
         </form>
         <div>
-            <button type="button" class="add" id="add-member"><span>+ Add new member</span></button>
-            <!--<button type="button" class="add" id="add-admin"><span>+ Add new admin</span></button> -->
+            <button type="button" class="add" id="add-member"><span>+ Add new staff</span></button>
             <?php if ($isMainAdmin): ?>
                 <button type="button" class="add" id="add-admin"><span>+ Add account</span></button>
             <?php else: ?>
-                <button type="button" class="add" id="add-admin" disabled
-                    style="opacity:0.5;cursor:not-allowed"><span>+ Add account</span></button>
+                <button type="button" class="add" id="add-admin" disabled style="opacity:0.5;cursor:not-allowed;">
+                    <span>+ Add account</span>
+                </button>
             <?php endif; ?>
         </div>
     </div>
 
     <div id="table-container">
-        <table class="staff-table">
+        <table class="staff-table" aria-live="polite">
             <thead>
                 <tr>
                     <th>Name</th>
                     <th>Position</th>
                     <th>Shift</th>
                     <th>Status</th>
-                    <th style="text-align:center">Actions</th>
+                    <th style="text-align:center;">Actions</th>
                 </tr>
             </thead>
             <tbody id="staff-content">
@@ -66,7 +72,6 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </label>
                                 <div>
                                     <input type="text" class="inputData" value="<?= htmlspecialchars($staff['staff_name']) ?>" disabled>
-                                    <p class="staff-id">#<?= htmlspecialchars($staff['staff_id']) ?></p>
                                 </div>
                             </div>
                         </td>
@@ -92,19 +97,24 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                         <td class="actions-cell">
                             <button class="editBtn" type="button">Edit</button>
-                            <img src="public/assests/archive.png" alt="Archive" class="archive-icon">
+                            <img src="public/assests/archive.png" alt="Archive" class="archive-icon" title="Archive">
                         </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
     </div>
+
 </div>
 
 
+
+
 <!-- Add Staff Modal -->
-<div id="modal">
+<div id="modal" style="display: none;" >
+    
     <div id="new-product-modal">
+        
         <div id="left">
             <img id="new-product-photo" src="public/assests/uploadImg.jpg" alt="photo">
             <input type="file" id="uploadInput" style="display:none;" accept="image/*">
@@ -112,14 +122,16 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <div id="right">
+        <h2>Add New Staff</h2>
+
             <form id="staff-form">
                 <div class="form-row">
-                    <label for="name">Name:</label>
+                    <label for="name">Full Name</label>
                     <input type="text" id="name" name="name" required>
                 </div>
 
                 <div class="form-row">
-                    <label for="role">Role:</label>
+                    <label for="role">Position</label>
                     <select id="role" name="role" required>
                         <option value="">Select position</option>
                         <option value="Manager">Manager</option>
@@ -130,7 +142,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
 
                 <div class="form-row">
-                    <label for="category">Shift:</label>
+                    <label for="category">Shift</label>
                     <select id="category" name="category" required>
                         <option value="">Select shift</option>
                         <option value="Day">Day</option>
@@ -139,7 +151,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
 
                 <div class="form-row status-row">
-                    <label>Status:</label>
+                    <label>Status</label>
                     <div id="status-default">Active</div>
                 </div>
 
@@ -157,7 +169,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="modal-card">
         <button class="modal-close" id="cancel-admin-btn">&times;</button>
 
-        <div class="photo-section">
+        <div class="photo-section" >
             <img id="admin-photo-preview" src="public/assests/uploadImg.jpg" alt="Photo">
             <input type="file" id="admin-upload-input" name="photo" accept="image/*" style="display:none;">
             <button type="button" id="admin-upload-btn">Upload Photo</button>
@@ -166,13 +178,15 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="form-section">
             <h2>Add New Account</h2>
             <form id="admin-form">
+                <div>
+            <div>
                 <div class="form-row">
                     <label for="admin-name">Full Name</label>
                     <input type="text" id="admin-name" placeholder="John Doe" required>
                 </div>
 
                 <div class="form-row">
-                    <label for="account-role">Role</label>
+                    <label for="account-role">Position</label>
                     <select id="account-role" required>
                         <option value="">Select role</option>
                         <option value="Admin">Admin</option>
@@ -193,7 +207,8 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <option value="Night">Night</option>
                     </select>
                 </div>
-
+</div>
+<div>
                 <div class="form-row">
                     <label for="admin-username">Username</label>
                     <input type="text" id="admin-username" placeholder="username123" required>
@@ -212,7 +227,8 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                     <p id="password-strength-text">Weak</p>
                 </div>
-
+</div>
+</div>
                 <div class="modal-buttons">
                     <button type="submit" id="add-admin-btn">Add Account</button>
                     <button type="button" id="cancel-admin-btn-2">Cancel</button>
@@ -221,6 +237,8 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 </div>
+
+
 
 <!-- OTP Modal -->
 <div id="otp-modal" style="display:none;">
@@ -234,11 +252,12 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <label for="otp-code">Enter OTP</label>
                 <input type="text" id="otp-code" name="otp" maxlength="6" required>
             </div>
-            <div class="modal-buttons">
+            <div class="modal-buttons" >
                 <button type="submit" id="verify-otp-btn">Verify</button>
-                <button type="button" id="resend-otp-btn" disabled>Resend OTP (30s)</button>
                 <button type="button" id="cancel-otp-btn-2">Cancel</button>
             </div>
+                <button type="button" id="resend-otp-btn" disabled>Resend OTP (30s)</button>
+
         </form>
     </div>
 </div>
@@ -334,60 +353,162 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
     });
 
     // Add Account (Admin/Driver)
- document.getElementById('admin-form').addEventListener('submit', e => {
+    document.getElementById('admin-form').addEventListener('submit', e => {
+        e.preventDefault();
+
+        const name = document.getElementById('admin-name').value.trim();
+        const role = document.getElementById('account-role').value;
+        const shift = document.getElementById('admin-shift').value;
+        const username = document.getElementById('admin-username').value.trim();
+        const email = document.getElementById('admin-email').value.trim();
+        const password = passwordInput.value;
+        const photo = adminUploadInput.files[0];
+
+        // --- Basic empty check ---
+        if (!name || !role || !shift || !username || !email || !password || !photo) {
+            showModal("Please fill all fields and upload a photo.", "error");
+            return;
+        }
+
+        // --- Name validation: letters only ---
+        if (!/^[A-Za-z\s]+$/.test(name)) {
+            showModal("Name can only contain letters and spaces.", "error");
+            return;
+        }
+
+        // --- Username validation ---
+        if (username.length < 8 || /\s/.test(username)) {
+            showModal("Username must be at least 8 characters with no spaces.", "error");
+            return;
+        }
+
+        // --- Email validation ---
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(email)) {
+            showModal("Invalid email format.", "error");
+            return;
+        }
+
+        // --- Password validation ---
+        if (password.length < 8) {
+            showModal("Password must be at least 8 characters.", "error");
+            return;
+        }
+
+        // --- Everything validated, prepare FormData ---
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("role", role);
+        formData.append("shift", shift);
+        formData.append("username", username);
+        formData.append("email", email);
+        formData.append("password", password);
+        formData.append("photo", photo);
+
+        // --- Show loading state while waiting ---
+        document.getElementById("otpStatus").innerText = "Sending OTP to email...";
+
+        fetch(BASE_URL + "backend/admin/request_account_otp.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    adminModal.style.display = 'none';
+                    openOtpModal();
+                    document.getElementById("otpStatus").innerText =
+                        "Enter the 6-digit OTP sent to your email.";
+                } else {
+                    showModal(data.message, "error");
+                }
+            })
+            .catch(err => {
+                showModal("Fetch error: " + err.message, "error");
+            });
+    });
+
+
+  // --- OTP Modal ---
+const otpModal = document.getElementById('otp-modal');
+const otpCancel1 = document.getElementById('cancel-otp-btn');
+const otpCancel2 = document.getElementById('cancel-otp-btn-2');
+const resendBtn = document.getElementById('resend-otp-btn');
+const otpStatus = document.getElementById('otpStatus'); // make sure <p id="otpStatus"></p> exists
+
+let resendTimer; // countdown timer reference
+
+// Start the resend timer
+function startResendTimer() {
+    clearInterval(resendTimer);
+    resendBtn.disabled = true;
+    let timeLeft = 20; // 5 seconds countdown
+    resendBtn.textContent = `Resend OTP (${timeLeft}s)`;
+
+    resendTimer = setInterval(() => {
+        timeLeft--;
+        resendBtn.textContent = `Resend OTP (${timeLeft}s)`;
+
+        if (timeLeft <= 0) {
+            clearInterval(resendTimer);
+            resendBtn.disabled = false;
+            resendBtn.textContent = "Resend OTP";
+        }
+    }, 1000);
+}
+
+// Open OTP modal
+function openOtpModal() {
+    otpModal.style.display = 'flex';
+    if (otpStatus) otpStatus.innerText = "We sent a 6-digit code to your email.";
+    startResendTimer();
+}
+
+// Close OTP modal
+function closeOtpModal() {
+    otpModal.style.display = 'none';
+    clearInterval(resendTimer);
+}
+
+// Cancel buttons
+otpCancel1.addEventListener('click', closeOtpModal);
+otpCancel2.addEventListener('click', closeOtpModal);
+
+// OTP form submit
+document.getElementById('otp-form').addEventListener('submit', e => {
     e.preventDefault();
+    const otp = document.getElementById('otp-code').value.trim();
 
-    const name = document.getElementById('admin-name').value.trim();
-    const role = document.getElementById('account-role').value;
-    const shift = document.getElementById('admin-shift').value;
-    const username = document.getElementById('admin-username').value.trim();
-    const email = document.getElementById('admin-email').value.trim();
-    const password = passwordInput.value;
-    const photo = adminUploadInput.files[0];
-
-    // --- Basic empty check ---
-    if (!name || !role || !shift || !username || !email || !password || !photo) {
-        showModal("Please fill all fields and upload a photo.", "error");
+    if (!otp) {
+        showModal("Please enter the OTP.", "error");
         return;
     }
 
-    // --- Name validation: letters only ---
-    if (!/^[A-Za-z\s]+$/.test(name)) {
-        showModal("Name can only contain letters and spaces.", "error");
-        return;
-    }
+    fetch(BASE_URL + "backend/admin/verify_account_otp.php", {
+        method: "POST",
+        body: new URLSearchParams({ otp })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showModal("Account verified and created!", "success");
+            closeOtpModal();
+            setTimeout(() => location.reload(), 1200);
+        } else {
+            showModal(data.message, "error");
+        }
+    })
+    .catch(err => showModal("Fetch error: " + err.message, "error"));
+});
 
-    // --- Username validation ---
-    if (username.length < 8 || /\s/.test(username)) {
-        showModal("Username must be at least 8 characters with no spaces.", "error");
-        return;
-    }
+// Resend OTP button
+resendBtn.addEventListener('click', () => {
+    resendBtn.disabled = true;
+    resendBtn.textContent = "Sending...";
+    otpStatus.innerText = "";
 
-    // --- Email validation ---
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(email)) {
-        showModal("Invalid email format.", "error");
-        return;
-    }
-
-    // --- Password validation ---
-    if (password.length < 8) {
-        showModal("Password must be at least 8 characters.", "error");
-        return;
-    }
-
-    // --- Everything validated, prepare FormData ---
     const formData = new FormData();
-    formData.append("name", name);
-    formData.append("role", role);
-    formData.append("shift", shift);
-    formData.append("username", username);
-    formData.append("email", email);
-    formData.append("password", password);
-    formData.append("photo", photo);
-
-    // --- Show loading state while waiting ---
-    document.getElementById("otpStatus").innerText = "Sending OTP to email...";
+    formData.append("resend", true); // backend flag
 
     fetch(BASE_URL + "backend/admin/request_account_otp.php", {
         method: "POST",
@@ -396,118 +517,21 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            // ✅ Success: close Add Account modal, open OTP modal
-            adminModal.style.display = 'none';
-            openOtpModal();
-            document.getElementById("otpStatus").innerText =
-                "Enter the 6-digit OTP sent to your email.";
+            otpStatus.innerText = "New OTP sent. Please check your email.";
+            resendBtn.textContent = "OTP Sent!";
+            setTimeout(() => startResendTimer(), 1500); // restart 5s countdown
         } else {
-            // ❌ Error: keep Add Account modal open, don’t open OTP modal
-            showModal(data.message, "error");
+            otpStatus.innerText = data.message;
+            resendBtn.textContent = "Resend OTP";
+            resendBtn.disabled = false;
         }
     })
     .catch(err => {
-        showModal("Fetch error: " + err.message, "error");
+        otpStatus.innerText = "Fetch error: " + err.message;
+        resendBtn.textContent = "Resend OTP";
+        resendBtn.disabled = false;
     });
 });
-
-
-    // --- OTP Modal ---
-    const otpModal = document.getElementById('otp-modal');
-    const otpCancel1 = document.getElementById('cancel-otp-btn');
-    const otpCancel2 = document.getElementById('cancel-otp-btn-2');
-    const resendBtn = document.getElementById('resend-otp-btn');
-    const otpStatus = document.getElementById('otp-status'); // make sure <p id="otp-status"></p> exists in modal
-
-    let resendTimer; // timer reference
-
-    function openOtpModal() {
-        otpModal.style.display = 'flex';
-        if (otpStatus) otpStatus.innerText = "We sent a 6-digit code to your email.";
-
-        // Disable resend button initially
-        resendBtn.disabled = true;
-        resendBtn.textContent = "Resend OTP (5:00)";
-
-        // Start 5-minute countdown
-        let timeLeft = 5 * 60; // 5 minutes in seconds
-        resendTimer = setInterval(() => {
-            timeLeft--;
-            const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-            const seconds = (timeLeft % 60).toString().padStart(2, '0');
-            resendBtn.textContent = `Resend OTP (${minutes}:${seconds})`;
-
-            if (timeLeft <= 0) {
-                clearInterval(resendTimer);
-                resendBtn.disabled = false;
-                resendBtn.textContent = "Resend OTP";
-            }
-        }, 1000);
-    }
-
-    function closeOtpModal() {
-        otpModal.style.display = 'none';
-        clearInterval(resendTimer);
-    }
-
-    otpCancel1.addEventListener('click', closeOtpModal);
-    otpCancel2.addEventListener('click', closeOtpModal);
-
-    // Submit OTP
-    document.getElementById('otp-form').addEventListener('submit', e => {
-        e.preventDefault();
-        const otp = document.getElementById('otp-code').value.trim();
-
-        if (!otp) {
-            showModal("Please enter the OTP.", "error");
-            return;
-        }
-
-        fetch(BASE_URL + "backend/admin/verify_account_otp.php", {
-                method: "POST",
-                body: new URLSearchParams({
-                    otp
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showModal("Account verified and created!", "success");
-                    closeOtpModal();
-                    setTimeout(() => location.reload(), 1200);
-                } else {
-                    showModal("Error: " + data.message, "error");
-                }
-            })
-            .catch(err => showModal("Fetch error: " + err.message, "error"));
-    });
-
-    // Resend OTP handler
-    resendBtn.addEventListener('click', () => {
-        resendBtn.disabled = true;
-        resendBtn.textContent = "Sending...";
-
-        const formData = new FormData(document.getElementById('admin-form'));
-
-        fetch(BASE_URL + "backend/admin/request_account_otp.php", {
-                method: "POST",
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.otp_required) {
-                    otpStatus.innerText = "New OTP sent to your email!";
-                    openOtpModal(); // restart 5-min countdown
-                } else {
-                    otpStatus.innerText = "Error: " + data.message;
-                    resendBtn.disabled = false;
-                }
-            })
-            .catch(err => {
-                otpStatus.innerText = "Fetch error: " + err.message;
-                resendBtn.disabled = false;
-            });
-    });
 
 
 
@@ -554,120 +578,140 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
             row.style.display = name.includes(search) ? 'table-row' : 'none';
         });
     });
+// --- Edit / Save with button disabling and reset ---
+const editButtons = document.querySelectorAll('.editBtn');
+const addMemberBtn = document.getElementById('add-member');
+const viewArcBtn = document.getElementById('view-archive');
+const addAccBtn = document.getElementById('add-admin');
+const archiveIcons = document.querySelectorAll('.archive-icon');
 
-    // --- Edit / Save ---
-    document.querySelectorAll('.editBtn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const row = btn.closest('.staff-row');
-            const nameInput = row.querySelector('.name-cell .inputData');
-            const photo = row.querySelector('.profile-photo');
-            const photoInput = row.querySelector('.photoInput');
-            const archiveIcon = row.querySelector('.archive-icon');
-            const statusBtn = row.querySelector('.statusBtn');
-            const shiftSelect = row.querySelector('.pcategory');
-            const roleCell = row.querySelector('td:nth-child(2) .inputData');
+editButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const row = btn.closest('.staff-row');
+    const inputs = row.querySelectorAll('.inputData, .pcategory');
+    const photo = row.querySelector('.profile-photo');
+    const photoInput = row.querySelector('.photoInput');
+    const statusBtn = row.querySelector('.statusBtn');
+    const archiveIcon = row.querySelector('.archive-icon');
+    const roleCell = row.querySelector('td:nth-child(2)');
+    let roleInput = roleCell.querySelector('.inputData');
 
-            const isEditing = !nameInput.disabled;
+    const isEditing = btn.classList.contains('editing');
 
-            if (!isEditing) {
-                // Enter edit mode
-                nameInput.disabled = false;
-                photoInput.disabled = false;
-                archiveIcon.style.filter = 'brightness(0)';
-                statusBtn.disabled = false;
-                shiftSelect.disabled = false;
+    if (!isEditing) {
+      // --- Enter Edit Mode ---
+      btn.textContent = 'Save';
+      btn.style.setProperty("background-color", "#5f9861ff", "important");
+      btn.style.setProperty("color", "#ffffffff", "important");
+      btn.classList.add('editing');
 
-                const currentRole = roleCell.value;
+      // Enable inputs
+      inputs.forEach(i => (i.disabled = false));
+      statusBtn.disabled = false;
+      photoInput.disabled = false;
+      archiveIcon.style.filter = 'brightness(0)';
 
-                // Only allow role change if NOT Admin or Driver
-                if (currentRole.toLowerCase() !== 'admin' && currentRole.toLowerCase() !== 'driver') {
-                    const roleDropdown = document.createElement('select');
-                    roleDropdown.className = 'roleDropdown';
-                    ['Manager', 'Cashier', 'Chef', 'Cleaner'].forEach(r => {
-                        const opt = document.createElement('option');
-                        opt.value = r;
-                        opt.textContent = r;
-                        if (r === currentRole) opt.selected = true;
-                        roleDropdown.appendChild(opt);
-                    });
-                    roleCell.replaceWith(roleDropdown);
-                }
+      // Disable all other edit buttons
+      editButtons.forEach(other => { if (other !== btn) other.disabled = true; });
 
-                photo.onclick = () => {
-                    if (!photoInput.disabled) photoInput.click();
-                };
-                photoInput.onchange = e => {
-                    const file = e.target.files[0];
-                    if (file) photo.src = URL.createObjectURL(file);
-                };
+      // Disable other archive icons
+      archiveIcons.forEach(icon => {
+        if (icon !== archiveIcon) {
+          icon.style.pointerEvents = 'none';
+          icon.style.opacity = 0.4;
+        }
+      });
 
-                btn.textContent = 'Save';
-                btn.classList.add('editing');
-                document.querySelectorAll('.editBtn').forEach(b => {
-                    if (b !== btn) {
-                        b.disabled = true;
-                        b.style.opacity = 0.5;
-                        b.style.cursor = 'not-allowed';
-                    }
-                });
-                document.getElementById('add-member').disabled = true;
-                document.getElementById('add-member').style.opacity = 0.5;
+      // Disable top buttons
+      [addMemberBtn, viewArcBtn, addAccBtn].forEach(b => {
+        b.disabled = true;
+        b.style.opacity = 0.5;
+      });
 
-            } else {
-                // Save
-                nameInput.disabled = true;
-                photoInput.disabled = true;
-                archiveIcon.style.filter = 'brightness(0.5)';
-                statusBtn.disabled = true;
-                shiftSelect.disabled = true;
-
-                const currentRole = roleCell.value || row.querySelector('.roleDropdown')?.value;
-
-                // If role was editable dropdown, replace with readonly input again
-                const roleDropdown = row.querySelector('.roleDropdown');
-                if (roleDropdown) {
-                    const newRole = roleDropdown.value;
-                    const roleInput = document.createElement('input');
-                    roleInput.type = 'text';
-                    roleInput.className = 'inputData';
-                    roleInput.value = newRole;
-                    roleInput.disabled = true;
-                    roleDropdown.replaceWith(roleInput);
-                }
-
-                btn.textContent = 'Edit';
-                btn.classList.remove('editing');
-                document.querySelectorAll('.editBtn').forEach(b => {
-                    b.disabled = false;
-                    b.style.opacity = 1;
-                    b.style.cursor = 'pointer';
-                });
-                document.getElementById('add-member').disabled = false;
-                document.getElementById('add-member').style.opacity = 1;
-
-                const staffId = row.dataset.id;
-                const updatedData = {
-                    id: staffId,
-                    name: nameInput.value,
-                    role: currentRole, // either from dropdown or readonly input
-                    shift: shiftSelect.value,
-                    status: statusBtn.textContent.trim()
-                };
-                const photoFile = photoInput.files[0];
-                const formData = new FormData();
-                Object.entries(updatedData).forEach(([k, v]) => formData.append(k, v));
-                if (photoFile) formData.append("photo", photoFile);
-
-                fetch(BASE_URL + "backend/admin/update_staff.php", {
-                        method: "POST",
-                        body: formData
-                    })
-                    .then(res => res.json())
-                    .then(data => showModal(data.success ? "Staff updated successfully!" : "Error: " + data.message, data.success ? "success" : "error"))
-                    .catch(err => showModal("Fetch error: " + err.message, "error"));
-            }
+      const currentRole = roleInput.value.toLowerCase();
+      if (currentRole !== 'admin' && currentRole !== 'driver') {
+        const positions = ['Manager', 'Cashier', 'Chef', 'Cleaner']; 
+        const select = document.createElement('select');
+        select.className = 'inputData';
+        positions.forEach(pos => {
+          const option = document.createElement('option');
+          option.value = pos;
+          option.text = pos;
+          if (pos === roleInput.value) option.selected = true;
+          select.appendChild(option);
         });
-    });
+        roleInput.replaceWith(select);
+        roleInput = select; 
+      } else {
+         roleInput.disabled = true; 
+      }
+
+      // Enable photo upload click
+      photo.onclick = () => { if (!photoInput.disabled) photoInput.click(); };
+      photoInput.onchange = e => {
+        const file = e.target.files[0];
+        if (file) photo.src = URL.createObjectURL(file);
+      };
+
+    } else {
+      // --- Save and Reset Styles ---
+      btn.textContent = 'Edit';
+      btn.style.setProperty("background-color", "#fbf5ca", "important");
+      btn.style.setProperty("color", "#79722b", "important");
+      btn.classList.remove('editing');
+
+      inputs.forEach(i => (i.disabled = true));
+      statusBtn.disabled = true;
+      photoInput.disabled = true;
+      archiveIcon.style.filter = 'brightness(0.5)';
+
+      // Re-enable all edit buttons
+      editButtons.forEach(b => (b.disabled = false));
+
+      // Re-enable all archive icons
+      archiveIcons.forEach(icon => {
+        icon.style.pointerEvents = 'auto';
+        icon.style.opacity = 1;
+      });
+
+      // Re-enable top buttons
+      [addMemberBtn, viewArcBtn, addAccBtn].forEach(b => {
+        b.disabled = false;
+        b.style.opacity = 1;
+      });
+
+      // --- Prepare data for update ---
+      const staffId = row.dataset.id;
+      const updatedData = {
+        id: staffId,
+        name: row.querySelector('.name-cell .inputData').value,
+        role: roleInput.value,
+        shift: row.querySelector('.pcategory').value,
+        status: statusBtn.textContent.trim(),
+      };
+      const photoFile = photoInput.files[0];
+
+      const formData = new FormData();
+      Object.entries(updatedData).forEach(([k, v]) => formData.append(k, v));
+      if (photoFile) formData.append('photo', photoFile);
+
+      fetch(BASE_URL + 'backend/admin/update_staff.php', {
+        method: 'POST',
+        body: formData,
+      })
+        .then(res => res.json())
+        .then(data =>
+          showModal(
+            data.success ? 'Staff updated successfully!' : 'Error: ' + data.message,
+            data.success ? 'success' : 'error'
+          )
+        )
+        .catch(err => showModal('Fetch error: ' + err.message, 'error'));
+    }
+  });
+});
+
+
 
 
     // --- Toggle Status ---

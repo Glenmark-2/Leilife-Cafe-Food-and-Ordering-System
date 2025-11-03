@@ -12,11 +12,19 @@ if (!isset($_SESSION['pending_account'])) {
 $pending = $_SESSION['pending_account'];
 $userOtp = trim($_POST['otp'] ?? '');
 
-// ✅ OTP check
-if ($userOtp !== $pending['otp'] || time() > $pending['expires']) {
-    echo json_encode(["success" => false, "message" => "Expired OTP"]);
+if (time() > $pending['expires']) {
+    echo json_encode(["success" => false, "message" => "OTP expired"]);
     exit;
 }
+
+if ((string)$userOtp !== (string)$pending['otp']) {
+    echo json_encode(["success" => false, "message" => "Invalid OTP"]);
+    exit;
+}
+
+
+
+
 
 try {
     // ✅ Normalize inputs
@@ -47,22 +55,8 @@ try {
     }
 
     // ✅ Handle photo
-    $imageName = "uploadImg.jpg";
-    if (!empty($_FILES['photo']['name'])) {
-        $uploadDir = __DIR__ . '/../../public/staffs/';
-        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+$imageName = $pending['photo'] ?? "uploadImg.jpg";
 
-        $cleanFileName = preg_replace("/[^A-Za-z0-9.\-_]/", "_", trim($_FILES['photo']['name']));
-        $imageName = time() . "_" . $cleanFileName;
-        $targetFile = $uploadDir . $imageName;
-
-        if (!move_uploaded_file($_FILES['photo']['tmp_name'], $targetFile)) {
-            echo json_encode(["success" => false, "message" => "Image upload failed"]);
-            exit;
-        }
-    } elseif (!empty($pending['photo'])) {
-        $imageName = $pending['photo'];
-    }
 
     // ✅ Insert into correct accounts table
     $roleLower = strtolower($role);

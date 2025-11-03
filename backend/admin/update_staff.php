@@ -14,11 +14,22 @@ try {
     $shift  = $_POST['shift']  ?? '';
     $status = $_POST['status'] ?? '';
 
+    // --- Get previous staff record ---
+    $stmtPrev = $pdo->prepare("SELECT staff_image FROM staff_roles WHERE staff_id = :id");
+    $stmtPrev->execute([":id" => $id]);
+    $prevStaff = $stmtPrev->fetch(PDO::FETCH_ASSOC);
+    $prevPhoto = $prevStaff['staff_image'] ?? null;
+
     // Handle file upload if provided
     $photoName = null;
     if (!empty($_FILES['photo']['name'])) {
         $uploadDir = __DIR__ . "/../../public/staffs/";
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+
+        // Delete previous photo if exists
+        if ($prevPhoto && file_exists($uploadDir . $prevPhoto)) {
+            unlink($uploadDir . $prevPhoto);
+        }
 
         $cleanFileName = preg_replace("/[^A-Za-z0-9.\-_]/", "_", trim($_FILES['photo']['name']));
         $photoName = time() . "_" . $cleanFileName;
@@ -68,7 +79,7 @@ try {
         $response["success"] = true;
         $response["message"] = "Staff updated successfully!";
     } else {
-        $response["success"] = true; // still success, even if no rows affected
+        $response["success"] = true; 
         $response["message"] = "No changes were made.";
     }
 

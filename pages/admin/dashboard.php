@@ -68,20 +68,25 @@ $totalActiveDriver = $appData->activeDriver();
    HEADER BAR
 ---------------------------- */
   #first-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-    gap: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
   }
 
   #first-row h2 {
-    font-size: 28px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  font-size: 28px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #333;
+
   }
 
   #first-row h2::before {
@@ -662,16 +667,9 @@ $totalActiveDriver = $appData->activeDriver();
 
 <div class="container">
   <div id="first-row">
-    <h2>Dashboard</h2>
+    <h2 >Dashboard</h2>
     <!-- you can keep the sales filter at header if desired -->
-    <form method="GET" id="salesFilterForm" style="display:flex; align-items:center;">
-      <select id="sales-period" name="period" onchange="document.getElementById('salesFilterForm').submit()">
-        <option value="today" <?= (!isset($_GET['period']) || $_GET['period'] === 'today') ? 'selected' : '' ?>>Today</option>
-        <option value="week" <?= (isset($_GET['period']) && $_GET['period'] === 'week') ? 'selected' : '' ?>>This Week</option>
-        <option value="month" <?= (isset($_GET['period']) && $_GET['period'] === 'month') ? 'selected' : '' ?>>This Month</option>
-        <option value="year" <?= (isset($_GET['period']) && $_GET['period'] === 'year') ? 'selected' : '' ?>>This Year</option>
-      </select>
-    </form>
+
   </div>
 
 

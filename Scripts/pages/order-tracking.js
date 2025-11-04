@@ -91,7 +91,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
 });
 
-        // ✅ Confirmation modal built on top of showModal()
     function showConfirmModal(message, onConfirm) {
         let modal = document.getElementById("notif-modal");
         if (!modal) {

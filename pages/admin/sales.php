@@ -45,77 +45,109 @@ $toDate = $_GET['toDate'] ?? '';
 $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: null, $toDate ?: null);
 ?>
 
-<h2>Sales Management</h2>
-
-<!-- Filters -->
-<div class="filters">
-  <div class="filter-group">
-    <label>Status:</label>
-    <select id="statusFilter">
-      <option value="All" <?= $status === 'All' ? 'selected' : '' ?>>All</option>
-      <option value="picked_up" <?= $status === 'picked_up' ? 'selected' : '' ?>>Picked up</option>
-      <option value="Delivered" <?= $status === 'Delivered' ? 'selected' : '' ?>>Delivered</option>
-      <option value="Cancelled" <?= $status === 'Cancelled' ? 'selected' : '' ?>>Cancelled</option>
-    </select>
-
-  </div>
-
-  <div class="filter-group">
-    <label>Date Range:</label>
-    <input type="date" id="fromDate" value="<?= htmlspecialchars($fromDate) ?>"> -
-    <input type="date" id="toDate" value="<?= htmlspecialchars($toDate) ?>">
-  </div>
 
 
-
-  <div class="filter-group">
-    <label>Payment:</label>
-    <select id="paymentFilter">
-      <option value="All" <?= $payment === 'All' ? 'selected' : '' ?>>All</option>
-      <?php
-      // Fetch all distinct payment methods directly from database
-      $stmt = $pdo->query("SELECT DISTINCT payment_method FROM orders WHERE payment_method IS NOT NULL AND payment_method <> ''");
-      $allPayments = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-      foreach ($allPayments as $p) {
-        $val = htmlspecialchars($p);
-        $selected = ($val === $payment) ? 'selected' : '';
-        echo "<option value=\"$val\" $selected>$val</option>";
-      }
-      ?>
-
-    </select>
-  </div>
-</div>
-
-<!-- Orders Table -->
-<table>
-  <thead>
-    <tr>
-      <th>Order ID</th>
-      <th>Customer</th>
-      <th>Total</th>
-      <th>Status</th>
-      <th>Payment</th>
-      <th>Date</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody id="ordersTableBody"></tbody>
-</table>
-
-<div class="export-buttons">
+<div class="container">
+  <div id="first-row">
+    <h2>Sales Management</h2>
+    <div class="export-buttons">
   <button onclick="exportFile('csv')">Export CSV</button>
   <button onclick="exportFile('excel')">Export Excel</button>
   <button onclick="exportFile('pdf')">Export PDF</button>
 </div>
 
-<!-- Modal -->
-<div class="modal" id="detailsModal" style="display:none;">
-  <div class="modal-content">
-    <button class="close-btn" onclick="closeModal()">✖</button>
-    <h3>Order Details</h3>
-    <div id="orderDetails"></div>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>Status:</label>
+      <select id="statusFilter">
+        <option value="All" <?= $status === 'All' ? 'selected' : '' ?>>All</option>
+        <option value="picked_up" <?= $status === 'picked_up' ? 'selected' : '' ?>>Picked up</option>
+        <option value="Delivered" <?= $status === 'Delivered' ? 'selected' : '' ?>>Delivered</option>
+        <option value="Cancelled" <?= $status === 'Cancelled' ? 'selected' : '' ?>>Cancelled</option>
+      </select>
+
+    </div>
+
+    <div class="filter-group">
+      <label>Date Range:</label>
+      <input type="date" id="fromDate" value="<?= htmlspecialchars($fromDate) ?>"> -
+      <input type="date" id="toDate" value="<?= htmlspecialchars($toDate) ?>">
+    </div>
+
+
+
+    <div class="filter-group">
+      <label>Payment:</label>
+      <select id="paymentFilter">
+        <option value="All" <?= $payment === 'All' ? 'selected' : '' ?>>All</option>
+        <?php
+        // Fetch all distinct payment methods directly from database
+        $stmt = $pdo->query("SELECT DISTINCT payment_method FROM orders WHERE payment_method IS NOT NULL AND payment_method <> ''");
+        $allPayments = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        foreach ($allPayments as $p) {
+          $val = htmlspecialchars($p);
+          $selected = ($val === $payment) ? 'selected' : '';
+          echo "<option value=\"$val\" $selected>$val</option>";
+        }
+        ?>
+
+      </select>
+    </div>
+  </div>
+
+
+  <!-- === Table Container === -->
+  <div id="table-container">
+    <div class="table-wrapper">
+      <table class="staff-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Payment</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="ordersTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+
+</div>
+
+
+<!-- ===== Order Details Modal ===== -->
+<div id="detailsModal" class="modal" style="text-transform: capitalize;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2>Order Details</h2>
+      <button class="modal-close" onclick="closeModal()">✖</button>
+    </div>
+
+    <div class="modal-info" >
+      <p><strong>Order No:</strong> <span id="modalOrderNumber"></span></p>
+      <p><strong>Customer:</strong> <span id="modalCustomer"></span></p>
+      <p><strong>Date:</strong> <span id="modalDate"></span></p>
+      <p><strong>Payment:</strong> <span id="modalPayment"></span></p>
+      <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+      <p><strong>Total:</strong> <span id="modalTotal"></span></p>
+    </div>
+
+    <div class="modal-body">
+      <h4>Items Ordered:</h4>
+      <ul id="modalItemsList"></ul>
+    </div>
+
+    <div class="modal-buttons">
+      <button id="closeMessageBtn" onclick="closeModal()">Close</button>
+    </div>
   </div>
 </div>
 
@@ -123,37 +155,37 @@ $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: nul
   const downloadToken = '<?= $downloadToken ?>'; // single-use token for export
   const orders = <?= json_encode($orders) ?>;
 
-function exportFile(type) {
-  const status = document.getElementById('statusFilter').value;
+  function exportFile(type) {
+    const status = document.getElementById('statusFilter').value;
 
-  if (status.toLowerCase() === 'cancelled') {
-    alert('Cancelled orders cannot be included in the sales report.');
-    return;
+    if (status.toLowerCase() === 'cancelled') {
+      alert('Cancelled orders cannot be included in the sales report.');
+      return;
+    }
+
+    const fromDate = document.getElementById('fromDate').value;
+    const toDate = document.getElementById('toDate').value;
+    const payment = document.getElementById('paymentFilter').value;
+
+    let page = '';
+    if (type === 'pdf') page = 'sales-report-pdf';
+    else if (type === 'excel') page = 'sales-report-excel';
+    else if (type === 'csv') page = 'sales-report-csv';
+    else return alert('Invalid export type.');
+
+    const params = [];
+    params.push('page=' + encodeURIComponent(page));
+    params.push('download=1');
+    params.push('token=' + encodeURIComponent(downloadToken));
+
+    if (fromDate) params.push(`fromDate=${encodeURIComponent(fromDate)}`);
+    if (toDate) params.push(`toDate=${encodeURIComponent(toDate)}`);
+    if (status && status.toLowerCase() !== 'all') params.push(`status=${encodeURIComponent(status)}`);
+    if (payment && payment.toLowerCase() !== 'all') params.push(`payment=${encodeURIComponent(payment)}`);
+
+    const url = '/leilife/public/admin.php?' + params.join('&');
+    window.open(url, '_blank');
   }
-
-  const fromDate = document.getElementById('fromDate').value;
-  const toDate = document.getElementById('toDate').value;
-  const payment = document.getElementById('paymentFilter').value;
-
-  let page = '';
-  if (type === 'pdf') page = 'sales-report-pdf';
-  else if (type === 'excel') page = 'sales-report-excel';
-  else if (type === 'csv') page = 'sales-report-csv';
-  else return alert('Invalid export type.');
-
-  const params = [];
-  params.push('page=' + encodeURIComponent(page));
-  params.push('download=1');
-  params.push('token=' + encodeURIComponent(downloadToken));
-
-  if (fromDate) params.push(`fromDate=${encodeURIComponent(fromDate)}`);
-  if (toDate) params.push(`toDate=${encodeURIComponent(toDate)}`);
-  if (status && status.toLowerCase() !== 'all') params.push(`status=${encodeURIComponent(status)}`);
-  if (payment && payment.toLowerCase() !== 'all') params.push(`payment=${encodeURIComponent(payment)}`);
-
-  const url = '/leilife/public/admin.php?' + params.join('&');
-  window.open(url, '_blank');
-}
 
 
   // TABLE RENDER
@@ -172,12 +204,12 @@ function exportFile(type) {
       const row = document.createElement("tr");
       row.innerHTML = `
             <td>#${orderNumber}</td>
-            <td>${customer}</td>
+            <td  style="text-transform: capitalize;">${customer}</td>
             <td>₱${total}</td>
-            <td>${order.status || 'Undefined'}</td>
-            <td>${payment}</td>
+            <td  style="text-transform: capitalize;">${order.status || 'Undefined'}</td>
+            <td  style="text-transform: capitalize;">${payment}</td>
             <td>${date}</td>
-            <td class="actions"><button class="view-btn" onclick="viewDetails('${orderNumber}')">View</button></td>
+            <td style="display:flex; justify-content:center;" class="actions"><button class="view-btn" onclick="viewDetails('${orderNumber}')">View</button></td>
         `;
       tbody.appendChild(row);
     });
@@ -186,34 +218,38 @@ function exportFile(type) {
   renderTable();
 
   // VIEW DETAILS MODAL
-  function viewDetails(orderNumber) {
-    const order = orders.find(o => o.order_number === orderNumber);
-    if (!order) return;
-    const modal = document.getElementById("detailsModal");
-    const details = document.getElementById("orderDetails");
+function viewDetails(orderNumber) {
+  const order = orders.find(o => o.order_number === orderNumber);
+  if (!order) return;
 
-    const driver = order.driver_name || 'Undefined';
-    const payment = order.payment_method || 'Undefined';
-    const date = order.date ? order.date.slice(0, 10) : 'Undefined';
-    const customer = order.customer_name || 'Undefined';
-    const items = Array.isArray(order.items) ? order.items : [];
+  document.getElementById("modalOrderNumber").textContent = order.order_number || "Undefined";
+  document.getElementById("modalCustomer").textContent = order.customer_name || "Undefined";
+  document.getElementById("modalPayment").textContent = order.payment_method || "Undefined";
+  document.getElementById("modalStatus").textContent = order.status || "Undefined";
+  document.getElementById("modalDate").textContent = order.date ? order.date.slice(0, 10) : "Undefined";
+  document.getElementById("modalTotal").textContent = `₱${parseFloat(order.total || 0).toFixed(2)}`;
 
-    details.innerHTML = `
-      <p><strong>Customer:</strong> ${customer}</p>
-      <p><strong>Driver:</strong> ${driver}</p>
-      <p><strong>Total:</strong> ₱${parseFloat(order.total || 0).toFixed(2)}</p>
-      <p><strong>Status:</strong> ${order.status || 'Undefined'}</p>
-      <p><strong>Payment:</strong> ${payment}</p>
-      <p><strong>Date:</strong> ${date}</p>
-      <p><strong>Items:</strong></p>
-      <ul>${items.map(i => `<li>${i.product_name || 'Undefined'} × ${i.quantity || 1}</li>`).join('')}</ul>
-    `;
-    modal.style.display = "flex";
-  }
+  const itemsList = document.getElementById("modalItemsList");
+  const items = Array.isArray(order.items) ? order.items : [];
+  itemsList.innerHTML = items.length
+    ? items.map(i => `<li>${i.product_name || "Undefined"} × ${i.quantity || 1}</li>`).join("")
+    : "<li>No items found</li>";
+
+  document.getElementById("detailsModal").style.display = "flex";
+}
+
 
   function closeModal() {
     document.getElementById("detailsModal").style.display = "none";
   }
+
+window.addEventListener("click", function (e) {
+  const modal = document.getElementById("detailsModal");
+  if (e.target === modal) {
+    modal.style.display = "none";
+  }
+});
+
 
   // FILTER CHANGE HANDLING — RELOAD WITH GET PARAMS
   document.querySelectorAll('#statusFilter, #paymentFilter, #fromDate, #toDate')

@@ -1,16 +1,62 @@
+
+
 :root {
-  --bg-light: #f5f1eb;
-  --primary: #8b6f47;
-  --secondary: #d2b48c;
-  --accent: #a67c52;
-  --text-dark: #3e2f1c;
-  --white: #fff;
+    --bg: #f9fafb;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --text: #111827;
+    --muted: #6b7280;
+    --accent: #50c256;
+    --accent-dark: #2f7232;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --radius: 12px;
+    font-family: "Poppins", "Inter", sans-serif;
 }
 
-h2 {
-  color: var(--primary);
-  margin-bottom: 20px;
+/* Base Styles */
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
 }
+
+/* Main Container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 20px;
+    box-sizing: border-box;
+}
+
+/* First Row: Title + Archive Button */
+#first-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+#first-row h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#first-row h2::before {
+    content: "☰";
+    font-size: 22px;
+    color: var(--accent);
+    cursor: pointer;
+}
+
 
 /* Filters */
 .filters {
@@ -43,48 +89,98 @@ select, input[type="date"] {
   font-size: 14px;
 }
 
-/* Table */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: var(--white);
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+/* Table Container */
+#table-container {
+    background: var(--card);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
+    padding: 22px;       /* keep container padding */
+    margin-top: 30px !important;
+    border: 1px solid var(--border);
 }
 
-th, td {
-  padding: 12px 16px;
+
+
+
+.staff-table thead {
+    border-bottom: 2px solid var(--border);
+}
+
+
+
+.staff-table th:last-child {
+    text-align: center;
+    width: 140px;
+}
+
+
+.staff-table tr:hover {
+    background: #f9fafb;
+}
+
+.staff-table tr.unread td {
+    font-weight: 600;
+    background-color: #fef9f6;
+}
+
+.staff-table th{
   text-align: left;
 }
 
-th {
-  background-color: var(--primary);
-  color: var(--white);
+
+
+
+
+
+
+/* Container stays the same */
+
+
+/* Scrollable wrapper around the table */
+.table-wrapper {
+    height: 70vh;   /* or whatever height you want the table scroll area to be */
+    overflow-y: auto;    /* vertical scroll */
+    overflow-x: auto;    /* horizontal scroll if table is wider */
 }
 
-tr {
-  display: table-row;
-  vertical-align: middle;
-  border-bottom: 1px solid #e0d6c9;
+/* Table styling */
+.staff-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
 }
 
-tr:nth-child(even) {
-  background-color: #f9f6f1;
+/* Sticky headers */
+.staff-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--card);
+    z-index: 2;
+    border-bottom: 2px solid var(--border);
 }
 
-tr:nth-child(odd) {
-  background-color: #ffffff;
+/* Table cells */
+.staff-table th,
+.staff-table td {
+    padding: 10px 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-tr:hover {
-  background-color: #f1e9df;
+/* Scrollbar styling for table only */
+.table-wrapper::-webkit-scrollbar {
+    width: 8px;
 }
 
-tbody tr {
-  display: table-row !important;
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #c0a78a;
+    border-radius: 6px;
 }
 
+.table-wrapper::-webkit-scrollbar-track {
+    background: #e6e2dc;
+}
 
 .actions button {
   padding: 5px 10px;
@@ -95,13 +191,23 @@ tbody tr {
 }
 
 .view-btn {
-  background-color: var(--secondary);
-  color: var(--text-dark);
+    background: #fbf5ca;
+    color: #77681a;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .view-btn:hover {
-  background-color: var(--accent);
-  color: var(--white);
+    background: #cfc997;
+    transform: translateY(-1px);
 }
 
 .export-buttons {
@@ -112,72 +218,150 @@ tbody tr {
 }
 
 .export-buttons button {
-  padding: 8px 14px;
-  background-color: var(--primary);
-  color: var(--white);
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    padding: 0 14px;
+    cursor: pointer;
+    font-weight: 600;
+    text-transform: capitalize;
+    transition: all 0.25s ease;
+    color: #fff;
+    background-color: var(--accent);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 
 .export-buttons button:hover {
-  background-color: var(--accent);
+    background-color: var(--accent-dark);
+    transform: translateY(-1px);
 }
 
-/* Pagination */
-.pagination {
-  margin-top: 15px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-}
 
-.pagination button {
-  background-color: var(--secondary);
-  border: none;
-  padding: 6px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--text-dark);
-}
-
-.pagination button:disabled {
-  background-color: #ddd;
-  cursor: not-allowed;
-}
-
-/* Modal */
-.modal {
+#detailsModal {
   display: none;
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
   justify-content: center;
   align-items: center;
+  z-index: 1000;
+  font-family: "Poppins", sans-serif;
 }
 
-.modal-content {
-  background: var(--white);
-  padding: 20px;
-  border-radius: 10px;
-  width: 400px;
-  position: relative;
+/* === Modal Card === */
+#detailsModal .modal-card {
+  background: var(--card, #fff);
+  border-radius: var(--radius, 12px);
+  width: 520px;
+  max-width: 90%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  animation: popIn 0.3s ease;
 }
 
-.modal-content h3 {
-  color: var(--primary);
-  margin-bottom: 10px;
+/* === Header === */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f5f5f5;
+  padding: 12px 20px;
+  border-bottom: 1px solid #ddd;
 }
-
-.close-btn {
-  position: absolute;
-  top: 10px; right: 10px;
-  background: none;
-  border: none;
+.modal-header h2 {
   font-size: 18px;
+  margin: 0;
+}
+.modal-close {
+font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
+  }
+.modal-close:hover {
+  color: #000;
+}
+
+/* === Info Section === */
+.modal-info {
+  padding: 15px 20px;
+  font-size: 14px;
+}
+.modal-info p {
+  margin: 5px 0;
+  color: #333;
+}
+.modal-info strong {
+  display: inline-block;
+  width: 90px;
+  color: #555;
+}
+
+/* === Body (Scrollable Items List) === */
+.modal-body {
+  background: #fafafa;
+  padding: 18px 20px;
+  font-size: 14px;
+  color: #222;
+  line-height: 1.6;
+  flex: 1;
+  overflow-y: auto;
+}
+.modal-body h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 15px;
+}
+.modal-body ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.modal-body li {
+  margin-bottom: 6px;
+}
+
+/* === Footer Buttons === */
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 20px;
+  background: #f5f5f5;
+  border-top: 1px solid #ddd;
+}
+.modal-buttons button {
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: none;
   cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+#closeMessageBtn {
+  background: #d8c3a7;
+  color: #5b4b35;
+}
+#closeMessageBtn:hover {
+  background: #c0a78a;
+}
+
+/* === Animation === */
+@keyframes popIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

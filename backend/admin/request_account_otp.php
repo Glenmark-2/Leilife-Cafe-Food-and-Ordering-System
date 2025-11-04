@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 require_once __DIR__ . "/../db_script/db.php";
 require_once "../send_mail.php";
@@ -11,6 +12,27 @@ function respond($success, $message) {
 }
 
 try {
+    // ✅ Resend OTP request
+    if (isset($_POST['resend']) && $_POST['resend'] == true) {
+        if (!isset($_SESSION['pending_account']['email'])) {
+            throw new Exception("No pending account found.");
+        }
+
+        $email = $_SESSION['pending_account']['email'];
+
+        // Generate new OTP
+        $otp = rand(100000, 999999);
+        $_SESSION['pending_account']['otp'] = $otp;
+        $_SESSION['pending_account']['expires'] = time() + 20; // 5 minutes
+
+        if (!sendOTP($email, $otp)) {
+            throw new Exception("Failed to send OTP.");
+        }
+
+        respond(true, "OTP resent successfully.");
+    }
+
+    // --- Normal new account request ---
     $name     = trim($_POST['name'] ?? '');
     $role     = trim($_POST['role'] ?? '');
     $shift    = trim($_POST['shift'] ?? '');
@@ -22,6 +44,7 @@ try {
         throw new Exception("All fields are required.");
     }
 
+    // --- Check email uniqueness ---
     function emailExists($pdo, $email, $table, $column = 'email') {
         $allowedTables = ['users', 'admin_accounts', 'driver_accounts'];
         if (!in_array($table, $allowedTables)) {
@@ -36,8 +59,23 @@ try {
     if (emailExists($pdo, $email, 'admin_accounts'))  respond(false, "Email already registered as Admin.");
     if (emailExists($pdo, $email, 'driver_accounts')) respond(false, "Email already registered as Driver.");
 
-    $otp = generateOTP();
+    // --- Handle photo upload ---
+    $imageName = null;
+    if (!empty($_FILES['photo']['name'])) {
+        $uploadDir = __DIR__ . '/../../public/staffs/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
+        $cleanFileName = preg_replace("/[^A-Za-z0-9.\-_]/", "_", trim($_FILES['photo']['name']));
+        $imageName = time() . "_" . $cleanFileName;
+        $targetFile = $uploadDir . $imageName;
+
+        if (!move_uploaded_file($_FILES['photo']['tmp_name'], $targetFile)) {
+            respond(false, "Image upload failed");
+        }
+    }
+
+    // --- Generate OTP and save to session ---
+    $otp = rand(100000, 999999);
     $_SESSION['pending_account'] = [
         'name'     => $name,
         'role'     => $role,
@@ -45,16 +83,18 @@ try {
         'username' => $username,
         'email'    => $email,
         'password' => password_hash($password, PASSWORD_DEFAULT),
-        'photo'    => $_FILES['photo']['name'] ?? null,
+        'photo'    => $imageName, // saved filename
         'otp'      => $otp,
-        'expires'  => time() + 300
+        'expires'  => time() + 20 // 5 minutes
     ];
 
+    // --- Send OTP ---
     if (!sendOTP($email, $otp)) {
-        throw new Exception("Failed to send OTP.");
+        respond(false, "Failed to send OTP.");
     }
 
     respond(true, "OTP sent. Verification required.");
+
 } catch (Exception $e) {
     respond(false, $e->getMessage());
 }

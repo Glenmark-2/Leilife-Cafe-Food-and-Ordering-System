@@ -6,6 +6,12 @@ if (session_status() === PHP_SESSION_NONE) {
 include "../components/buttonTemplate.php";
 include "../components/modal.php";
 createModal();
+require_once __DIR__ . '/../backend/db_script/db.php';
+require_once __DIR__ . '/../backend/db_script/appData.php';
+
+$appData = new AppData($pdo);
+$payment_methods = $appData->getPaymentMethods();
+$delivery_methods = $appData->getDeliveryMethods();
 ?>
 <div class="checkout-container">
   <!-- LEFT COLUMN -->
@@ -27,95 +33,122 @@ createModal();
           <div class="phone-wrapper">
             <input type="tel" id="phone" readonly>
             <!-- <button type="button" id="phone-edit-btn" class="edit-btn">Edit</button> -->
-            
+
           </div>
-          
+
         </div>
-        
+
       </div>
       <div id="edit-div">
         <?php
-            echo createButton(
-              30,
-              70,
-              "Edit",
-              "phone-edit-btn",
-              16,
-              "button",
-              ['data-state' => 'edit']
-            );
-            ?>
+        echo createButton(
+          30,
+          70,
+          "Edit",
+          "phone-edit-btn",
+          16,
+          "button",
+          ['data-state' => 'edit']
+        );
+        ?>
       </div>
     </div>
 
 
-    <!-- Delivery Options -->
-    <div class="card">
-      <h3>Delivery Options</h3>
-
-      <label class="options">
-        <input type="radio" name="delivery" value="pickup" onchange="toggleDelivery()">
-        <span class="label">Pick-Up</span>
-      </label>
-
-      <div id="pickup-options" style="display: none; margin-left: 20px; margin-top: 10px;">
-        <label class="options sub-option">
-          <input type="radio" name="pickup_location" value="store1">
-          <span class="label">Lunduyan Langaray Village, Barangay 14 Caloocan City</span>
-        </label>
-      </div>
-
-      <label class="options">
-        <input type="radio" name="delivery" value="home" onchange="toggleDelivery()">
-        <span class="label">Home Delivery</span>
-      </label>
-
-      <div id="home-options" style="display: none; margin-left: 20px; margin-top: 10px;">
-        <div>
-          <label for="full-address">Full Address</label>
-          <textarea id="full-address" rows="2" readonly></textarea>
-        </div>
-
-        <div style="margin-top: 10px;">
-          <label for="note">Notes to Rider</label>
-          <textarea id="note" rows="2" readonly></textarea>
-        </div>
-
-        <div style="display: flex; justify-content:flex-end;">
-          <?php
-          echo createButton(
-            30,
-            70,
-            "Edit",
-            "edit-address",
-            16,
-            "button",
-            ['data-state' => 'edit', 'name' => 'update_address']
-          );
-
-          ?>
 
 
-        </div>
-      </div>
+<div class="card">
+  <h3>Delivery Options</h3>
 
-    </div>
+  <?php 
+  $firstEnabled = true; // track first enabled option for default selection
+  foreach ($delivery_methods as $dm):
+      if ($dm['status'] !== 'enabled') continue;
+
+      // Map option_name to JS-compatible value
+      $value = strtolower(str_replace([' ', '-'], '_', $dm['option_name'])); 
+      $checked = $firstEnabled ? 'checked' : '';
+  ?>
+
+      <?php if (strtolower($dm['option_name']) === "pick-up" || strtolower($dm['option_name']) === "pickup"): ?>
+          
+          <label class="options">
+            <input type="radio" name="delivery" value="pickup" onchange="toggleDelivery()" <?= $checked ?>>
+            <span class="label"><?= htmlspecialchars($dm['option_name']) ?></span>
+          </label>
+
+          <div id="pickup-options" style="display: <?= $checked ? 'block' : 'none' ?>; margin-left: 20px; margin-top: 10px;">
+            <label class="options sub-option">
+              <input type="radio" name="pickup_location" value="store1" <?= $checked ? 'checked' : '' ?>>
+              <span class="label">Lunduyan Langaray Village, Barangay 14 Caloocan City</span>
+            </label>
+          </div>
+
+      <?php elseif (strtolower($dm['option_name']) === "home delivery"): ?>
+
+          <label class="options">
+            <input type="radio" name="delivery" value="home" onchange="toggleDelivery()" <?= $checked ?>>
+            <span class="label"><?= htmlspecialchars($dm['option_name']) ?></span>
+          </label>
+
+          <div id="home-options" style="display: <?= $checked ? 'block' : 'none' ?>; margin-left: 20px; margin-top: 10px;">
+            <div>
+              <label for="full-address">Full Address</label>
+              <textarea id="full-address" rows="2" readonly></textarea>
+            </div>
+
+            <div style="margin-top: 10px;">
+              <label for="note">Notes to Rider</label>
+              <textarea id="note" rows="2" readonly></textarea>
+            </div>
+
+            <div style="display: flex; justify-content:flex-end;">
+              <?php
+              echo createButton(
+                30,
+                70,
+                "Edit",
+                "edit-address",
+                16,
+                "button",
+                ['data-state' => 'edit', 'name' => 'update_address']
+              );
+              ?>
+            </div>
+          </div>
+
+      <?php endif; ?>
+
+  <?php 
+      if ($firstEnabled) $firstEnabled = false; // only first option gets checked
+  endforeach; 
+  ?>
+
+</div>
 
 
 
     <!-- Payment Method -->
     <div class="card" style="margin-bottom: 0;">
       <h3>Payment Method</h3>
-      <label class="options">
-        <input type="radio" name="payment_method" id="pm-cash" value="cash" checked>
-        <span class="label">Cash</span>
-      </label>
-      <label class="options">
-        <input type="radio" name="payment_method" id="pm-gcash" value="gcash">
-        <span class="label">GCash</span>
-      </label>
+      <?php foreach ($payment_methods as $pm): ?>
+  <?php if ($pm['status'] == "enabled"): 
+    $id = 'pm-' . strtolower(str_replace(' ', '-', $pm['method'])); // e.g. pm-gcash or pm-cash
+  ?>
+    <label class="options">
+      <input type="radio" name="payment_method" id="<?= $id ?>" 
+             value="<?= htmlspecialchars(strtolower($pm['method'])) ?>">
+      <span class="label"><?= htmlspecialchars($pm['method']) ?></span>
+    </label>
+  <?php endif; ?>
+<?php endforeach; ?>
+
     </div>
   </div>
+
+
+
+
 
 
   <!-- RIGHT COLUMN -->
@@ -144,17 +177,17 @@ createModal();
         </tr>
       </table>
       <div style="display: flex; justify-content:center">
-        <?php 
-       echo createButton(
-              40,
-              300,
-              "Place Order",
-              "place-order-btn",
-              16,
-              "button",
-              ['data-state' => 'edit']
-            );
-      ?>
+        <?php
+        echo createButton(
+          40,
+          300,
+          "Place Order",
+          "place-order-btn",
+          16,
+          "button",
+          ['data-state' => 'edit']
+        );
+        ?>
       </div>
     </div>
   </div>

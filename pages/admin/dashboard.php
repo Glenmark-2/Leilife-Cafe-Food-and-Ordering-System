@@ -720,7 +720,7 @@ $totalActiveDriver = $appData->activeDriver();
   </div>
 
   <div style="margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-    <label for="orderSearch" style="font-weight:600;">Search Order #:</label>
+    <!-- <label for="orderSearch" style="font-weight:600;">Search Order #:</label> -->
     <input type="text" id="orderSearch" placeholder="Enter order number" style="padding:6px 10px; border-radius:6px; border:1px solid #ccc; flex:1;">
   </div>
 

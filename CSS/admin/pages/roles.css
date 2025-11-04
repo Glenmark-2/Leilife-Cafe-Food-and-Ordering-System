@@ -39,6 +39,7 @@
   gap: 12px;
   width: 100%;
   box-sizing: border-box;
+  padding: 0;
 }
 
 /* Header */
@@ -189,40 +190,80 @@
 
 
 
-    #table-container {
-        background: var(--card);
-        box-shadow: var(--shadow);
-        border-radius: var(--radius);
-        padding: 22px;
-    }
+/* Make table scrollable inside the container */
+#table-container {
+    background: var(--card);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
+    padding: 22px;       /* keep container padding */
+    margin-top: 30px !important;
+    border: 1px solid var(--border);
+}
 
-    #table-container p {
-        font-weight: 700;
-        margin-bottom: 12px;
-        font-size: 16px;
-    }
+/* Staff Table */
+.staff-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;       /* ensures columns align */
+}
 
-    .staff-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+/* Table headers sticky */
+.staff-table thead th {
+    position: sticky;
+    top: 0;                    /* sticks to top when scrolling */
+    background: var(--card);   /* same as container */
+    z-index: 2;
+    box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1); /* optional shadow */
+}
 
-    .staff-table th,
-    .staff-table td {
-        padding: 10px 12px;
-        text-align: left;
-        border-bottom: 1px solid var(--border);
-    }
+.table-wrapper {
+    height: 70vh;   /* or whatever height you want the table scroll area to be */
+    overflow-y: auto;    /* vertical scroll */
+    overflow-x: auto;    /* horizontal scroll if table is wider */
+}
+.table-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
 
-    .staff-table th {
-        background: var(--accent-light);
-        font-weight: 600;
-        color: var(--text);
-    }
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #c0a78a;
+    border-radius: 6px;
+}
 
-    .staff-table tr:hover {
-        background: #f9fafb;
-    }
+.table-wrapper::-webkit-scrollbar-track {
+    background: #e6e2dc;
+}
+.staff-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--card);
+    z-index: 2;
+    border-bottom: 2px solid var(--border);
+}
+
+
+/* Table cells */
+.staff-table th,
+.staff-table td {
+    padding: 12px 14px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
+
+/* Last column centered */
+.staff-table th:last-child,
+.staff-table td:last-child {
+    text-align: center;
+    width: 140px;
+}
+
+/* Hover effect */
+.staff-table tr:hover {
+    background: #f9fafb;
+}
 
 
    
@@ -882,32 +923,7 @@ font-size: 12px;
     to { opacity: 1; transform: scale(1); }
   }
 
-#table-container {
-  overflow-y: auto;
-  min-height: 300px;
-  max-height: 600px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  background: var(--card);
-}
 
 
 
 
-
-/* Scrollbar */
-#table-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-#table-container::-webkit-scrollbar-thumb {
-  background: #62b797;
-  border-radius: 6px;
-}
-
-#table-container::-webkit-scrollbar-track {
-  background: #eef1ff;
-}
-
-  

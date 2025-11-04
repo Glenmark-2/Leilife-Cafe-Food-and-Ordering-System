@@ -1030,6 +1030,12 @@ $sqlSummary = "
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
+        public function getDeliveryMethods()
+        {
+            $stmt = $this->db->prepare("SELECT * FROM delivery_options ORDER BY delivery_id ASC");
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
 
         // queries for solo product page

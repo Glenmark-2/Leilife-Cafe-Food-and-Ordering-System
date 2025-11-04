@@ -24,7 +24,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </style>
 
 <div class="container">
-    <div id="first-row" style="padding: 0;">
+    <div id="first-row">
         <h2 >Staff Management</h2>
         <button type="button" id="view-archive">
             <span><?= $showArchived ? "View Active" : "View Archive" ?></span>
@@ -33,8 +33,8 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <div id="search_add">
         <form class="search-bar" role="search" style="margin-bottom: 0;">
-            <label for="search-input">Search Staff :</label>
-            <input type="search" id="search-input" placeholder="Enter name" aria-label="Search staff">
+            <!-- <label for="search-input">Search Staff :</label> -->
+            <input type="search" id="search-input" placeholder="Search staff name" aria-label="Search staff">
         </form>
         <div>
             <button type="button" class="add" id="add-member"><span>+ Add new staff</span></button>
@@ -49,6 +49,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <div id="table-container">
+        <div  class="table-wrapper"> 
         <table class="staff-table" aria-live="polite">
             <thead>
                 <tr>
@@ -103,6 +104,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     </div>
 
 </div>

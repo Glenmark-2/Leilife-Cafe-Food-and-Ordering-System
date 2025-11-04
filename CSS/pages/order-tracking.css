@@ -240,3 +240,27 @@ button[disabled] {
     gap: 10px; 
     align-items: center;
 }
+
+
+
+
+
+#confirm-yes {
+  background-color: #4caf50; /* green */
+  color: white;
+  padding:6px 16px;border:none;border-radius:6px;cursor:pointer;font-size:14px;color:white;
+}
+
+#confirm-yes:hover {
+  background-color: #2e8b57;
+}
+
+#confirm-no {
+ background-color: #f44336; /* green */
+  color: white;
+  padding:6px 16px;border:none;border-radius:6px;cursor:pointer;font-size:14px;color:white;
+}
+
+#confirm-no:hover {
+  background-color: #b52b27;
+}

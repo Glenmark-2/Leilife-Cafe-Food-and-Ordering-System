@@ -84,25 +84,14 @@ $messages = $appData->loadInbox($archived);
   </div>
 </div>
 
-<!-- === Modal for Viewing Message ===
-<div id="messageModal" class="modal">
-  <div class="modal-content">
-    <span class="close-btn">&times;</span>
-    <h2>Message</h2>
-    <p id="modalMessage"></p>
-  </div>
-</div> -->
-
 <!-- === Message Details Modal === -->
 <div id="messageModal" class="modal">
   <div class="modal-card">
-    <!-- Modal Header -->
     <div class="modal-header">
       <h2>Message Details</h2>
       <button class="modal-close">&times;</button>
     </div>
 
-    <!-- Sender & Info Section -->
     <div class="modal-info">
       <p><strong>Name:</strong> <span id="modalName"></span></p>
       <p><strong>Email:</strong> <span id="modalEmail"></span></p>
@@ -112,13 +101,10 @@ $messages = $appData->loadInbox($archived);
 
     </div>
 
-
-    <!-- Message Body -->
     <div class="modal-body">
       <p id="modalMessage"></p>
     </div>
 
-    <!-- Footer Buttons -->
     <div class="modal-buttons">
       <button id="closeMessageBtn">Close</button>
     </div>

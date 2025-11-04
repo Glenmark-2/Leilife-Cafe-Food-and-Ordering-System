@@ -663,6 +663,80 @@ $totalActiveDriver = $appData->activeDriver();
       padding: 4px 10px;
     }
   }
+
+  /* Table Wrapper */
+/* Table Container */
+/* Table Container */
+#table {
+  background: var(--card);
+  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  padding: 22px;
+  border: 1px solid var(--border);
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  max-height: 600px; /* overall height */
+}
+
+/* Sticky Header */
+#table-title {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  border-bottom: 2px solid var(--border);
+  padding: 10px 20px;
+  position: sticky;
+  top: 0;
+  background: var(--card);
+  z-index: 10;
+}
+
+/* Scrollable Body */
+#table-body {
+  overflow-y: auto;
+  flex-grow: 1;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Individual Rows */
+#table-body .table-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#table-body .table-row:hover {
+  background: #fafafa;
+}
+
+#table-body p {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Scrollbar */
+#table-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+#table-body::-webkit-scrollbar-thumb {
+  background: #c0a78a;
+  border-radius: 6px;
+}
+
+#table-body::-webkit-scrollbar-track {
+  background: #e6e2dc;
+}
+
 </style>
 
 <div class="container">
@@ -1018,43 +1092,34 @@ $totalActiveDriver = $appData->activeDriver();
         if (order.status === 'ready_for_delivery') ready++;
 
         // Main order row
-        const row = document.createElement('div');
-        row.classList.add('table-row');
-        row.style.display = "flex";
-        row.style.alignItems = "center";
-        row.style.justifyContent = "space-between";
-        row.style.padding = "10px 20px";
-        row.style.borderBottom = "1px solid #ddd";
-        row.style.cursor = "pointer";
-        row.dataset.orderId = order.order_id;
+const row = document.createElement('div');
+row.classList.add('table-row');
+row.dataset.orderId = order.order_id;
 
-        row.innerHTML = `
-                <p style="width:23%;">${escapeHtml(order.order_number)}</p>
-                <p style="width:18%;">${escapeHtml(order.customer_name || 'Unknown User')}</p>
-                <p id="order-total-${order.order_id}" style="width:13%;">₱${parseFloat(order.total || 0).toFixed(2)}</p>
-                <p style="width:8%; text-align:left;">${order.items_count}</p>
-                <div style="width:18%; position:relative;">
-                    <button class="status-btn" data-id="${order.order_id}" data-status="${order.status}">
-                        ${formatStatus(order.status)}
-                    </button>
-                    <div class="status-menu hidden">
-                        ${createStatusOptions(order.status, order.delivery_method)}
-                    </div>
-                </div>
-                <p style="width:15%;">${escapeHtml(order.payment_status)}</p>
-                <p style="width:13%;">${escapeHtml(order.delivery_method)}</p>
-                <div style="width:15%; display:flex; justify-content:center">
-                    <button class="dlBtn"
-                    style = "background:transparent; border: 0;"
-                    >
-                        <img src="/leilife/public/assests/downloads.png" alt="Download"
-                        style = "width:20px;">
-                    </button>
-                </div>
+row.innerHTML = `
+  <p style="width:23%;">${escapeHtml(order.order_number)}</p>
+  <p style="width:18%;">${escapeHtml(order.customer_name || 'Unknown User')}</p>
+  <p id="order-total-${order.order_id}" style="width:13%;">₱${parseFloat(order.total || 0).toFixed(2)}</p>
+  <p style="width:8%; text-align:left;">${order.items_count}</p>
+  <div style="width:18%; position:relative;">
+      <button class="status-btn" data-id="${order.order_id}" data-status="${order.status}">
+          ${formatStatus(order.status)}
+      </button>
+      <div class="status-menu hidden">
+          ${createStatusOptions(order.status, order.delivery_method)}
+      </div>
+  </div>
+  <p style="width:15%;">${escapeHtml(order.payment_status)}</p>
+  <p style="width:13%;">${escapeHtml(order.delivery_method)}</p>
+  <div style="width:15%; display:flex; justify-content:center">
+      <button class="dlBtn" style="background:transparent; border:0;">
+          <img src="/leilife/public/assests/downloads.png" alt="Download" style="width:20px;">
+      </button>
+  </div>
+`;
 
-            `;
+tableBody.appendChild(row);
 
-        tableBody.appendChild(row);
 
         const dlBtn = row.querySelector('.dlBtn');
         dlBtn.addEventListener('click', e => {

@@ -38,5 +38,4 @@
   <div id="sidebar-wrapper">
       <?php include __DIR__ . "/sidebar.php"; ?>
   </div>
-</body>
-</html>
+

@@ -97,6 +97,7 @@ select, input[type="date"] {
     padding: 22px;       /* keep container padding */
     margin-top: 30px !important;
     border: 1px solid var(--border);
+    
 }
 
 
@@ -214,7 +215,6 @@ select, input[type="date"] {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 15px;
 }
 
 .export-buttons button {
@@ -365,3 +365,69 @@ font-size: 20px;
     opacity: 1;
   }
 }
+@media (max-width: 750px) {
+   
+    .container {
+        padding: 16px 12px;
+    }
+
+    #first-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    #first-row h2 {
+        font-size: 22px;
+    }
+
+   .export-buttons button {
+    border: none;
+    border-radius: 5px;
+    padding:10px;
+    cursor: pointer;
+    font-weight: 600;
+    text-transform: capitalize;
+    transition: all 0.25s ease;
+    color: #fff;
+    background-color: var(--accent);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: .7rem;
+}
+
+
+}
+
+@media (max-width:530px) {
+  #date-range {
+    display: flex;
+    flex-direction: column; /* stack inputs vertically */
+    gap: 6px;               /* space between label and inputs */
+    width: 100%;
+}
+
+#date-range label {
+    text-align: left;
+    font-weight: 600;
+    width: 100%;
+}
+
+#date-range input {
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+
+}
+
+
+

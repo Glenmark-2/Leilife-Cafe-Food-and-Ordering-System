@@ -70,9 +70,9 @@ $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: nul
 
     </div>
 
-    <div class="filter-group">
+    <div class="filter-group" id="date-range">
       <label>Date Range:</label>
-      <input type="date" id="fromDate" value="<?= htmlspecialchars($fromDate) ?>"> -
+      <input type="date" id="fromDate" value="<?= htmlspecialchars($fromDate) ?>"><span id="dash">-</span>
       <input type="date" id="toDate" value="<?= htmlspecialchars($toDate) ?>">
     </div>
 
@@ -261,4 +261,24 @@ window.addEventListener("click", function (e) {
       params.set('toDate', document.getElementById('toDate').value);
       window.location.search = params.toString(); // refresh page with filters
     }));
+
+
+
+      const dash = document.getElementById('dash');
+
+  function updateDash() {
+    if (window.innerWidth <= 530) {
+      dash.style.display = 'none'; // remove dash
+    } else {
+      dash.style.display = 'inline'; // show dash
+    }
+  }
+
+  // Run on load
+  updateDash();
+
+  // Run on window resize
+  window.addEventListener('resize', updateDash);
 </script>
+
+

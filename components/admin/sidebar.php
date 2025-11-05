@@ -37,4 +37,7 @@
     ?>
 
 </div>
+<script>
+    
+</script>
 <script src="Scripts/admin/components/sidebar.js"></script>

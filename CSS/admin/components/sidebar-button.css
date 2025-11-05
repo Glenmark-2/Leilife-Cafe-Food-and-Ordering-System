@@ -14,6 +14,11 @@
     
 }
 
+#box{
+    display: flex; 
+    justify-content:center; 
+    margin-top:5px;
+}
 /* default (black text, normal icon) */
 .sidebar-btn p {
     font-size: 1rem;
@@ -51,4 +56,23 @@
 
 .sidebar-btn:active img {
     filter: brightness(0) invert(1); /* keep white icon */
+}
+
+@media (max-width: 767px) {
+    .sidebar-btn{
+        width: fit-content !important;
+        height: fit-content;
+        padding: 5px;
+        display: flex;
+        justify-content: center;
+    }
+
+
+#box{
+    display: flex; 
+    justify-content:center; 
+    margin-top:5px;
+    width: fit-content;
+}
+
 }

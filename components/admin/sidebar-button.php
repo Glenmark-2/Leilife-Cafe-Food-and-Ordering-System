@@ -6,7 +6,7 @@ function sidebarButton($imagePath, $text, $page, $alt = "") {
     $href = ($page === 'logout') ? '/Leilife/backend/admin/admin_logout.php' : "/Leilife/public/admin.php?page=$page";
 
     echo "
-    <div style='display: flex; justify-content:flex-end; margin-top:10px'>
+    <div id='box'>
         <a href='$href' class='sidebar-btn $active' style='text-decoration:none; width:100%;'>
             <img src='$imagePath' alt='$alt'>
             <p id='text'>$text</p>

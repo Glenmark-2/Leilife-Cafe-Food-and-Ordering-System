@@ -10,12 +10,14 @@ html, body {
     min-height: 100vh;
     font-family: 'Poppins', sans-serif;
     
+    
 }
 
 /* Sidebar wrapper */
 #sidebar-wrapper {
     flex-shrink: 0;        /* do not shrink */
     transition: width 0.4s ease;
+    
 }
 
 
@@ -25,6 +27,7 @@ html, body {
     height: 100vh;
     box-shadow: 3px 0 8px rgba(0, 0, 0, 0.15);
     transition: width 0.4s ease;
+    
 }
 
 /* Collapsed state */
@@ -34,12 +37,19 @@ html, body {
 
 /* Content wrapper */
 #content-wrapper {
-     flex: 1;              /* take remaining space */
+    flex: 1;              /* take remaining space */
     padding: 20px 50px;
-    margin-left: 20px;
     
 }
 
 /* #content-wrapper, #content-wrapper * {
     margin: 0;
 } */
+
+@media (max-width: 768px) {
+    #content-wrapper {
+    flex: 1;              /* take remaining space */
+    padding: 10px ;
+    
+}
+}

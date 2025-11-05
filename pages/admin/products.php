@@ -104,16 +104,18 @@ $subCategories = array_values($subCategories);
     }
 </style>
 
-<div id="first-row">
+<div id="first-row"> 
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
     <h2>Products</h2>
     <div>
         <button type="button" id="edit-flavor-size-btn"><span>Edit Flavors/Sizes</span></button>
         <button type="button" id="view-archive"><span><?= $btnText ?></span></button>
-
     </div>
 </div>
-
-
 
 <div id="second-row">
     <button type="button" class="box-row clicked" data-category="all">All</button>
@@ -125,7 +127,9 @@ $subCategories = array_values($subCategories);
         </button>
     <?php endforeach; ?>
 </div>
+
 <hr>
+
 <div id="third-row">
     <div id="top">
         <form class="search-bar" role="search" onsubmit="return false;">
@@ -221,8 +225,14 @@ $subCategories = array_values($subCategories);
             </tbody>
         </table>
     </div>
-</div>
 
+    <!-- Pagination -->
+    <div class="pagination-container">
+        <button class="pagination-btn" id="prev-page" disabled>←</button>
+        <span id="page-info"></span>
+        <button class="pagination-btn" id="next-page">→</button>
+    </div>
+</div>
 
 
 <!-- Add New Product Modal -->
@@ -372,197 +382,252 @@ $subCategories = array_values($subCategories);
 
 
 
-<!-- Product Info Modal -->
-<div id="product-modal" class="modal" style="display:none;">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2 id="modal-title">Product Info</h2>
+<div id="product-modal" class="modal hidden">
+  <div class="modal-card">
+    <button class="modal-close" id="close-product-modal">&times;</button>
 
-        <div id="modal-body">
-            <!-- Filled dynamically -->
-        </div>
+    <header class="modal-header">
+      <h2 id="modal-title">Product Info</h2>
+    </header>
 
-        <div class="modal-footer">
-            <button id="edit-btn" class="btn-edit">Edit</button>
-            <button id="cancel-btn" class="btn-cancel">Cancel</button>
-        </div>
-    </div>
+    <section id="modal-body" class="modal-body">
+      <!-- Fetched product data dynamically inserted here -->
+    </section>
+
+    <footer class="modal-footer">
+      <button id="edit-btn" class="btn-primary">Edit</button>
+      <button id="cancel-btn" class="btn-outline">Close</button>
+    </footer>
+  </div>
 </div>
 
+<!-- ===================== MODERN STYLES ===================== -->
 <style>
-    .modal {
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.6);
-        display: flex; justify-content: center; align-items: center;
-        z-index: 9999;
-        font-family: 'Poppins', sans-serif;
-    }
+  :root {
+    --bg-overlay: rgba(0, 0, 0, 0.5);
+    --white: #fff;
+    --border: #e5e7eb;
+    --primary: #2563eb;
+    --primary-hover: #1e40af;
+    --text-dark: #1f2937;
+    --text-muted: #6b7280;
+    --shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
 
-    .modal-content {
-        background: #fff;
-        padding: 25px 30px;
-        border-radius: 10px;
-        width: 480px;
-        max-height: 85vh;
-        overflow-y: auto;
-        box-shadow: 0 5px 25px rgba(0,0,0,0.2);
-        position: relative;
-    }
+  body {
+    font-family: 'Poppins', sans-serif;
+  }
 
-    .modal-content h2 {
-        margin-top: 0;
-        color: #333;
-        font-weight: 600;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 8px;
-    }
+  /* ===== Modal Base ===== */
+  .modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--bg-overlay);
+    z-index: 9999;
+    animation: fadeIn 0.25s ease;
+  }
+  .modal.hidden { display: none; }
 
-    .modal-footer {
-        margin-top: 20px;
-        text-align: right;
-    }
+  .modal-card {
+    background: var(--white);
+    border-radius: 14px;
+    width: 92%;
+    max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+    position: relative;
+    animation: popUp 0.25s ease;
+  }
 
-    .modal .close {
-        position: absolute;
-        right: 15px;
-        top: 10px;
-        cursor: pointer;
-        font-size: 22px;
-        color: #999;
-        transition: 0.2s;
-    }
-    .modal .close:hover { color: #333; }
+  @keyframes popUp {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
 
-    .modal-body p {
-        margin: 8px 0;
-        font-size: 15px;
-        color: #444;
-    }
+  @keyframes fadeIn {
+    from { background: rgba(0, 0, 0, 0); }
+    to { background: var(--bg-overlay); }
+  }
 
-    .modal-body strong {
-        color: #222;
-        display: inline-block;
-        width: 140px;
-    }
+  /* ===== Header ===== */
+  .modal-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+  }
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-dark);
+  }
 
-    .modal-body img {
-        max-width: 160px;
-        margin-top: 8px;
-        border-radius: 6px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
+  /* ===== Body ===== */
+  .modal-body {
+    color: var(--text-dark);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .modal-body p {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed var(--border);
+    padding: 6px 0;
+    margin: 0;
+  }
+  .modal-body p strong {
+    color: var(--text-muted);
+    flex: 1;
+    font-weight: 500;
+  }
+  .modal-body p span {
+    flex: 1;
+    text-align: right;
+    color: var(--text-dark);
+  }
+  .modal-body img {
+    display: block;
+    margin: 10px auto;
+    border-radius: 8px;
+    max-width: 180px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
 
-    .btn-edit, .btn-cancel {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: 0.2s;
-    }
+  /* ===== Footer Buttons ===== */
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
 
-    .btn-edit {
-        background: #007bff;
-        color: #fff;
-        margin-right: 8px;
-    }
+  .btn-primary, .btn-outline {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
 
-    .btn-edit:hover {
-        background: #0069d9;
-    }
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+  }
+  .btn-primary:hover { background: var(--primary-hover); }
 
-    .btn-cancel {
-        background: #ccc;
-        color: #333;
-    }
+  .btn-outline {
+    border: 1px solid var(--border);
+    background: #f9fafb;
+    color: var(--text-dark);
+  }
+  .btn-outline:hover { background: #f3f4f6; }
 
-    .btn-cancel:hover {
-        background: #b5b5b5;
-    }
+  /* ===== Close Button ===== */
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    font-size: 22px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .modal-close:hover { color: var(--text-dark); }
 
-    button[disabled] {
-        opacity: 0.6;
-        cursor: not-allowed;
+  /* ===== Responsive ===== */
+  @media (max-width: 480px) {
+    .modal-card { padding: 18px; }
+    .modal-body p { flex-direction: column; text-align: left; }
+    .modal-body p strong, .modal-body p span {
+      flex: none; text-align: left;
     }
+    .modal-body img { max-width: 150px; }
+  }
 </style>
 
+<!-- ===================== BACKEND + LOGIC (Unchanged) ===================== -->
 <script>
-    const productModal = document.getElementById('product-modal');
-    const modalClose = productModal.querySelector('.close');
-    const modalEditBtn = document.getElementById('edit-btn');
-    const modalCancelBtn = document.getElementById('cancel-btn');
+  const productModal = document.getElementById('product-modal');
+  const closeProductModal = document.getElementById('close-product-modal');
+  const modalEditBtn = document.getElementById('edit-btn');
+  const modalCancelBtn = document.getElementById('cancel-btn');
 
-    function disableAllButtons() {
-        document.querySelectorAll('button:not(#edit-btn):not(#cancel-btn), .archive-icon').forEach(btn => {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            btn.style.cursor = 'not-allowed';
-        });
-    }
-
-    function enableAllButtons() {
-        document.querySelectorAll('button, .archive-icon').forEach(btn => {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.style.cursor = 'pointer';
-        });
-    }
-
-    // Open product info modal
-    document.querySelectorAll('.viewBtn').forEach(viewBtn => {
-        viewBtn.addEventListener('click', async () => {
-            const productId = viewBtn.dataset.productId;
-            disableAllButtons();
-
-            try {
-                const response = await fetch(`${BASE_URL}backend/admin/fetch_product_info.php?product_id=${productId}`);
-                const product = await response.json();
-                if (!product) throw new Error("No product data found");
-
-                const modalBody = document.getElementById('modal-body');
-                modalBody.innerHTML = `
-                    <p><strong>Main Category:</strong> ${product.main_category_name || 'N/A'}</p>
-                    <p><strong>Category:</strong> ${product.category_name || 'N/A'}</p>
-                    <p><strong>Product Name:</strong> ${product.product_name}</p>
-                    <p><strong>Price:</strong> ₱${product.product_price || 'N/A'}</p>
-                    ${product.price_large ? `<p><strong>Large Price:</strong> ₱${product.price_large}</p>` : ''}
-                    <p><strong>Status:</strong> ${product.status}</p>
-                    <p><strong>Flavors:</strong> ${product.flavors || 'N/A'}</p>
-                    <p><strong>Sizes:</strong> ${product.sizes || 'N/A'}</p>
-                    ${product.product_picture ? `
-                        <p><strong>Picture:</strong><br>
-                        <img src="public/products/${product.product_picture}" alt="Product Image" id="p_image"></p>
-                    ` : ''}
-                `;
-
-                document.getElementById('modal-title').textContent = 'Product Info';
-                modalEditBtn.style.display = 'inline-block';
-                modalCancelBtn.textContent = 'Close';
-                modalCancelBtn.disabled = false;
-                modalEditBtn.disabled = false;
-
-                productModal.style.display = 'flex';
-            } catch (err) {
-                console.error(err);
-                alert("Failed to fetch product info.");
-                enableAllButtons();
-            }
-        });
+  function disableAllButtons() {
+    document.querySelectorAll('button:not(#edit-btn):not(#cancel-btn), .archive-icon').forEach(btn => {
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      btn.style.cursor = 'not-allowed';
     });
+  }
 
-    // Close modal handlers
-    modalClose.addEventListener('click', closeModal);
-    modalCancelBtn.addEventListener('click', closeModal);
+  function enableAllButtons() {
+    document.querySelectorAll('button, .archive-icon').forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+  }
 
-    function closeModal() {
-        productModal.style.display = 'none';
+  // ==== Fetch Product Info ====
+  document.querySelectorAll('.viewBtn').forEach(viewBtn => {
+    viewBtn.addEventListener('click', async () => {
+      const productId = viewBtn.dataset.productId;
+      disableAllButtons();
+
+      try {
+        const response = await fetch(`${BASE_URL}backend/admin/fetch_product_info.php?product_id=${productId}`);
+        const product = await response.json();
+        if (!product) throw new Error("No product data found");
+
+        const modalBody = document.getElementById('modal-body');
+        modalBody.innerHTML = `
+          <p><strong>Main Category:</strong><span>${product.main_category_name || 'N/A'}</span></p>
+          <p><strong>Category:</strong><span>${product.category_name || 'N/A'}</span></p>
+          <p><strong>Product Name:</strong><span>${product.product_name}</span></p>
+          <p><strong>Price:</strong><span>₱${product.product_price || 'N/A'}</span></p>
+          ${product.price_large ? `<p><strong>Large Price:</strong><span>₱${product.price_large}</span></p>` : ''}
+          <p><strong>Status:</strong><span>${product.status}</span></p>
+          <p><strong>Flavors:</strong><span>${product.flavors || 'N/A'}</span></p>
+          <p><strong>Sizes:</strong><span>${product.sizes || 'N/A'}</span></p>
+          ${product.product_picture ? `
+            <img src="public/products/${product.product_picture}" alt="Product Image" id="p_image">
+          ` : ''}
+        `;
+
+        document.getElementById('modal-title').textContent = 'Product Info';
+        modalEditBtn.style.display = 'inline-block';
+        modalCancelBtn.textContent = 'Close';
+        modalCancelBtn.disabled = false;
+        modalEditBtn.disabled = false;
+
+        productModal.classList.remove('hidden');
+      } catch (err) {
+        console.error(err);
+        alert("Failed to fetch product info.");
         enableAllButtons();
-    }
-
-    productModal.addEventListener('click', (e) => {
-        if (e.target === productModal) closeModal();
+      }
     });
+  });
+
+  // ==== Modal Control ====
+  function closeModal() {
+    productModal.classList.add('hidden');
+    enableAllButtons();
+  }
+
+  closeProductModal.addEventListener('click', closeModal);
+  modalCancelBtn.addEventListener('click', closeModal);
+  productModal.addEventListener('click', (e) => {
+    if (e.target === productModal) closeModal();
+  });
 </script>
 
 
@@ -806,70 +871,96 @@ $subCategories = array_values($subCategories);
 </script>
 
 <script>
-        const BASE_URL = "http://localhost/Leilife/";
+const BASE_URL = "http://localhost/Leilife/";
 
-        // --- Search & Filter ---
-        const searchInput = document.getElementById('search-input');
-        const categoryButtons = document.querySelectorAll('.box-row');
+// --- Search & Filter ---
+const searchInput = document.getElementById('search-input');
+const categoryButtons = document.querySelectorAll('.box-row');
+const rows = Array.from(document.querySelectorAll('.product-row'));
+const prevBtn = document.getElementById('prev-page');
+const nextBtn = document.getElementById('next-page');
+const pageInfo = document.getElementById('page-info');
 
-        function filterProducts() {
-            const search = searchInput.value.toLowerCase();
-            const activeCategoryBtn = document.querySelector('.box-row.clicked');
-            const category = activeCategoryBtn ? (activeCategoryBtn.dataset.category || 'all').toLowerCase() : 'all';
+let itemsPerPage = 8;
+let currentPage = 1;
 
-            document.querySelectorAll('.product-row').forEach(row => {
-                const nameEl = row.querySelector('#pname');
-                const name = nameEl ? (nameEl.value || '').toLowerCase() : '';
-                const prodSub = row.dataset.sub ? row.dataset.sub.toLowerCase() : '';
-                const matchesSearch = name.includes(search);
-                const matchesCategory = category === 'all' || prodSub === category;
-                if (matchesSearch && matchesCategory) {
-                    row.classList.remove('hidden');
-                } else {
-                    row.classList.add('hidden');
-                }
-            });
-        }
+// --- Original filter function retained ---
+function filterProducts() {
+  const search = searchInput.value.toLowerCase();
+  const activeCategoryBtn = document.querySelector('.box-row.clicked');
+  const category = activeCategoryBtn ? (activeCategoryBtn.dataset.category || 'all').toLowerCase() : 'all';
 
-        function resetEditButtons() {
-            document.querySelectorAll('.editBtn').forEach(b => {
-                b.disabled = false;
-                b.style.opacity = "1";
-                b.style.cursor = "pointer";
-                b.textContent = "Edit";
-                b.style.backgroundColor = "#C6C3BD";
-                b.style.color = "#22333B";
-            });
+  document.querySelectorAll('.product-row').forEach(row => {
+    const nameEl = row.querySelector('#pname');
+    const name = nameEl ? (nameEl.value || '').toLowerCase() : '';
+    const prodSub = row.dataset.sub ? row.dataset.sub.toLowerCase() : '';
+    const matchesSearch = name.includes(search);
+    const matchesCategory = category === 'all' || prodSub === category;
+
+    if (matchesSearch && matchesCategory) {
+      row.classList.remove('hidden');
+    } else {
+      row.classList.add('hidden');
+    }
+  });
+
+  // sync pagination after filtering
+  currentPage = 1;
+  renderPagination();
+}
+
+// --- Pagination logic ---
+function getVisibleRows() {
+  return rows.filter(r => !r.classList.contains('hidden'));
+}
+
+function renderPagination() {
+  const visibleRows = getVisibleRows();
+  const totalPages = Math.max(1, Math.ceil(visibleRows.length / itemsPerPage));
+  currentPage = Math.min(currentPage, totalPages);
+
+  visibleRows.forEach((row, index) => {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    row.style.display = (index >= start && index < end) ? '' : 'none';
+  });
+
+  pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+  prevBtn.disabled = currentPage === 1;
+  nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+}
+
+// --- Event bindings ---
+searchInput.addEventListener('input', filterProducts);
+
+categoryButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    categoryButtons.forEach(b => b.classList.remove('clicked'));
+    btn.classList.add('clicked');
+    filterProducts();
+  });
+});
+
+prevBtn.addEventListener('click', () => {
+  if (currentPage > 1) {
+    currentPage--;
+    renderPagination();
+  }
+});
+
+nextBtn.addEventListener('click', () => {
+  const visibleRows = getVisibleRows();
+  const totalPages = Math.ceil(visibleRows.length / itemsPerPage);
+  if (currentPage < totalPages) {
+    currentPage++;
+    renderPagination();
+  }
+});
+
+// --- Initialize ---
+filterProducts();
 
 
-
-
-            const addBtn = document.getElementById("add-product");
-            if (addBtn) {
-                addBtn.disabled = false;
-                addBtn.style.opacity = "1";
-            }
-            // disable all inputs back
-            document.querySelectorAll('#pname, #pprice, #pprice_large, .pcategory, #statusBtn').forEach(el => {
-                el.disabled = true;
-                el.onclick = null;
-            });
-            document.querySelectorAll('.product-row').forEach(r => r.classList.remove('editing'));
-        }
-
-        categoryButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                categoryButtons.forEach(b => b.classList.remove('clicked'));
-                btn.classList.add('clicked');
-                filterProducts();
-                resetEditButtons(); // reset edit state
-            });
-        });
-
-        searchInput.addEventListener("input", () => {
-            filterProducts();
-            resetEditButtons(); // reset edit state
-        });
 
         // --- Edit & Save ---
         document.querySelectorAll('.editBtn').forEach(btn => btn.addEventListener('click', () => toggleEdit(btn)));

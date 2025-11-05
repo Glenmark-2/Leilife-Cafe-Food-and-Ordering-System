@@ -9,7 +9,35 @@ button {
 button:hover {
   opacity: 0.95;
 }
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 28px;
+  height: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
 
+/* The three bars */
+.hamburger span {
+  display: block;
+  height: 3px;
+  width: 100%;
+  background-color: #1205ff;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+/* Hide on desktop */
+@media (min-width: 768px) {
+  .hamburger {
+    display: none;
+  }
+}
 /* Status buttons */
 .statusBtn {
   padding: 5px 12px;
@@ -56,6 +84,51 @@ button:hover {
 .box-row.clicked {
   background: #4caf50;
   color: #fff;
+}
+#table-container {
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  margin-top: auto;
+}
+
+.product-row.hidden {
+  display: none !important;
+}
+
+.pagination-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#page-info {
+  min-width: 120px;
+  text-align: center;
+  font-weight: 500;
 }
 
 /* Search + Add Product */

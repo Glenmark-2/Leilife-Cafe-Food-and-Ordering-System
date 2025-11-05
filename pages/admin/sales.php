@@ -49,14 +49,23 @@ $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: nul
 
 <div class="container">
   <div id="first-row">
-    <h2>Sales Management</h2>
+    <div class="top-left">
+      <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <h2>Sales Management</h2>
+    </div>
+
     <div class="export-buttons">
-  <button onclick="exportFile('csv')">Export CSV</button>
-  <button onclick="exportFile('excel')">Export Excel</button>
-  <button onclick="exportFile('pdf')">Export PDF</button>
+      <button onclick="exportFile('csv')">Export CSV</button>
+      <button onclick="exportFile('excel')">Export Excel</button>
+      <button onclick="exportFile('pdf')">Export PDF</button>
+    </div>
+  </div>
 </div>
 
-  </div>
 
   <div class="filters">
     <div class="filter-group">

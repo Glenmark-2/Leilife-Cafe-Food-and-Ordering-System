@@ -24,7 +24,13 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </style>
 
 <div class="container">
+    
     <div id="first-row">
+        <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
         <h2 >Staff Management</h2>
         <button type="button" id="view-archive">
             <span><?= $showArchived ? "View Active" : "View Archive" ?></span>

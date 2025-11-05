@@ -48,16 +48,39 @@
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap:10px;
   margin: 0;
   color: #333;
 }
 
-#first-row h2::before {
-  content: "☰";
-  font-size: 22px;
-  color: var(--accent, #50c256);
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 28px;
+  height: 24px;
+  background: none;
+  border: none;
   cursor: pointer;
+  padding: 0;
+}
+
+/* The three bars */
+.hamburger span {
+  display: block;
+  height: 3px;
+  width: 100%;
+  background-color: #1205ff;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+/* Hide on desktop */
+@media (min-width: 768px) {
+  .hamburger {
+    display: none;
+  }
 }
 
 /* Buttons */

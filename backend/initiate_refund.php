@@ -1,66 +1,84 @@
 <?php
+// initiate_refund.php
 require_once __DIR__ . '/db_script/db.php';
+require_once __DIR__ . '/create_payment_intent.php';
+session_start();
+
 header('Content-Type: application/json');
 
-// Load your PayMongo secret key (from env or config)
-$secretKey = getenv("PAYMONGO_SECRET_KEY");
+$order_id = $_POST['order_id'] ?? null;
+$amount = isset($_POST['amount']) ? floatval($_POST['amount']) : null;
+$user_id = $_SESSION['user_id'] ?? null;
 
-$input = json_decode(file_get_contents('php://input'), true);
-$orderId = $input['order_id'] ?? null;
+$response = ['success' => false, 'message' => '', 'debug' => []];
 
-if (!$orderId) {
-    echo json_encode(['success' => false, 'message' => 'Missing order_id']);
+if (!$order_id || !$user_id || $amount === null) {
+    $response['message'] = 'Missing parameters';
+    echo json_encode($response);
     exit;
 }
 
 try {
-    // Get payment_id from your database
-    $stmt = $pdo->prepare("SELECT payment_id, total FROM orders WHERE order_id = :oid");
-    $stmt->execute([':oid' => $orderId]);
+    // ensure order belongs to user (or user has rights)
+    $stmt = $pdo->prepare("SELECT * FROM orders WHERE order_id = ? AND user_id = ?");
+    $stmt->execute([$order_id, $user_id]);
     $order = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$order) throw new Exception("Order not found or not owned.");
 
-    if (!$order) {
-        echo json_encode(['success' => false, 'message' => 'Order not found']);
-        exit;
+    // Only allow refund if order was paid
+    if (($order['payment_status'] ?? '') !== 'paid') {
+        throw new Exception("Order payment is not in 'paid' state.");
     }
 
-    $paymentId = $order['payment_id'];
-    $amount = intval($order['total'] * 100); // PayMongo uses centavos
+    $pdo->beginTransaction();
 
-    // Prepare refund payload
-    $payload = [
-        'data' => [
-            'attributes' => [
-                'amount' => $amount,
-                'notes' => 'Customer refund for order ' . $orderId,
-                'payment_id' => $paymentId
-            ]
-        ]
+    // find payment id
+    $effective_payment_id = $order['payment_id'] ?? null;
+    if (empty($effective_payment_id)) {
+        $tx = $pdo->prepare("SELECT external_id FROM transactions WHERE order_id = ? AND transaction_name='payment' AND transaction_status='success' ORDER BY transaction_id DESC LIMIT 1");
+        $tx->execute([$order_id]);
+        $t = $tx->fetch(PDO::FETCH_ASSOC);
+        if ($t) $effective_payment_id = $t['external_id'] ?? null;
+    }
+
+    if (empty($effective_payment_id)) {
+        throw new Exception("No payment identifier available to issue refund.");
+    }
+
+    // check refundable
+    $remaining_centavos = getRemainingRefundable($effective_payment_id);
+    $requested_centavos = intval(round($amount * 100));
+    if ($requested_centavos > $remaining_centavos) {
+        $requested_centavos = $remaining_centavos;
+    }
+    if ($requested_centavos <= 0) {
+        throw new Exception("No refundable balance left at provider.");
+    }
+
+    $refund_pesos = $requested_centavos / 100.0;
+
+    // initiate refund at provider
+    $refund_response = createRefund($effective_payment_id, $refund_pesos, $order_id);
+    if (!is_array($refund_response) || empty($refund_response['data']['id'])) {
+        throw new Exception("Invalid refund response from provider.");
+    }
+
+    // Do NOT insert a transactions refund record here. PayMongo webhook will insert/update it.
+    $pdo->commit();
+
+    $response['success'] = true;
+    $response['message'] = 'Refund initiated';
+    $response['refund'] = [
+        'id' => $refund_response['data']['id'],
+        'status' => $refund_response['data']['attributes']['status'] ?? 'pending',
+        'amount' => $refund_pesos
     ];
 
-    $ch = curl_init('https://api.paymongo.com/v1/refunds');
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => [
-            'Authorization: Basic ' . base64_encode($secretKey . ':'),
-            'Content-Type: application/json'
-        ],
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => json_encode($payload)
-    ]);
-
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    file_put_contents(__DIR__ . "/refunds.log", date("Y-m-d H:i:s") . " Refund response: {$response}" . PHP_EOL, FILE_APPEND);
-
-    if ($httpCode >= 200 && $httpCode < 300) {
-        echo json_encode(['success' => true, 'message' => 'Refund initiated', 'data' => json_decode($response, true)]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to create refund', 'response' => $response]);
-    }
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    if ($pdo->inTransaction()) $pdo->rollBack();
+    $response['success'] = false;
+    $response['message'] = 'Refund initiation failed: ' . $e->getMessage();
+    $response['debug'][] = $e->getTraceAsString();
 }
-?>
+
+echo json_encode($response);

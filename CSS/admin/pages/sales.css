@@ -23,38 +23,93 @@ body {
     line-height: 1.5;
 }
 
-/* Main Container */
+/* Container */
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 24px 20px;
-    box-sizing: border-box;
+  padding: 16px;
 }
 
-/* First Row: Title + Archive Button */
+/* Row layout */
 #first-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-    gap: 12px;
+  display: flex;
+  flex-direction: column; /* stack: top row then export buttons */
+  gap: 10px;
 }
 
-#first-row h2 {
-    font-size: 28px;
-    font-weight: 700;
-    margin: 0;
-    display: flex;
-    align-items: center;
+/* Top section: hamburger + title side by side */
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Title styling */
+.top-left h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #1a353c;
+}
+
+/* Hamburger button */
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 26px;
+  height: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hamburger span {
+  display: block;
+  height: 3px;
+  background-color: #1205ff;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+
+/* Export buttons (right side) */
+.export-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.export-buttons button {
+  padding: 6px 12px;
+  border: none;
+  background-color: #1a353c;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.export-buttons button:hover {
+  background-color: #2e5b64;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  #first-row {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 10px;
-}
+  }
 
-#first-row h2::before {
-    content: "☰";
-    font-size: 22px;
-    color: var(--accent);
-    cursor: pointer;
+  .export-buttons {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .export-buttons button {
+    flex: 1;
+  }
 }
 
 

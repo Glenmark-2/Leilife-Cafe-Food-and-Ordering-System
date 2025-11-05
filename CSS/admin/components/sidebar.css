@@ -5,21 +5,14 @@
     padding: 10px; /* remove inner gap */
     width: 100%;  
     box-shadow: 3px 0 8px rgba(0,0,0,0.15);
-    height: 100vh;
+    height: 1100%;
     transition: width 0.4s ease; /* smooth expand/collapse */
     overflow: hidden;
     background-color: #fefefe;
     
 }
 
-/* Collapsed state (for mobile or when toggled) */
-#db-container.collapsed {
-    width: 70px; /* only icons */
-}
 
-#db-container.collapsed p {
-    display: none; /* hide text */
-}
 
 /* Top logo row */
 #top {
@@ -106,23 +99,19 @@ width: 100%;
 }
 
 
-/* 📱 Mobile behavior */
+/* Hide sidebar on mobile by default */
 @media (max-width: 767px) {
-    #db-container {
-        width: 70px; /* collapsed by default */
-    }
+  #db-container {
+    
+    display: none;
+    z-index: 5000;
+  }
 
-    #db-container p {
-        display: none; /* hide all text */
-    }
+  #db-container.show {
+    display: flex;
+  }
 
-    #logo {
-        width: 40px; /* smaller logo */
-    }
+  
 
-    .sidebar-btn img {
-        width: 22px; /* smaller icons */
-    }
+
 }
-
-

@@ -9,7 +9,35 @@ button {
 button:hover {
   opacity: 0.95;
 }
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 28px;
+  height: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
 
+/* The three bars */
+.hamburger span {
+  display: block;
+  height: 3px;
+  width: 100%;
+  background-color: #1205ff;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+/* Hide on desktop */
+@media (min-width: 768px) {
+  .hamburger {
+    display: none;
+  }
+}
 /* Status buttons */
 .statusBtn {
   padding: 5px 12px;

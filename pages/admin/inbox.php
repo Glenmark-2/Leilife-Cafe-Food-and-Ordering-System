@@ -16,6 +16,11 @@ $messages = $appData->loadInbox($archived);
 ?>
 <div class="container"> 
   <div id="first-row">
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
   <h2>Inbox</h2>
   <button id="view-archive"><?= $archived ? "View Inbox" : "View Archive" ?></button>
 </div>

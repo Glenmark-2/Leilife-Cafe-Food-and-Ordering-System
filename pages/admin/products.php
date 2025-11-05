@@ -105,6 +105,11 @@ $subCategories = array_values($subCategories);
 </style>
 
 <div id="first-row"> 
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
     <h2>Products</h2>
     <div>
         <button type="button" id="edit-flavor-size-btn"><span>Edit Flavors/Sizes</span></button>

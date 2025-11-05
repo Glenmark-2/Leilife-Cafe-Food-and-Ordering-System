@@ -41,6 +41,7 @@ $currentPage = $_GET['page'] ?? 'dashboard';
 $page = $currentPage;
 ?>
 
+
 <div id="container"> <!-- main flex container -->
     <div id="sidebar-wrapper">
         <?php include "../components/admin/header.php"; ?>

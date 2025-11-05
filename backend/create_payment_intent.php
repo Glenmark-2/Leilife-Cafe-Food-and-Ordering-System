@@ -136,54 +136,43 @@ function attachPaymentMethodToIntent($secretKey, $piId, $pmId, $order_id) {
 // ----------- corrected createRefund -----------
 function createRefund(string $payment_id, $amount_pesos, $order_id = null, $item_id = null, $reason = "requested_by_customer") {
     $secretKey = getenv("PAYMONGO_SECRET_KEY");
-    if (!$secretKey) {
-        throw new Exception("Missing PAYMONGO_SECRET_KEY.");
-    }
+    if (!$secretKey) throw new Exception("Missing PAYMONGO_SECRET_KEY.");
+    if (!$payment_id) throw new Exception("Missing payment_id for refund.");
 
-    if (!$payment_id) {
-        throw new Exception("Missing payment_id for refund.");
-    }
-
-    // Convert pesos to centavos
     $amount_cents = intval(round(floatval($amount_pesos) * 100));
-    if ($amount_cents <= 0) {
-        throw new Exception("Refund amount must be greater than zero.");
-    }
+    if ($amount_cents <= 0) throw new Exception("Refund amount must be greater than zero.");
 
     $valid_reasons = ["duplicate", "fraudulent", "requested_by_customer"];
-    if (!in_array($reason, $valid_reasons, true)) {
-        $reason = "requested_by_customer";
-    }
+    if (!in_array($reason, $valid_reasons, true)) $reason = "requested_by_customer";
 
-    // Get remaining refundable amount
-    $remaining = getRemainingRefundable($payment_id); // in centavos
-    if (!is_int($remaining)) {
-        throw new Exception("Unable to determine remaining refundable amount.");
-    }
-
-    if ($amount_cents > $remaining) {
+    // ✅ Always check remaining refundable, but never block if delay causes mismatch
+    $remaining = getRemainingRefundable($payment_id);
+    if (!is_int($remaining)) $remaining = $amount_cents; // fallback
+    if ($remaining <= 0) {
+        error_log("⚠️ Warning: PayMongo shows remaining refundable = 0 for $payment_id, but proceeding anyway (may be delay).");
+    } elseif ($amount_cents > $remaining) {
         $formatted_requested = number_format($amount_cents / 100, 2);
         $formatted_remaining = number_format($remaining / 100, 2);
-        throw new Exception("Amount is greater than the remaining refundable value. Requested: PHP {$formatted_requested}, Remaining: PHP {$formatted_remaining}");
+        throw new Exception("Refund exceeds remaining refundable. Requested: PHP {$formatted_requested}, Remaining: PHP {$formatted_remaining}");
     }
 
-    // Build refund payload (✅ include payment_id)
-    $url = "https://api.paymongo.com/v1/refunds";
+    // ✅ Unique metadata each refund
     $payload = [
         "data" => [
             "attributes" => [
-                "amount"      => $amount_cents,
-                "reason"      => $reason,
-                "payment_id"  => $payment_id,   // ✅ required by PayMongo
-                "metadata"    => [
+                "amount"     => $amount_cents,
+                "reason"     => $reason,
+                "payment_id" => $payment_id,
+                "metadata"   => [
                     "order_id" => $order_id,
-                    "item_id"  => $item_id
+                    "item_id"  => $item_id,
+                    "refund_ref" => uniqid("ref_") // unique tag for each refund
                 ]
             ]
         ]
     ];
 
-    $ch = curl_init($url);
+    $ch = curl_init("https://api.paymongo.com/v1/refunds");
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
@@ -199,25 +188,25 @@ function createRefund(string $payment_id, $amount_pesos, $order_id = null, $item
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if ($curlErr) {
-        throw new Exception("cURL error during refund: " . $curlErr);
-    }
-
+    if ($curlErr) throw new Exception("cURL error during refund: " . $curlErr);
     $decoded = json_decode($resp, true);
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception("Invalid JSON response from PayMongo: " . $resp);
+    if (json_last_error() !== JSON_ERROR_NONE) throw new Exception("Invalid JSON response: " . $resp);
+
+    // ✅ if refund request succeeds, PayMongo always returns "data.id"
+    if ($httpCode >= 200 && $httpCode < 300 && isset($decoded['data']['id'])) {
+        $data = $decoded['data'];
+        return [
+            'id'     => $data['id'],
+            'status' => $data['attributes']['status'] ?? null,
+            'amount' => $data['attributes']['amount'] ?? 0,
+        ];
     }
 
-    if (isset($decoded['errors'])) {
-        throw new Exception("PayMongo refund error: " . json_encode($decoded['errors']));
-    }
-
-    if ($httpCode < 200 || $httpCode >= 300) {
-        throw new Exception("HTTP {$httpCode} refund error: " . $resp);
-    }
-
-    return $decoded;
+    // fallback for PayMongo errors
+    if (isset($decoded['errors'])) throw new Exception("PayMongo refund error: " . json_encode($decoded['errors']));
+    throw new Exception("Unexpected refund response: " . $resp);
 }
+
 
 function getRemainingRefundable(string $payment_id): int {
     $secretKey = getenv("PAYMONGO_SECRET_KEY");

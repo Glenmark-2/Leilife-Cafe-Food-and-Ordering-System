@@ -260,42 +260,53 @@ if (!class_exists('AppData')) {
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        public function getOrderByNumber($user_id, $order_number)
-        {
-            // 1️⃣ Fetch order and items
-            $stmt = $this->db->prepare("
-        SELECT o.*, 
-               oi.order_item_id, oi.product_id, oi.quantity, oi.price, oi.size, oi.flavor_ids,
-               p.product_name, p.has_flavor, p.has_size
+      public function getOrderByNumber($user_id, $order_number)
+{
+    // 1️⃣ Fetch order + items with proper aliases
+    $stmt = $this->db->prepare("
+        SELECT 
+            o.*, 
+            o.status AS order_status,                          -- 👈 Alias order table's status
+            oi.order_item_id, 
+            oi.product_id, 
+            oi.quantity, 
+            oi.price, 
+            oi.size, 
+            oi.flavor_ids, 
+            oi.status AS item_status,                          -- 👈 Alias item status separately
+            p.product_name, 
+            p.has_flavor, 
+            p.has_size
         FROM orders o
         JOIN order_items oi ON o.order_id = oi.order_id
         JOIN products p ON oi.product_id = p.product_id
         WHERE o.order_number = :onum AND o.user_id = :uid
     ");
-            $stmt->execute([
-                ':onum' => $order_number,
-                ':uid'  => $user_id
-            ]);
+    $stmt->execute([
+        ':onum' => $order_number,
+        ':uid'  => $user_id
+    ]);
 
-            $orderItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $orderItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            if (!$orderItems) return [];
+    if (!$orderItems) return [];
 
-            // 2️⃣ Resolve flavor names for each item
-            foreach ($orderItems as &$item) {
-                if ($item['has_flavor'] && !empty($item['flavor_ids'])) {
-                    $ids = explode(',', $item['flavor_ids']);
-                    $placeholders = implode(',', array_fill(0, count($ids), '?'));
-                    $flavorStmt = $this->db->prepare("SELECT flavor_name FROM product_flavors WHERE flavor_id IN ($placeholders)");
-                    $flavorStmt->execute($ids);
-                    $item['flavors'] = $flavorStmt->fetchAll(PDO::FETCH_COLUMN);
-                } else {
-                    $item['flavors'] = [];
-                }
-            }
-
-            return $orderItems;
+    // 2️⃣ Resolve flavor names for each item
+    foreach ($orderItems as &$item) {
+        if ($item['has_flavor'] && !empty($item['flavor_ids'])) {
+            $ids = explode(',', $item['flavor_ids']);
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $flavorStmt = $this->db->prepare("SELECT flavor_name FROM product_flavors WHERE flavor_id IN ($placeholders)");
+            $flavorStmt->execute($ids);
+            $item['flavors'] = $flavorStmt->fetchAll(PDO::FETCH_COLUMN);
+        } else {
+            $item['flavors'] = [];
         }
+    }
+
+    return $orderItems;
+}
+
 
 
         //getting sales today

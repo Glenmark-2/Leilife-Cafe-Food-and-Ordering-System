@@ -2,6 +2,22 @@
 session_start();
 require_once '../backend/db_script/db.php';
 
+// ===============================
+// Haversine distance (km)
+// ===============================
+function getDistanceKm($lat1, $lon1, $lat2, $lon2) {
+    $earthRadius = 6371; // kilometers
+    $dLat = deg2rad($lat2 - $lat1);
+    $dLon = deg2rad($lon2 - $lon1);
+
+    $a = sin($dLat/2) * sin($dLat/2) +
+         cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+         sin($dLon/2) * sin($dLon/2);
+
+    $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+    return $earthRadius * $c;
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success'=>false, 'message'=>'Invalid request']);
     exit;
@@ -20,7 +36,46 @@ if (!$productId) {
 $sessionId = session_id();
 $userId = $_SESSION['user_id'] ?? null;
 
+// ================================
+// ✅ HARDCODE STORE COORDS (change to your store)
+// ================================
+$storeLat = 14.6543;    // <-- update if needed
+$storeLng = 120.9721;   // <-- update if needed
+
+// ================================
+// ✅ GET CUSTOMER COORDS FROM addresses TABLE
+// We'll pick the most recent address row for the user (delivery addresses).
+// ================================
+$customerLat = null;
+$customerLng = null;
+
+if ($userId) {
+    // Try to find the most-recent delivery address with coordinates
+    $addrStmt = $pdo->prepare("
+        SELECT latitude, longitude, delivery_option
+        FROM addresses
+        WHERE user_id = :uid
+        ORDER BY created_at DESC
+        LIMIT 1
+    ");
+    $addrStmt->execute(['uid' => $userId]);
+    $addrRow = $addrStmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($addrRow) {
+        // Only accept valid numeric lat/lng
+        $lat = $addrRow['latitude'];
+        $lng = $addrRow['longitude'];
+        if ($lat !== null && $lng !== null && $lat !== '' && $lng !== '') {
+            // cast safely to float
+            $customerLat = floatval($lat);
+            $customerLng = floatval($lng);
+        }
+    }
+}
+
+// -----------------------------
 // Fetch product info
+// -----------------------------
 $stmt = $pdo->prepare("
     SELECT p.product_name, p.product_price, p.price_large, p.product_picture, c.main_category_id
     FROM products p
@@ -41,7 +96,7 @@ if ((int)$product['main_category_id'] !== 2) $size = null;
 // Prepare flavor CSV & names
 $flavorIdsCsv = null;
 $flavorNames = '';
-if (!empty($flavorIds)) {
+if (!empty($flavorIds) && is_array($flavorIds)) {
     $flavorIds = array_map('intval', $flavorIds);
     if (count($flavorIds) > 3) {
         echo json_encode(['success'=>false,'message'=>'Select up to 3 flavors']);
@@ -82,7 +137,7 @@ $optionType = $cartRow['option_type'] ?? 'delivery';
 if (!$cartId) {
     $stmt = $pdo->prepare("
         INSERT INTO carts (user_id, session_id, guest_token, option_type, sub_total, delivery_fee, total, created_at, updated_at)
-        VALUES (:uid, :sid, :gtoken, 'delivery', 0, 50, 50, NOW(), NOW())
+        VALUES (:uid, :sid, :gtoken, 'delivery', 0, 0, 0, NOW(), NOW())
     ");
     $stmt->execute([
         'uid'    => $userId,
@@ -141,8 +196,25 @@ foreach ($items as $i) {
     $subtotal += $itemPrice * $i['quantity'];
 }
 
-// ✅ Dynamically apply delivery fee based on option_type
-$deliveryFee = ($optionType === 'pickup') ? 0 : 50;
+/* ======================================================
+   DYNAMIC DELIVERY FEE
+   Base fare: ₱10
+   + ₱10 for every succeeding 1 km (ceil)
+   ===================================================== */
+$deliveryFee = 0;
+
+if ($optionType !== 'pickup') {
+    if ($customerLat !== null && $customerLng !== null) {
+        $km = getDistanceKm($storeLat, $storeLng, $customerLat, $customerLng);
+        // If you intend "within 1 km = base only", you might want to subtract 1 before ceil.
+        // Current interpretation: base ₱10 + ₱10 * ceil(km)
+        $deliveryFee = 10 + (ceil($km) * 10);
+    } else {
+        // No customer coords found — fallback to base fee
+        $deliveryFee = 10;
+    }
+}
+
 $total = $subtotal + $deliveryFee;
 
 // --- Update cart totals ---

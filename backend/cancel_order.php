@@ -1,193 +1,158 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) session_start();
+// cancel_order.php
+require_once __DIR__ . '/db_script/appData.php';
 require_once __DIR__ . '/db_script/db.php';
-require_once __DIR__ . '/create_payment_intent.php'; // must contain corrected createRefund() and getRemainingRefundable()
+require_once __DIR__ . '/create_payment_intent.php'; // createRefund(), getRemainingRefundable()
+session_start();
 
 header('Content-Type: application/json');
 
-// --- Method check ---
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(["error" => "Invalid request method"]);
+$order_number = $_POST['order_number'] ?? null;
+$user_id = $_SESSION['user_id'] ?? null;
+
+$response = [
+    'success' => false,
+    'message' => '',
+    'debug' => []
+];
+
+if (!$order_number || !$user_id) {
+    $response['message'] = 'Invalid request';
+    $response['debug'][] = 'Missing order_number or user_id';
+    echo json_encode($response);
     exit;
 }
 
-$order_id = $_POST['order_id'] ?? null;
-$user_id  = $_SESSION['user_id'] ?? null;
-$is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+try {
+    // Verify ownership and fetch order
+    $stmt = $pdo->prepare("SELECT * FROM orders WHERE order_number = ? AND user_id = ?");
+    $stmt->execute([$order_number, $user_id]);
+    $order = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$order_id) {
-    http_response_code(400);
-    echo json_encode(["error" => "Missing order_id"]);
-    exit;
-}
+    if (!$order) {
+        throw new Exception("Order not found or not owned by user.");
+    }
 
-// --- Fetch order ---
-$stmt = $pdo->prepare("SELECT * FROM orders WHERE order_id = ?");
-$stmt->execute([$order_id]);
-$order = $stmt->fetch(PDO::FETCH_ASSOC);
+    $order_id = $order['order_id'];
+    $current_status = $order['status'];
 
-if (!$order) {
-    http_response_code(404);
-    echo json_encode(["error" => "Order not found"]);
-    exit;
-}
+    // Only allow cancellation when order is in cancellable states
+    $cancellable = ['pending', 'preparing'];
+    if (!in_array($current_status, $cancellable)) {
+        throw new Exception("Order cannot be cancelled at this stage.");
+    }
 
-// --- Auth check ---
-if ($user_id && $order['user_id'] != $user_id && !$is_admin) {
-    http_response_code(403);
-    echo json_encode(["error" => "Unauthorized"]);
-    exit;
-}
+    $pdo->beginTransaction();
 
-// --- Status restriction (only pending cancellable by user) ---
-if (!$is_admin && $order['status'] !== 'pending') {
-    http_response_code(400);
-    echo json_encode(["error" => "Cannot cancel after preparing stage."]);
-    exit;
-}
+    // 1) Update order status
+    $upd = $pdo->prepare("UPDATE orders SET status = 'cancelled' WHERE order_id = ?");
+    $upd->execute([$order_id]);
 
-// Helper: respond with JSON error
-function respond_error($msg, $httpCode = 500) {
-    http_response_code($httpCode);
-    echo json_encode(["error" => $msg]);
-    exit;
-}
+    // 2) Update order items to cancelled
+    $pdo->prepare("UPDATE order_items SET status = 'cancelled' WHERE order_id = ?")
+        ->execute([$order_id]);
 
-// --- Handle refund for paid GCash orders ---
-if ($order['payment_method'] === 'gcash' && $order['payment_status'] === 'paid') {
-    try {
-        // Determine payment_id and refund_amount (preserve cents)
-        $payment_id = $order['payment_id'] ?? null;
-        $refund_amount = 0.0; // in PESOS (e.g. 185.50)
+    // 3) Recalculate total excluding cancelled items
+    $stmt = $pdo->prepare("
+        SELECT COALESCE(SUM(price * quantity), 0) AS subtotal
+        FROM order_items
+        WHERE order_id = ? AND status != 'cancelled'
+    ");
+    $stmt->execute([$order_id]);
+    $new_total = floatval($stmt->fetchColumn());
 
-        if (!$payment_id) {
-            // fallback: get transaction
-            $tx = $pdo->prepare("SELECT external_id, transaction_value 
-                                 FROM transactions 
-                                 WHERE order_id = ? 
-                                   AND transaction_name = 'payment' 
-                                   AND transaction_status = 'success' 
-                                 ORDER BY transaction_id DESC LIMIT 1");
+    $pdo->prepare("UPDATE orders SET total = ? WHERE order_id = ?")
+        ->execute([$new_total, $order_id]);
+
+    // 4) Refund initiation (if applicable) — DO NOT INSERT TRANSACTIONS HERE.
+    // Let the PayMongo webhook be the single source of truth for transactions/refunds.
+    $refund_result = null;
+    $payment_method = $order['payment_method'] ?? null;
+    $payment_status = $order['payment_status'] ?? null;
+    $payment_id = $order['payment_id'] ?? null;
+    $orig_total = floatval($order['total'] ?? 0.0);
+
+    if ($payment_method === 'gcash' && $payment_status === 'paid') {
+        // determine effective payment id (fallback to transactions if needed)
+        $effective_payment_id = $payment_id;
+        if (empty($effective_payment_id)) {
+            $tx = $pdo->prepare("SELECT external_id FROM transactions WHERE order_id = ? AND transaction_name = 'payment' AND transaction_status = 'success' ORDER BY transaction_id DESC LIMIT 1");
             $tx->execute([$order_id]);
-            $transaction = $tx->fetch(PDO::FETCH_ASSOC);
+            $t = $tx->fetch(PDO::FETCH_ASSOC);
+            if ($t && !empty($t['external_id'])) $effective_payment_id = $t['external_id'];
+        }
 
-            if ($transaction) {
-                if (!empty($transaction['external_id']) && str_starts_with($transaction['external_id'], 'pay_')) {
-                    $payment_id = $transaction['external_id'];
+        if (!empty($effective_payment_id)) {
+            try {
+                $remaining = getRemainingRefundable($effective_payment_id);
+            } catch (Exception $e) {
+                error_log("getRemainingRefundable failed for {$effective_payment_id}: " . $e->getMessage());
+                $remaining = 0;
+            }
+
+            if ($remaining > 0) {
+                $requested_centavos = intval(round($orig_total * 100));
+                if ($requested_centavos > $remaining) $requested_centavos = $remaining;
+                $refund_pesos = $requested_centavos / 100.0;
+
+                try {
+                    // Initiate the refund at the provider. DO NOT log provider refund in transactions here.
+                    $refund_response = createRefund($effective_payment_id, $refund_pesos, $order_id);
+
+                    if (!is_array($refund_response) || empty($refund_response['data']['id'])) {
+                        throw new Exception("Invalid refund response from provider.");
+                    }
+
+                    $provider_refund_id = $refund_response['data']['id'];
+                    $provider_refund_status = $refund_response['data']['attributes']['status'] ?? 'pending';
+
+                    // Optionally store minimal local flag so UI can show refund was requested.
+                    // Keep this lightweight and NOT duplicative of the webhook's authoritative records.
+                    $pdo->prepare("UPDATE orders SET refund_requested_at = NOW() WHERE order_id = ?")
+                        ->execute([$order_id]);
+
+                    $refund_result = [
+                        'success' => true,
+                        'refund_id' => $provider_refund_id,
+                        'refund_status' => $provider_refund_status,
+                        'refunded_amount' => $refund_pesos
+                    ];
+
+                } catch (Exception $e) {
+                    error_log("createRefund failed for {$effective_payment_id}: " . $e->getMessage());
+                    $refund_result = [
+                        'success' => false,
+                        'message' => 'Failed to initiate refund: ' . $e->getMessage()
+                    ];
                 }
-                // NOTE: assume transaction_value is PESOS (e.g. 185.50).
-                // If your DB stores centavos instead, see debug below — code will handle it by capping to remaining.
-                $refund_amount = floatval($transaction['transaction_value'] ?? 0.0);
+            } else {
+                $refund_result = [
+                    'success' => false,
+                    'message' => 'No refundable balance remaining at provider.'
+                ];
             }
         } else {
-            // Use `total` field from orders table (preserve cents)
-            $refund_amount = floatval($order['total'] ?? 0.0);
+            $refund_result = [
+                'success' => false,
+                'message' => 'No payment identifier available for this order.'
+            ];
         }
-
-        if (!$payment_id) {
-            respond_error("No valid payment found for refund.", 500);
-        }
-
-        if ($refund_amount <= 0) {
-            respond_error("Refund amount must be greater than zero.", 400);
-        }
-
-        // Fetch remaining refundable from PayMongo (in CENTAVOS)
-        try {
-            $remaining_centavos = getRemainingRefundable($payment_id); // integer centavos
-        } catch (Exception $e) {
-            // log and bail with a clear message
-            error_log("REFUND DEBUG: failed to fetch remaining refundable for payment_id={$payment_id}: " . $e->getMessage());
-            respond_error("Unable to fetch refundable balance. " . $e->getMessage(), 500);
-        }
-
-        // Convert requested refund amount (PESOS float) to centavos, rounding properly
-        $requested_centavos = intval(round(floatval($refund_amount) * 100));
-
-        // DEBUG: log values so you can inspect the cause of "above maximum"
-        error_log("REFUND DEBUG: payment_id={$payment_id} | requested_pesos={$refund_amount} | requested_centavos={$requested_centavos} | remaining_centavos={$remaining_centavos}");
-
-        // If requested is larger than remaining, cap it to remaining (so PayMongo won't reject)
-        if ($requested_centavos > $remaining_centavos) {
-            // If remaining is zero -> nothing to refund
-            if ($remaining_centavos <= 0) {
-                respond_error("No refundable amount remaining for this payment.", 400);
-            }
-
-            // Adjust refund to remaining
-            $requested_centavos = $remaining_centavos;
-            $refund_amount = $requested_centavos / 100.0; // convert back to pesos for logging and DB
-            error_log("REFUND DEBUG: capped refund to remaining. new_requested_pesos={$refund_amount} new_requested_centavos={$requested_centavos}");
-        }
-
-        // Now we have a safe centavo amount to refund. Call createRefund with PESOS value
-        // (createRefund will convert PESOS to centavos internally)
-        $pdo->beginTransaction();
-
-        // call createRefund with pesos (constructed from centavos to avoid float rounding mismatch)
-        $call_pesos = $requested_centavos / 100.0;
-        error_log("REFUND DEBUG: calling createRefund(payment_id={$payment_id}, amount_pesos={$call_pesos}, order_id={$order_id})");
-        $refund = createRefund($payment_id, $call_pesos, $order_id);
-
-        // Validate refund structure
-        if (!is_array($refund) || empty($refund['data']['id']) || empty($refund['data']['attributes'])) {
-            $pdo->rollBack();
-            respond_error("Invalid refund response from payment provider.", 502);
-        }
-
-        $refund_id     = $refund['data']['id'];
-        $refund_attrs  = $refund['data']['attributes'];
-        $refund_status = $refund_attrs['status'] ?? 'pending';
-
-        // --- Update order (note: payment_status enum may not include 'refunded' in your schema)
-        $updateOrder = $pdo->prepare("UPDATE orders 
-                                      SET status = 'cancelled' 
-                                      WHERE order_id = ?");
-        $updateOrder->execute([$order_id]);
-
-        // --- Cancel items ---
-        $updateItems = $pdo->prepare("UPDATE order_items SET status = 'cancelled' WHERE order_id = ?");
-        $updateItems->execute([$order_id]);
-
-        // --- Log refund transaction ---
-        $ins = $pdo->prepare("INSERT INTO transactions 
-                              (order_id, external_id, transaction_name, transaction_status, transaction_value)
-                              VALUES (?, ?, 'refund', ?, ?)");
-        // store transaction_value in PESOS (consistent with earlier code)
-        $ins->execute([$order_id, $refund_id, $refund_status, $refund_amount]);
-
-        // commit DB changes
-        $pdo->commit();
-
-        echo json_encode([
-            "success" => true,
-            "message" => "Order refunded and cancelled successfully.",
-            "refund_status" => $refund_status,
-            "refund_id" => $refund_id,
-            "requested_pesos" => number_format($refund_amount, 2),
-            "requested_centavos" => $requested_centavos
-        ]);
-        exit;
-
-    } catch (Exception $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-        respond_error("Refund failed: " . $e->getMessage(), 500);
     }
-}
 
-// --- Default: cash or unpaid gcash (no payment provider refund) ---
-try {
-    $pdo->beginTransaction();
-    $pdo->prepare("UPDATE orders SET status = 'cancelled' WHERE order_id = ?")->execute([$order_id]);
-    $pdo->prepare("UPDATE order_items SET status = 'cancelled' WHERE order_id = ?")->execute([$order_id]);
     $pdo->commit();
 
-    echo json_encode(["success" => true, "message" => "Order cancelled successfully."]);
-    exit;
+    $response['success'] = true;
+    $response['message'] = 'Order cancelled';
+    $response['order_number'] = $order_number;
+    $response['order_id'] = $order_id;
+    $response['new_total'] = $new_total;
+    $response['refund'] = $refund_result;
+
 } catch (Exception $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
-    respond_error("Failed to cancel order: " . $e->getMessage(), 500);
+    $response['success'] = false;
+    $response['message'] = 'Cancellation failed: ' . $e->getMessage();
+    $response['debug'][] = $e->getTraceAsString();
 }
+
+echo json_encode($response);

@@ -7,7 +7,6 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 $appData = new AppData($pdo);
 
-
 // ✅ Ensure user is logged in
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
@@ -22,14 +21,12 @@ if (!$orderNumber) {
     exit;
 }
 
-// ✅ Fetch the order with items, making sure it belongs to this user
+// ✅ Fetch the order with items, ensuring it belongs to the user
 $order = $appData->getOrderByNumber($user_id, $orderNumber);
-
 if (!$order || count($order) === 0) {
     echo "<p>Order not found or access denied.</p>";
     exit;
 }
-
 
 // First row contains general order info
 $orderInfo = $order[0];
@@ -37,294 +34,288 @@ $orderInfo = $order[0];
 // ✅ Fetch user address
 $userAddress = $appData->loadUserAddress($user_id);
 
-$delivery = ($orderInfo['delivery_method'] === "home") || ($orderInfo['status'] === 'delivered');
+$delivery = ($orderInfo['delivery_method'] === "home") || ($orderInfo['order_status'] === 'delivered');
 $review = $appData->getReviewMessage($orderInfo['order_number']);
 ?>
+
 <?= createModal(); ?>
 <div class="tracking">
-    <div class="your_order_title">
-        <h3>Your Order #<?= htmlspecialchars($orderInfo['order_number']) ?></h3>
+  <div class="your_order_title">
+    <h3>Your Order #<?= htmlspecialchars($orderInfo['order_number']) ?></h3>
+  </div>
+
+  <?php if ($delivery): ?>
+    <!-- DELIVERY SECTION -->
+    <?php
+    $steps = [
+      'pending'            => 1,
+      'preparing'          => 2,
+      'ready_for_delivery' => 3,
+      'delivered'          => 4,
+    ];
+    $activeStep = $steps[$orderInfo['order_status']] ?? 1;
+    ?>
+
+    <?php if ($orderInfo['order_status'] !== "cancelled"): ?>
+      <div class="progress-container">
+        <div class="step <?= $activeStep >= 1 ? 'active' : '' ?>">
+          <div class="circle">1</div>
+          <div class="label">Queuing...</div>
+        </div>
+        <div class="step <?= $activeStep >= 2 ? 'active' : '' ?>">
+          <div class="circle">2</div>
+          <div class="label">Preparing...</div>
+        </div>
+        <div class="step <?= $activeStep >= 3 ? 'active' : '' ?>">
+          <div class="circle">3</div>
+          <div class="label">Out for delivery...</div>
+        </div>
+        <div class="step <?= $activeStep >= 4 ? 'active' : '' ?>">
+          <div class="circle">4</div>
+          <div class="label">Delivered</div>
+        </div>
+      </div>
+    <?php endif; ?>
+
+    <div class="order_details">
+      <!-- LEFT -->
+      <?php echo "<!-- DEBUG: Order status = {$orderInfo['order_status']} -->"; ?>
+      <div class="left-details">
+        <?php if ($orderInfo['order_status'] === "cancelled"): ?>
+          <p><strong>Your order has been cancelled.</strong></p>
+          <img id="cancel-order-pic" src="/Leilife/public/assests/cancel-order.png" alt="Cancelled">
+        <?php elseif ($orderInfo['order_status'] === "delivered"): ?>
+          <p><strong>Thanks for ordering!</strong></p>
+          <img id="cancel-order-pic" src="/Leilife/public/assests/success-order.png" alt="Delivered">
+        <?php else: ?>
+          <p style="color:#8f8d8dff;">Estimated time of delivery</p>
+          <p id="live-eta"><strong>Fetching ETA...</strong></p>
+          <img id="motor" src="/Leilife/public/assests/emojione_motorcycle.png" alt="Delivery">
+        <?php endif; ?>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="right-details">
+        <p style="color:#8f8d8dff; margin:0">Delivery details</p>
+        <div class="right-content">
+          <div class="info-row">
+            <img src="../public/assests/pin.png" alt="location">
+            <p>
+              <?= htmlspecialchars(ucwords($userAddress["street_address"]) ?? 'No address') ?>,
+              Barangay <?= htmlspecialchars($userAddress["barangay"] ?? '') ?>,
+              <?= htmlspecialchars(ucwords($userAddress["city_name"]) ?? '') ?>,
+              <?= htmlspecialchars(ucwords($userAddress["province_name"]) ?? '') ?>,
+              <?= htmlspecialchars(ucwords($userAddress["region_name"]) ?? '') ?>
+            </p>
+          </div>
+          <div class="info-row">
+            <img src="../public/assests/credit-card.png" alt="payment">
+            <p><?= ucfirst($orderInfo['payment_method'] ?? 'N/A') ?></p>
+          </div>
+        </div>
+
+        <p style="color:#8f8d8dff; margin:0;">Order details</p>
+        <div class="right-content">
+          <div class="order-items-list">
+            <?php foreach ($order as $item): ?>
+              <?php
+              $isCancelled = strtolower($item['item_status'] ?? '') === 'cancelled';
+              $itemClass = $isCancelled ? 'order-item cancelled' : 'order-item';
+              ?>
+              <div class="<?= $itemClass ?>">
+                <p>
+                  <?= (int)$item['quantity'] ?> × <?= htmlspecialchars(ucwords($item['product_name'])) ?>
+                  <?php if (!empty($item['size'])): ?>
+                    <br><small>Size: <?= htmlspecialchars(ucwords($item['size'])) ?></small>
+                  <?php endif; ?>
+                  <?php if (!empty($item['flavors'])): ?>
+                    <br><small>Flavors: <?= htmlspecialchars(implode(", ", array_map('ucwords', $item['flavors']))) ?></small>
+                  <?php endif; ?>
+                  — ₱<?= number_format($item['price'], 2) ?>
+                </p>
+                <?php if ($isCancelled): ?>
+                  <p class="cancelled-label">Cancelled item</p>
+                <?php endif; ?>
+              </div>
+            <?php endforeach; ?>
+          </div>
+          <hr>
+          <p><strong>Total:</strong> ₱<?= number_format($orderInfo['total'], 2) ?></p>
+        </div>
+
+        <!-- CANCELLED or SUCCESSFUL -->
+        <?php if ($orderInfo['order_status'] === 'cancelled'): ?>
+          <div id="reorder-btns">
+            <form id="reorderForm" action="../backend/reorder.php" method="POST">
+              <input type="hidden" name="order_id" value="<?= htmlspecialchars($orderInfo['order_id']) ?>">
+              <?= createButton(45, 150, "Reorder", "reorderBtn", 16, "submit"); ?>
+            </form>
+            <a href="/leilife/public/index.php?page=menu">
+              <?= createButton(45, 150, "Go to menu"); ?>
+            </a>
+          </div>
+        <?php elseif ($orderInfo['order_status'] !== 'delivered'): ?>
+          <div class="submit">
+            <?php
+            $attrs = [];
+            if ($orderInfo['order_status'] !== 'pending') {
+              $attrs['disabled'] = 'disabled';
+              $attrs['title'] = 'Cannot cancel while preparing';
+            }
+            echo createButton(45, 150, "Cancel Order", "cancelOrderBtn", 16, "button", $attrs);
+            ?>
+          </div>
+        <?php endif; ?>
+
+        <?php if ($review): ?>
+          <p style="color:#8f8d8dff; margin:0">Order Review</p>
+          <div class="right-content">
+            <p><strong>Feedback:</strong> <?= $review ?></p>
+          </div>
+        <?php endif; ?>
+      </div>
     </div>
 
-    <?php if ($delivery): ?>
-        <!-- DELIVERY SECTION -->
-        <?php
-        $steps = [
-            'pending'            => 1,
-            'preparing'          => 2,
-            'ready_for_delivery' => 3,
-            'delivered'          => 4,
-        ];
-        $activeStep = $steps[$orderInfo['status']] ?? 1;
-        ?>
-        <!-- Progress -->
-        <?php if ($orderInfo['status'] !== "cancelled"): ?>
-            <div class="progress-container">
-                <div class="step <?= $activeStep >= 1 ? 'active' : '' ?>">
-                    <div class="circle">1</div>
-                    <div class="label">Queuing...</div>
-                </div>
-                <div class="step <?= $activeStep >= 2 ? 'active' : '' ?>">
-                    <div class="circle">2</div>
-                    <div class="label">Preparing...</div>
-                </div>
-                <div class="step <?= $activeStep >= 3 ? 'active' : '' ?>">
-                    <div class="circle">3</div>
-                    <div class="label">Out for delivery...</div>
-                </div>
-                <div class="step <?= $activeStep >= 4 ? 'active' : '' ?>">
-                    <div class="circle">4</div>
-                    <div class="label">Delivered</div>
-                </div>
-            </div>
+  <?php else: ?>
+    <!-- PICKUP SECTION -->
+    <?php
+    $steps = [
+      'pending'   => 1,
+      'preparing' => 2,
+      'picked_up' => 3,
+    ];
+    $activeStep = $steps[$orderInfo['order_status']] ?? 1;
+    ?>
 
-        <?php endif; ?>
-
-        <div class="order_details">
-            <!-- LEFT -->
-            <div class="left-details">
-                <?php if ($orderInfo['status'] === "cancelled"): ?>
-                    <p><strong>Your order has been cancelled.</strong></p>
-                    <img id="cancel-order-pic" src="/Leilife/public/assests/cancel-order.png" alt="Cancelled">
-                <?php elseif ($orderInfo['status'] === "delivered"): ?>
-                    <p><strong>Thanks for ordering!</strong></p>
-                    <img id="cancel-order-pic" src="/Leilife/public/assests/success-order.png" alt="Cancelled">
-                <?php else: ?>
-                    <p style="color:#8f8d8dff;">Estimated time of delivery</p>
-                    <p><strong>15 - 20 mins</strong></p>
-                    <img id="motor" src="/Leilife/public/assests/emojione_motorcycle.png" alt="Delivery">
-                <?php endif; ?>
-            </div>
-
-            <!-- RIGHT -->
-            <div class="right-details">
-                <p style="color:#8f8d8dff; margin:0">Delivery details</p>
-                <div class="right-content">
-                    <div class="info-row">
-                        <img src="../public/assests/pin.png" alt="location">
-                        <p>
-                            <?= htmlspecialchars(ucwords($userAddress["street_address"]) ?? 'No address') ?>,
-                            Barangay <?= htmlspecialchars($userAddress["barangay"] ?? '') ?>,
-                            <?= htmlspecialchars(ucwords($userAddress["city_name"]) ?? '') ?>,
-                            <?= htmlspecialchars(ucwords($userAddress["province_name"]) ?? '') ?>,
-                            <?= htmlspecialchars(ucwords($userAddress["region_name"]) ?? '') ?>
-                        </p>
-                    </div>
-                    <div class="info-row">
-                        <img src="../public/assests/credit-card.png" alt="payment">
-                        <p><?= ucfirst($orderInfo['payment_method'] ?? 'N/A') ?></p>
-                    </div>
-                </div>
-
-                <p style="color:#8f8d8dff; margin:0;">Order details</p>
-                <div class="right-content">
-                    <?php foreach ($order as $item): ?>
-                        <p>
-                            <?= (int)$item['quantity'] ?> × <?= htmlspecialchars(ucwords($item['product_name'])) ?>
-                            <?php if (!empty($item['size'])): ?>
-                                <br>
-                                Size: <?= htmlspecialchars(ucwords($item['size'])) ?>
-                            <?php endif; ?>
-                            <?php if (!empty($item['flavors'])): ?>
-                                <br>
-                                Flavors: <?= htmlspecialchars(implode(", ", array_map('ucwords', $item['flavors']))) ?>
-                            <?php endif; ?>
-                            — ₱<?= number_format($item['price'], 2) ?>
-                        </p>
-                    <?php endforeach; ?>
-                    <hr>
-                    <p><strong>Total:</strong> ₱<?= number_format($orderInfo['total'], 2) ?></p>
-                </div>
-
-
-
-                <!-- CANCELLED or SUCCESSFUL -->
-                <?php if ($orderInfo['status'] === 'cancelled'): ?>
-                    <div id="reorder-btns">
-                        <form id="reorderForm" action="../backend/reorder.php" method="POST">
-                            <input type="hidden" name="order_id" value="<?= htmlspecialchars($orderInfo['order_id']) ?>">
-                            <?= createButton(45, 150, "Reorder", "reorderBtn", 16, "submit"); ?>
-                        </form>
-
-
-                        <a href="/leilife/public/index.php?page=menu">
-                            <?= createButton(45, 150, "Go to menu"); ?>
-                        </a>
-                    </div>
-                <?php elseif ($orderInfo['status'] !== 'delivered'): ?>
-                    <div class="submit">
-                        <?php
-                        $attrs = [];
-                        if ($orderInfo['status'] !== 'pending') {
-                            $attrs['disabled'] = 'disabled';
-                            $attrs['title'] = 'Cannot cancel while preparing';
-                        }
-                        echo createButton(45, 150, "Cancel Order", "cancelOrderBtn", 16, "button", $attrs);
-                        ?>
-                    </div>
-                <?php endif; ?>
-
-                <?php if ($review): ?>
-                    <p style="color:#8f8d8dff; margin:0">Order Review</p>
-                    <div class="right-content">
-
-                        <p><strong>Feedback:</strong> <?= $review ?></p>
-                    </div>
-                <?php endif; ?>
-            </div>
+    <?php if ($orderInfo['order_status'] !== "cancelled"): ?>
+      <div class="progress-container">
+        <div class="step <?= $activeStep >= 1 ? 'active' : '' ?>">
+          <div class="circle">1</div>
+          <div class="label">Pending...</div>
         </div>
-
-    <?php else: ?>
-        <!-- PICKUP SECTION -->
-        <?php
-        $steps = [
-            'pending'   => 1,
-            'preparing' => 2,
-            'picked_up' => 3,
-        ];
-        $activeStep = $steps[$orderInfo['status']] ?? 1;
-        ?>
-        <!-- Progress -->
-        <?php if ($orderInfo['status'] !== "cancelled"): ?>
-            <div class="progress-container">
-                <div class="step <?= $activeStep >= 1 ? 'active' : '' ?>">
-                    <div class="circle">1</div>
-                    <div class="label">Pending...</div>
-                </div>
-                <div class="step <?= $activeStep >= 2 ? 'active' : '' ?>">
-                    <div class="circle">2</div>
-                    <div class="label">Preparing...</div>
-                </div>
-                <div class="step <?= $activeStep >= 3 ? 'active' : '' ?>">
-                    <div class="circle">3</div>
-                    <div class="label">Picked up</div>
-                </div>
-            </div>
-        <?php endif; ?>
-
-        <div class="order_details">
-            <!-- LEFT -->
-            <div class="left-details">
-                <?php if ($orderInfo['status'] === "cancelled"): ?>
-                    <p><strong>Your order has been cancelled.</strong></p>
-                    <img id="cancel-order-pic" src="/Leilife/public/assests/cancel-order.png" alt="Cancelled">
-                <?php elseif ($orderInfo['status'] === "picked_up"): ?>
-                    <p><strong>Thanks for ordering!</strong></p>
-                    <img id="cancel-order-pic" src="/Leilife/public/assests/success-order.png" alt="Cancelled">
-                <?php elseif ($orderInfo['payment_status'] === "unpaid"): ?>
-                    <p>Time remaining to pick up your order:</p>
-                    <p>
-                        <strong>
-                            <span
-                                id="pickup-timer"
-                                data-order-number="<?= htmlspecialchars($orderInfo['order_number']) ?>"
-                                data-order-date="<?= htmlspecialchars($orderInfo['order_date'] ?? date('Y-m-d H:i:s')) ?>">
-                                00:10
-                            </span>
-
-
-                        </strong>
-                    </p>
-                    <img id="motor" src="/Leilife/public/assests/walk.png" alt="Walk">
-                <?php elseif ($orderInfo['payment_status'] === "paid"): ?>
-                    <p>Go to store now!</p>
-                    <img id="motor" src="/Leilife/public/assests/walk.png" alt="Walk">
-                <?php endif; ?>
-            </div>
-
-            <!-- RIGHT -->
-            <div class="right-details">
-                <p style="color:#8f8d8dff; margin:0">Pickup details</p>
-                <div class="right-content">
-                    <div class="info-row">
-                        <img src="../public/assests/pin.png" alt="location">
-                        <p>Lunduyan Langaray, Brgy 14, Caloocan City</p>
-                    </div>
-                    <div class="info-row">
-                        <img src="../public/assests/phone.png" alt="phone">
-                        <p>09123456789</p>
-                    </div>
-                </div>
-
-                <p style="color:#8f8d8dff; margin:0">Order details</p>
-                <div class="right-content">
-                    <?php foreach ($order as $item): ?>
-                        <p>
-                            <?= (int)$item['quantity'] ?> × <?= htmlspecialchars(ucwords($item['product_name'])) ?>
-                            <?php if (!empty($item['size'])): ?>
-                                <br>
-                                Size: <?= htmlspecialchars(ucwords($item['size'])) ?>
-                            <?php endif; ?>
-                            <?php if (!empty($item['flavors'])): ?>
-                                <br>
-                                Flavors: <?= htmlspecialchars(implode(", ", array_map('ucwords', $item['flavors']))) ?>
-                            <?php endif; ?>
-                            — ₱<?= number_format($item['price'], 2) ?>
-                        </p>
-                    <?php endforeach; ?>
-                    <hr>
-                    <p><strong>Total:</strong> ₱<?= number_format($orderInfo['total'], 2) ?></p>
-                </div>
-
-
-                <!-- CANCELLED or SUCCESSFUL -->
-                <?php if ($orderInfo['status'] === 'cancelled'): ?>
-                    <div id="reorder-btns">
-                        <form id="reorderForm" action="../backend/reorder.php" method="POST">
-                            <input type="hidden" name="order_id" value="<?= htmlspecialchars($orderInfo['order_id']) ?>">
-                            <?= createButton(45, 150, "Reorder", "reorderBtn", 16, "submit"); ?>
-                        </form>
-
-                        <a href="/leilife/public/index.php?page=menu">
-                            <?= createButton(45, 150, "Go to menu"); ?>
-                        </a>
-                    </div>
-                <?php elseif ($orderInfo['status'] !== 'picked_up'): ?>
-                    <div class="submit">
-                        <?php
-                        $attrs = [];
-                        if ($orderInfo['status'] !== 'pending') {
-                            $attrs['disabled'] = 'disabled';
-                            $attrs['title'] = 'Cannot cancel while preparing';
-                        }
-                        echo createButton(45, 150, "Cancel Order", "cancelOrderBtn", 16, "button", $attrs);
-                        ?>
-                    </div>
-                <?php endif; ?>
-                <?php if ($review): ?>
-                    <p style="color:#8f8d8dff; margin:0">Order Review</p>
-                    <div class="right-content">
-
-                        <p><strong>Feedback:</strong> <?= $review ?></p>
-                    </div>
-                <?php endif; ?>
-            </div>
+        <div class="step <?= $activeStep >= 2 ? 'active' : '' ?>">
+          <div class="circle">2</div>
+          <div class="label">Preparing...</div>
         </div>
+        <div class="step <?= $activeStep >= 3 ? 'active' : '' ?>">
+          <div class="circle">3</div>
+          <div class="label">Picked up</div>
+        </div>
+      </div>
     <?php endif; ?>
 
-    <!-- REVIEW SECTION -->
-    <?php if (!$review): ?>
-        <?php if (in_array($orderInfo['status'], ['delivered', 'picked_up'])): ?>
-            <div class="review-section">
-                <h3>Leave a Review</h3>
-                <form id="reviewForm" method="POST">
-                    <input type="hidden" name="name" value="<?= htmlspecialchars($_SESSION['username'] ?? 'Guest') ?>">
-                    <input type="hidden" name="email" value="<?= htmlspecialchars($_SESSION['email'] ?? '') ?>">
-                    <input type="hidden" name="subject" value="Order Review #<?= htmlspecialchars($orderInfo['order_number']) ?>">
-                    <input type="hidden" name="type" value="feedback">
-                    <div class="comment">
-                        <label>Comment:</label><br>
-                        <textarea name="message" rows="4" placeholder="Write your review..." required></textarea>
-                    </div>
-                    <div class="submit">
-                        <?= createButton(40, 120, "Submit Review", "submitReviewBtn", 14, "submit"); ?>
-                    </div>
-                </form>
+    <div class="order_details">
+      <!-- LEFT -->
+      <div class="left-details">
+        <?php if ($orderInfo['order_status'] === "cancelled"): ?>
+          <p><strong>Your order has been cancelled.</strong></p>
+          <img id="cancel-order-pic" src="/Leilife/public/assests/cancel-order.png" alt="Cancelled">
+        <?php elseif ($orderInfo['order_status'] === "picked_up"): ?>
+          <p><strong>Thanks for ordering!</strong></p>
+          <img id="cancel-order-pic" src="/Leilife/public/assests/success-order.png" alt="Delivered">
+        <?php elseif ($orderInfo['payment_status'] === "unpaid"): ?>
+          <p>Time remaining to pick up your order:</p>
+          <p><strong>
+            <span id="pickup-timer"
+              data-order-number="<?= htmlspecialchars($orderInfo['order_number']) ?>"
+              data-order-date="<?= htmlspecialchars($orderInfo['order_date'] ?? date('Y-m-d H:i:s')) ?>">
+              00:10
+            </span>
+          </strong></p>
+          <img id="motor" src="/Leilife/public/assests/walk.png" alt="Walk">
+        <?php elseif ($orderInfo['payment_status'] === "paid"): ?>
+          <p>Go to store now!</p>
+          <img id="motor" src="/Leilife/public/assests/walk.png" alt="Walk">
+        <?php endif; ?>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="right-details">
+        <p style="color:#8f8d8dff; margin:0">Pickup details</p>
+        <div class="right-content">
+          <div class="info-row">
+            <img src="../public/assests/pin.png" alt="location">
+            <p>Lunduyan Langaray, Brgy 14, Caloocan City</p>
+          </div>
+          <div class="info-row">
+            <img src="../public/assests/phone.png" alt="phone">
+            <p>09123456789</p>
+          </div>
+        </div>
+
+        <p style="color:#8f8d8dff; margin:0">Order details</p>
+        <div class="right-content">
+          <?php foreach ($order as $item): ?>
+            <?php
+            $isCancelled = strtolower($item['item_status'] ?? '') === 'cancelled';
+            $itemClass = $isCancelled ? 'order-item cancelled' : 'order-item';
+            ?>
+            <div class="<?= $itemClass ?>">
+              <p>
+                <?= (int)$item['quantity'] ?> × <?= htmlspecialchars(ucwords($item['product_name'])) ?>
+                <?php if (!empty($item['size'])): ?><br>Size: <?= htmlspecialchars(ucwords($item['size'])) ?><?php endif; ?>
+                <?php if (!empty($item['flavors'])): ?><br>Flavors: <?= htmlspecialchars(implode(", ", array_map('ucwords', $item['flavors']))) ?><?php endif; ?>
+                — ₱<?= number_format($item['price'], 2) ?>
+              </p>
+              <?php if ($isCancelled): ?><p class="cancelled-label">Cancelled item</p><?php endif; ?>
             </div>
+          <?php endforeach; ?>
+          <hr>
+          <p><strong>Total:</strong> ₱<?= number_format($orderInfo['total'], 2) ?></p>
+        </div>
+
+        <?php if ($orderInfo['order_status'] === 'cancelled'): ?>
+          <div id="reorder-btns">
+            <form id="reorderForm" action="../backend/reorder.php" method="POST">
+              <input type="hidden" name="order_id" value="<?= htmlspecialchars($orderInfo['order_id']) ?>">
+              <?= createButton(45, 150, "Reorder", "reorderBtn", 16, "submit"); ?>
+            </form>
+            <a href="/leilife/public/index.php?page=menu">
+              <?= createButton(45, 150, "Go to menu"); ?>
+            </a>
+          </div>
+        <?php elseif ($orderInfo['order_status'] !== 'picked_up'): ?>
+          <div class="submit">
+            <?php
+            $attrs = [];
+            if ($orderInfo['order_status'] !== 'pending') {
+              $attrs['disabled'] = 'disabled';
+              $attrs['title'] = 'Cannot cancel while preparing';
+            }
+            echo createButton(45, 150, "Cancel Order", "cancelOrderBtn", 16, "button", $attrs);
+            ?>
+          </div>
         <?php endif; ?>
 
+        <?php if ($review): ?>
+          <p style="color:#8f8d8dff; margin:0">Order Review</p>
+          <div class="right-content">
+            <p><strong>Feedback:</strong> <?= $review ?></p>
+          </div>
+        <?php endif; ?>
+      </div>
+    </div>
+  <?php endif; ?>
 
-    <?php endif; ?>
+  <!-- REVIEW SECTION -->
+  <?php if (!$review && in_array($orderInfo['order_status'], ['delivered', 'picked_up'])): ?>
+    <div class="review-section">
+      <h3>Leave a Review</h3>
+      <form id="reviewForm" method="POST">
+        <input type="hidden" name="name" value="<?= htmlspecialchars($_SESSION['username'] ?? 'Guest') ?>">
+        <input type="hidden" name="email" value="<?= htmlspecialchars($_SESSION['email'] ?? '') ?>">
+        <input type="hidden" name="subject" value="Order Review #<?= htmlspecialchars($orderInfo['order_number']) ?>">
+        <input type="hidden" name="type" value="feedback">
+        <div class="comment">
+          <label>Comment:</label><br>
+          <textarea name="message" rows="4" placeholder="Write your review..." required></textarea>
+        </div>
+        <div class="submit">
+          <?= createButton(40, 120, "Submit Review", "submitReviewBtn", 14, "submit"); ?>
+        </div>
+      </form>
+    </div>
+  <?php endif; ?>
 </div>
 
 <script>
@@ -361,6 +352,55 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
             });
         }
 
+const etaEl = document.getElementById("live-eta");
+if (!etaEl) return;
+
+const PREP_TIME_MIN = 10;
+
+// Hard-coded store lat/lng (same as you have)
+const storeLat = 14.6543;
+const storeLng = 120.9721;
+const store = `${storeLng},${storeLat}`;
+
+// From PHP
+const userLat = "<?= $userAddress['latitude'] ?? '' ?>";
+const userLng = "<?= $userAddress['longitude'] ?? '' ?>";
+
+if (!userLat || !userLng) {
+    etaEl.textContent = "ETA unavailable";
+    return;
+}
+
+const customer = `${userLng},${userLat}`;
+
+function roundToNearest5(n) {
+    return Math.round(n / 5) * 5;
+}
+
+async function fetchETA() {
+    try {
+        const res = await fetch(`/Leilife/backend/get_eta.php?from=${store}&to=${customer}`);
+        const data = await res.json();
+
+        if (!data.success) {
+            etaEl.innerHTML = `<strong>ETA unavailable</strong>`;
+            return;
+        }
+
+        const driverSec = data.duration || 0;
+        const driverMin = Math.round(driverSec / 60);
+
+        const minETA = PREP_TIME_MIN;                   // minimum
+        const maxETA = roundToNearest5(PREP_TIME_MIN + driverMin);  // rounded max
+
+        etaEl.innerHTML = `<strong>${minETA}–${maxETA} mins</strong>`;
+    } catch (err) {
+        etaEl.innerHTML = `<strong>ETA unavailable</strong>`;
+    }
+}
+
+fetchETA();
+setInterval(fetchETA, 30000);
 
 
         const timerEl = document.getElementById('pickup-timer');

@@ -264,3 +264,34 @@ button[disabled] {
 #confirm-no:hover {
   background-color: #b52b27;
 }
+
+.order-items-list {
+  max-height: 250px;       /* prevents layout break */
+  overflow-y: auto;        /* makes it scrollable */
+  margin-bottom: 10px;
+  padding-right: 6px;
+  scrollbar-width: thin;
+}
+
+.order-item {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.order-item.cancelled {
+  color: #999;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.cancelled-label {
+  font-size: 0.85em;
+  color: #cc4444;
+  margin: 4px 0 0 0;
+}
+
+

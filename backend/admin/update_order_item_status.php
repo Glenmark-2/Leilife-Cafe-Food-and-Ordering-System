@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 require_once __DIR__ . '/../db_script/db.php';
-require_once __DIR__ . '/../create_payment_intent.php'; // For refund functions
+require_once __DIR__ . '/../create_payment_intent.php'; // for refund helpers
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(["success" => false, "error" => "Invalid request"]);
@@ -22,10 +22,17 @@ if (!$order_item_id || !in_array($new_status, $valid_status)) {
 try {
     $pdo->beginTransaction();
 
-    // 1️⃣ Get item + order info
+    // 1️⃣ Fetch item + order info
     $stmt = $pdo->prepare("
-        SELECT oi.order_id, oi.price, oi.quantity, oi.status AS prev_status,
-               o.payment_method, o.payment_status, o.payment_id, o.total
+        SELECT 
+            oi.order_id,
+            oi.price,
+            oi.quantity,
+            oi.status AS prev_status,
+            o.payment_method,
+            o.payment_status,
+            o.payment_id,
+            o.total
         FROM order_items oi
         JOIN orders o ON oi.order_id = o.order_id
         WHERE oi.order_item_id = ?
@@ -43,7 +50,7 @@ try {
     $prev_status = $item['prev_status'];
     $refund_amount = $price * $qty;
 
-    // 2️⃣ Update the item status
+    // 2️⃣ Update item status
     $stmt = $pdo->prepare("UPDATE order_items SET status = ? WHERE order_item_id = ?");
     $stmt->execute([$new_status, $order_item_id]);
 
@@ -58,100 +65,115 @@ try {
         }
     }
 
-    // 4️⃣ Handle GCash refund if needed
-    $refund_id = null;
-    $refund_status = null;
+// 4️⃣ Trigger PayMongo refund if GCash & paid
+$refund_info = null;
 
-    if (
-        $new_status === 'cancelled' &&
-        $item['payment_method'] === 'gcash' &&
-        $item['payment_status'] === 'paid' &&
-        !empty($item['payment_id'])
-    ) {
-        $payment_id = $item['payment_id'];
-        $remaining_centavos = getRemainingRefundable($payment_id);
-        $requested_centavos = intval(round($refund_amount * 100));
+if (
+    $new_status === 'cancelled' &&
+    $item['payment_method'] === 'gcash' &&
+    $item['payment_status'] === 'paid' &&
+    !empty($item['payment_id'])
+) {
+    $payment_id = $item['payment_id'];
+    $remaining_centavos = getRemainingRefundable($payment_id);
+    $requested_centavos = intval(round($refund_amount * 100));
 
-        if ($remaining_centavos <= 0) {
-            throw new Exception("No refundable balance remaining for this payment.");
-        }
-
-        if ($requested_centavos > $remaining_centavos) {
-            $requested_centavos = $remaining_centavos;
-            $refund_amount = $requested_centavos / 100.0;
-        }
-
-        // Call PayMongo refund
-        $refund = createRefund($payment_id, $refund_amount, $order_id);
-
-        if (!is_array($refund) || empty($refund['data']['id'])) {
-            throw new Exception("Refund API error: invalid response.");
-        }
-
-        $refund_id = $refund['data']['id'];
-        $refund_status = $refund['data']['attributes']['status'] ?? 'pending';
-
-        // Log refund
-        $log = $pdo->prepare("
-            INSERT INTO transactions (order_id, external_id, transaction_name, transaction_status, transaction_value)
-            VALUES (?, ?, 'refund', ?, ?)
-        ");
-        $log->execute([$order_id, $refund_id, $refund_status, $refund_amount]);
+    if ($remaining_centavos <= 0) {
+        throw new Exception("No refundable balance remaining for this payment.");
     }
 
-    // 5️⃣ Determine new overall order status (FIXED LOGIC)
+    if ($requested_centavos > $remaining_centavos) {
+        $requested_centavos = $remaining_centavos;
+        $refund_amount = $requested_centavos / 100.0;
+    }
+
+    try {
+        // Actual PayMongo refund call
+        $refund = createRefund($payment_id, $refund_amount, $order_id, $order_item_id, "requested_by_customer");
+
+        // Normalize structure (PayMongo sometimes returns object or nested attributes)
+        $refundData = null;
+
+        if (isset($refund['data']['id'])) {
+            $refundData = $refund['data'];
+        } elseif (isset($refund['id'])) {
+            $refundData = $refund;
+        }
+
+        if ($refundData && isset($refundData['id'])) {
+            $refund_id = $refundData['id'];
+            $refund_status = $refundData['attributes']['status'] ?? $refundData['status'] ?? 'pending';
+            $refund_amount_cents = $refundData['attributes']['amount'] ?? $refundData['amount'] ?? $requested_centavos;
+
+            $refund_info = [
+                "id" => $refund_id,
+                "status" => $refund_status,
+                "amount" => $refund_amount_cents / 100
+            ];
+
+            // ✅ Update payment_status only (webhook will log the refund)
+            $remaining_centavos_after = $remaining_centavos - $requested_centavos;
+            $new_payment_status = ($remaining_centavos_after <= 0) ? 'refunded' : 'partially_refunded';
+
+            $pdo->prepare("UPDATE orders SET payment_status = ? WHERE order_id = ?")
+                ->execute([$new_payment_status, $order_id]);
+        } else {
+            $refund_info = null; // handle gracefully
+        }
+
+    } catch (Exception $refundEx) {
+        error_log("Refund failed for order_item_id {$order_item_id}: " . $refundEx->getMessage());
+        $refund_info = null;
+    }
+}
+
+
+    // 5️⃣ Determine new overall order status
     $stmt = $pdo->prepare("SELECT status FROM order_items WHERE order_id = ?");
     $stmt->execute([$order_id]);
-    $statuses = array_diff($stmt->fetchAll(PDO::FETCH_COLUMN), ['cancelled']); // ignore cancelled items
+    $statuses = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-    $new_order_status = 'pending'; // default
+    $active_statuses = array_filter($statuses, fn($s) => $s !== 'cancelled');
+    $new_order_status = 'pending';
 
-    if ($statuses) {
-        $unique = array_unique($statuses);
+    if (empty($active_statuses)) {
+        $new_order_status = 'cancelled';
+    } else {
+        $unique = array_unique($active_statuses);
         $all_finished = count($unique) === 1 && $unique[0] === 'finished';
-        $any_preparing = in_array('preparing', $statuses);
-        $any_finished  = in_array('finished', $statuses);
-        $any_pending   = in_array('pending', $statuses);
+        $any_preparing = in_array('preparing', $active_statuses);
+        $any_finished  = in_array('finished', $active_statuses);
+        $any_pending   = in_array('pending', $active_statuses);
 
-        if (empty($statuses)) {
-            $new_order_status = 'cancelled';
-        } elseif ($all_finished) {
+        if ($all_finished) {
             $new_order_status = 'ready_for_delivery';
         } elseif ($any_preparing) {
             $new_order_status = 'preparing';
         } elseif ($any_finished && $any_pending) {
-            $new_order_status = 'preparing'; // mix of finished + pending = still preparing
+            $new_order_status = 'preparing';
         } elseif (!$any_preparing && !$any_finished && $any_pending) {
             $new_order_status = 'pending';
         }
-    } else {
-        // all items cancelled
-        $new_order_status = 'cancelled';
     }
 
     // 6️⃣ Update order status
     $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE order_id = ?");
     $stmt->execute([$new_order_status, $order_id]);
 
-    // 7️⃣ Get updated total
+    // 7️⃣ Fetch updated total
     $stmt = $pdo->prepare("SELECT total FROM orders WHERE order_id = ?");
     $stmt->execute([$order_id]);
     $new_total = $stmt->fetchColumn();
 
     $pdo->commit();
 
-    // ✅ Immediate UI update data
     echo json_encode([
         "success" => true,
         "order_id" => $order_id,
         "new_total" => $new_total,
         "order_status" => $new_order_status,
         "item_status" => $new_status,
-        "refund" => $refund_id ? [
-            "id" => $refund_id,
-            "status" => $refund_status,
-            "amount" => $refund_amount
-        ] : null
+        "refund" => $refund_info
     ]);
 
 } catch (Exception $e) {

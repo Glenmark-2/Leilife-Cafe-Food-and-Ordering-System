@@ -56,8 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const showLinkSentUI = (email) => {
     requestForm.style.display = "none";
     msgContainer.innerHTML = `
-      <p class="success">✅ A reset link has been sent to <strong>${email}</strong>.</p>
-      <button id="resend-btn" disabled>Resend Link (${RESEND_DELAY}s)</button>
+      <p class="success"> A reset link has been sent to <strong>${email}</strong>.</p>
+      <button style="padding:5px; backgrounD-color:#ab917b;COLOR:WHITE; BORDER-RADIUS:5PX;" id="resend-btn" disabled>Resend Link (${RESEND_DELAY}s)</button>
       <p id="resend-info" style="margin-top:8px; font-size:0.9em; color:#555;">
         You can resend up to ${RESEND_LIMIT} times.
       </p>
@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const formData = new FormData();
         formData.append("email", email);
 
-        const res = await fetch("/Leilife/backend/send_mail.php", {
+        const res = await fetch("/Leilife/backend/send_reset_link.php", {
           method: "POST",
           body: formData,
           headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }

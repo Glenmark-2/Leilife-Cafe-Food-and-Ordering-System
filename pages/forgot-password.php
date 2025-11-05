@@ -25,6 +25,7 @@ $token = $_GET['token'] ?? '';
     <!-- Reset Password Form (with token) -->
     <?php if ($token): ?>
       <form id="reset-form" method="POST">
+        
         <h1>Create a new password</h1>
         <p class="subtitle">Must be at least 8 characters.</p>
 

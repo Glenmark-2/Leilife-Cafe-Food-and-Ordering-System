@@ -118,15 +118,35 @@ margin-bottom:16px;
 .table-row:hover { background:#fbfdff; }
 
 /* Column widths */
-.col-order { width:23%; min-width:120px; }
-.col-customer { width:18%; min-width:110px; }
-.col-amount { width:13%; min-width:90px; }
-.col-items { width:8%; min-width:50px; text-align:left; }
-.col-status { width:18%; min-width:120px; position:relative; }
-.col-payment { width:15%; min-width:100px; }
-.col-method { width:13%; min-width:90px; }
-.col-receipt { width:15%; min-width:90px; display:flex; justify-content:center; }
+.col-order { width:100%; min-width:200px; }
+.col-customer { width:100%; min-width:110px; }
+.col-amount { width:100%; min-width:90px; }
+.col-items { width:100%; min-width:50px; text-align:left; }
+.col-status { width:100%; min-width:120px; position:relative; }
+.col-payment { width:100%; min-width:100px; }
+.col-method { width:100%; min-width:90px; }
+.col-receipt { width:100%; min-width:90px; display:flex; justify-content:center; }
+.col-receipt button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
+  .col-receipt button img {
+    width: 16px;
+    height: 16px;
+  }
+
+  .col-receipt button:hover {
+    background: #4338ca;
+  }
 /* Table body */
 #table-body { max-height:580px; overflow:auto; min-height:420px; background:transparent; }
 
@@ -211,108 +231,216 @@ html, body {
   box-sizing: inherit;
   max-width: 100%;
 }
+.staff-table {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.staff-table th {
+  background: #fbfdff;
+  color: var(--text);
+  font-weight: 600;
+}
+.staff-table tr:hover {
+  background: #fafafa;
+}
 
 @media screen and (max-width: 720px) {
-  /* ===== General layout ===== */
-  html, body {
-    overflow-x: hidden;
+  #table-title{
+    display:none
+  }
+  #table-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 14px;
+    text-align: left; /* 👈 Force left alignment globally */
   }
 
-  #first-row {
-    align-items: flex-start;
-    gap: 6px;
-    width: 100%;
-  }
-
-  .stats-row {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    margin: 10px 0;
-    width: 100%;
-  }
-
-  .recent {
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
-    box-shadow: 0 3px 10px rgba(11, 22, 39, 0.05);
-    overflow-x: hidden;
-  }
-
-  @media screen and (max-width: 720px) {
-  #table-title {
-    display: none !important;
-  }
-
-  /* Force rows to behave like standalone cards */
   .table-row {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* 👈 Align all children to left */
     background: var(--card);
-    border: 1px solid var(--surface-border);
+    border: 1px solid var(--border);
     border-radius: 14px;
     padding: 16px 18px;
-    margin: 10px 0;
-    box-shadow: 0 2px 8px rgba(11, 22, 39, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    width: 100%;
-    box-sizing: border-box;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
   }
 
   .table-row:hover {
     transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(11, 22, 39, 0.1);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.08);
   }
 
-  /* Make sure inner elements aren’t treated like table cells */
-  .table-row > div[class^="col-"],
-  .table-row > p[class^="col-"] {
-    display: flex !important;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-    font-size: 14px;
-  }
-
-  .table-row > div[class^="col-"]::before,
-  .table-row > p[class^="col-"]::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: var(--muted);
-    font-size: 13px;
+  /* Header Section */
+  .col-order {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
     margin-bottom: 4px;
   }
 
-  .col-order {
-    grid-column: span 2;
-    font-weight: 600;
+  .col-order::before {
+    content: "Order #: ";
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .col-customer {
     font-size: 15px;
-    color: var(--accent);
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 12px;
   }
 
-  .col-status .badge {
-    align-self: flex-start;
-    font-size: 12px;
-    padding: 5px 10px;
-    border-radius: 6px;
+  .col-customer::before {
+    content: "Customer: ";
+    color: var(--muted);
+    font-weight: 500;
   }
 
-  .col-receipt {
+  /* Info Section */
+  .col-amount,
+  .col-items,
+  .col-payment,
+  .col-method {
+    font-size: 14px;
+    color: var(--text);
+    margin: 2px 0;
+  }
+
+  .col-amount::before,
+  .col-items::before,
+  .col-payment::before,
+  .col-method::before {
+    color: var(--muted);
+    font-weight: 500;
+    margin-right: 4px;
+  }
+
+  .col-amount::before { content: "Amount:"; }
+  .col-items::before { content: "Items:"; }
+  .col-payment::before { content: "Payment:"; }
+  .col-method::before { content: "Method:"; }
+
+  /* Status Section */
+  .col-status {
+    margin-top: 8px;
     display: flex;
-    justify-content: flex-start;
     align-items: center;
+    gap: 6px;
   }
 
-  /* Single column for very narrow screens */
-  @media (max-width: 480px) {
-    .table-row {
-      grid-template-columns: 1fr;
-    }
+  .col-status::before {
+    content: "Status:";
+    color: var(--muted);
+    font-weight: 500;
   }
+
+  .status-btn {
+    border: none;
+    background: none;
+    padding: 0;
+  }
+
+  .badge {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 8px;
+  }
+
+  .s-preparing { background: #e0ecff; color: #2457d5; }
+
+  /* Footer / Download button */
+  .col-receipt {
+    margin-top: 12px;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end; /* 👈 align button to right edge */
+  }
+ .staff-table {
+    border: none;
+    background: transparent;
+  }
+
+  .staff-table thead {
+    display: none; /* Hide table headers on small screens */
+  }
+
+  .staff-table tbody {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 14px;
+  }
+
+  .staff-table tr {
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .staff-table tr:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  }
+
+  .staff-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 6px 0;
+    border: none !important;
+    text-align: left;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  /* Label each field using before pseudo-elements */
+  .staff-table td:nth-child(1)::before { content: "Name: "; color: var(--muted); font-weight: 500; }
+  .staff-table td:nth-child(2)::before { content: "Email: "; color: var(--muted); font-weight: 500; }
+  .staff-table td:nth-child(3)::before { content: "Subject: "; color: var(--muted); font-weight: 500; }
+  .staff-table td:nth-child(4)::before { content: "Type: "; color: var(--muted); font-weight: 500; }
+  .staff-table td:nth-child(5)::before { content: "Date: "; color: var(--muted); font-weight: 500; }
+  .staff-table td:nth-child(6)::before { content: "Actions: "; color: var(--muted); font-weight: 500; }
+
+  /* Actions button styling */
+  .staff-table td.actions {
+    
+    margin-top: 8px;
+  }
+
+  .staff-table td.actions button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .staff-table td.actions button:hover {
+    background: #4338ca;
+  }
+
+  /* Unread highlight */
+  .staff-table tr.unread {
+    border: 2px solid var(--accent);
+  }
+  
 }
+
 
   /* ===== Hide table header ===== */
-}
+
 
   /* ===== Expandable row inside card ===== */
   .expandable-row {
@@ -343,6 +471,88 @@ html, body {
     min-width: 160px;
   }
 
+@media screen and (min-width: 721px) {
+  .staff-table {
+
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border: 1px solid var(--surface-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  /* Table headers */
+  .staff-table thead tr {
+    background: #f3f4f6;
+    border-bottom: 1px solid var(--surface-border);
+  }
+
+  .staff-table th {
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  /* Table body cells */
+  .staff-table td {
+    padding: 14px;
+    font-size: 14px;
+    color: var(--text);
+    border-bottom: 1px solid var(--surface-border);
+    vertical-align: middle;
+  }
+
+  /* Alternate row background */
+  .staff-table tr:nth-child(even) {
+    background: #fafbfc;
+  }
+
+  /* Hover row effect */
+  .staff-table tr:hover {
+    background: #f5f7fa;
+    transition: background 0.2s ease-in-out;
+  }
+
+  /* Actions column */
+  .staff-table .actions {
+    text-align: center;
+  }
+
+  .staff-table .actions button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.2s ease;
+  }
+
+  .staff-table .actions button:hover {
+    background: var(--accent-light);
+  }
+
+  /* Unread row highlight */
+  .staff-table tr.unread {
+    background: #eef2ff;
+    font-weight: 600;
+  }
+
+  /* Table container title */
+  #table-container > p {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+}
 
 </style>
 <div id="first-row">
@@ -404,7 +614,8 @@ html, body {
   </div>
 
   <!-- Recent orders -->
-  <div id="third-row" class="recent" aria-live="polite"> <div class="recent-top"> <p><strong>Recent Orders</strong></p> <div class="sort-dropdown" style="margin-left:auto;"> <label for="sort">Sort by:</label> <select id="sort" style="margin-left:6px;"> <option value="order_date">Order Date</option> <option value="status">Status</option> <option value="total">Total</option> <option value="pickup">Pick up</option> <option value="home_delivery">Home Delivery</option> </select> </div> </div> <div id="table" role="region" aria-label="Recent Orders Table"> <div id="table-title" aria-hidden="true"> <p class="col-order">Order #</p> <p class="col-customer">Customer</p> <p class="col-amount">Amount</p> <p class="col-items">Item</p> <p class="col-status">Status</p> <p class="col-payment">Payment Status</p> <p class="col-method">Method</p> <p class="col-receipt">Download Receipt</p> </div> <div id="table-body"> <!-- rows injected by JS --> </div> </div> <!-- pagination --> <div class="pagination-bar" aria-hidden="false"> <div class="pagination-left" id="pagination-summary">Showing 0 orders</div> <div class="pagination-controls" id="pagination-controls"></div> </div> </div> <!-- Inbox (unchanged) --> <div id="table-container" style="margin-top:12px;"> <p style="font-weight:700; margin-bottom:8px;">Recent Messages</p> <table class="staff-table" aria-live="polite" style="width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--surface-border);"> <thead> <tr style="background:#fbfdff;"> <th style="padding:10px; text-align:left;">Name</th> <th style="padding:10px; text-align:left;">Email</th> <th style="padding:10px; text-align:left;">Subject</th> <th style="padding:10px; text-align:left;">Type</th> <th style="padding:10px; text-align:left;">Date</th> <th style="text-align:center; padding:10px;">Actions</th> </tr> </thead> <tbody id="inboxTableBody"> <?php if ($messages && count($messages) > 0): ?> <?php foreach ($messages as $msg): ?> <tr id="row-<?= $msg['sender_id'] ?>" class="<?= $msg['status'] == 0 ? 'unread' : '' ?>"> <td style="padding:10px;"><?= htmlspecialchars($msg['name'] ?? 'Guest') ?></td> <td style="padding:10px;"><?= htmlspecialchars($msg['email'] ?? '-') ?></td> <td style="padding:10px;"><?= htmlspecialchars($msg['subject'] ?? '(No Subject)') ?></td> <td style="padding:10px;"><?= ucfirst(htmlspecialchars($msg['type'])) ?></td> <td style="padding:10px;"><?= date('Y-m-d H:i', strtotime($msg['created_at'])) ?></td> <td class="actions" style="padding:10px; text-align:center;"> <button type="button" class="editBtn" data-message="<?= htmlspecialchars($msg['message']) ?>" data-id="<?= $msg['sender_id'] ?>">View</button> </td> </tr> <?php endforeach; ?> <?php else: ?> <tr> <td colspan="6" style="text-align:center; padding:18px;">No messages found</td> </tr> <?php endif; ?> </tbody> </table> </div>
+  <div id="third-row" class="recent" aria-live="polite"> <div class="recent-top"> <p><strong>Recent Orders</strong></p> <div class="sort-dropdown" style="margin-left:auto;"> <label for="sort">Sort by:</label> <select id="sort" style="margin-left:6px;"> <option value="order_date">Order Date</option> <option value="status">Status</option> <option value="total">Total</option> <option value="pickup">Pick up</option> <option value="home_delivery">Home Delivery</option> </select> </div> </div> <div id="table" role="region" aria-label="Recent Orders Table"> <div id="table-title" aria-hidden="true"> <p class="col-order">Order #</p> <p class="col-customer">Customer</p> <p class="col-amount">Amount</p> <p class="col-items">Item</p> <p class="col-status">Status</p> <p class="col-payment">Payment Status</p> <p class="col-method">Method</p> <p class="col-receipt">Download Receipt</p> </div> <div id="table-body"> <!-- rows injected by JS --> </div> </div> <!-- pagination --> <div class="pagination-bar" aria-hidden="false"> <div class="pagination-left" id="pagination-summary">Showing 0 orders</div> <div class="pagination-controls" id="pagination-controls"></div> </div> </div> <!-- Inbox (unchanged) --> 
+  <div id="table-container" style="margin-top:12px;"> <p style="font-weight:700; margin-bottom:8px;">Recent Messages</p> <table class="staff-table" aria-live="polite" style="width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--surface-border);"> <thead> <tr style="background:#fbfdff;"> <th style="padding:10px; text-align:left;">Name</th> <th style="padding:10px; text-align:left;">Email</th> <th style="padding:10px; text-align:left;">Subject</th> <th style="padding:10px; text-align:left;">Type</th> <th style="padding:10px; text-align:left;">Date</th> <th style="text-align:center; padding:10px;">Actions</th> </tr> </thead> <tbody id="inboxTableBody"> <?php if ($messages && count($messages) > 0): ?> <?php foreach ($messages as $msg): ?> <tr id="row-<?= $msg['sender_id'] ?>" class="<?= $msg['status'] == 0 ? 'unread' : '' ?>"> <td style="padding:10px;"><?= htmlspecialchars($msg['name'] ?? 'Guest') ?></td> <td style="padding:10px;"><?= htmlspecialchars($msg['email'] ?? '-') ?></td> <td style="padding:10px;"><?= htmlspecialchars($msg['subject'] ?? '(No Subject)') ?></td> <td style="padding:10px;"><?= ucfirst(htmlspecialchars($msg['type'])) ?></td> <td style="padding:10px;"><?= date('Y-m-d H:i', strtotime($msg['created_at'])) ?></td> <td class="actions" style="padding:10px; text-align:center;"> <button type="button" class="editBtn" data-message="<?= htmlspecialchars($msg['message']) ?>" data-id="<?= $msg['sender_id'] ?>">View</button> </td> </tr> <?php endforeach; ?> <?php else: ?> <tr> <td colspan="6" style="text-align:center; padding:18px;">No messages found</td> </tr> <?php endif; ?> </tbody> </table> </div>
   <!-- Message modal -->
   <div id="messageModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" style="display:none; position:fixed; inset:0; justify-content:center; align-items:center; z-index:60;">
     <div class="modal-content" role="document" style="background:var(--card); padding:18px; border-radius:10px; width:90%; max-width:600px; border:1px solid var(--surface-border);">
@@ -480,10 +691,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // periodic refresh if you want
-  setInterval(() => {
-    const s = document.getElementById('sort');
-    loadOrders(s ? s.value : 'order_date', document.getElementById('orderSearch')?.value || '');
-  }, 60000);
+  // setInterval(() => {
+  //   const s = document.getElementById('sort');
+  //   loadOrders(s ? s.value : 'order_date', document.getElementById('orderSearch')?.value || '');
+  // }, 60000);
 });
 
 /* -------------------------
@@ -523,27 +734,28 @@ async function loadOrders(sortBy = 'order_date', searchTerm = '') {
       row.classList.add('table-row');
       row.dataset.orderId = order.order_id;
 
-      row.innerHTML = `
-        <p style="width:23%;">${escapeHtml(order.order_number)}</p>
-        <p style="width:18%;">${escapeHtml(order.customer_name || 'Unknown User')}</p>
-        <p style="width:13%;">₱${parseFloat(order.total || 0).toFixed(2)}</p>
-        <p style="width:8%;">${order.items_count}</p>
-        <div class="status-wrapper" style="width:18%; position:relative;">
-          <button class="status-btn" data-id="${order.order_id}" data-status="${escapeAttr(order.status)}">
-            <span class="badge s-${escapeCss(order.status)}">${formatStatus(order.status)}</span>
-          </button>
-          <div class="status-menu" aria-hidden="true">
-            ${createStatusOptions(order.status, order.delivery_method)}
-          </div>
-        </div>
-        <p style="width:15%;">${escapeHtml(order.payment_status)}</p>
-        <p style="width:13%;">${escapeHtml(order.delivery_method)}</p>
-        <div style="width:15%; display:flex; justify-content:center;">
-          <button class="dlBtn" style="background:transparent; border:0;">
-            <img src="/leilife/public/assests/downloads.png" alt="Download" style="width:20px;">
-          </button>
-        </div>
-      `;
+     row.innerHTML = `
+  <p class="col-order">${escapeHtml(order.order_number)}</p>
+  <p class="col-customer">${escapeHtml(order.customer_name || 'Unknown User')}</p>
+  <p class="col-amount">₱${parseFloat(order.total || 0).toFixed(2)}</p>
+  <p class="col-items">${order.items_count}</p>
+  <div class="col-status">
+    <button class="status-btn" data-id="${order.order_id}" data-status="${escapeAttr(order.status)}">
+      <span class="badge s-${escapeCss(order.status)}">${formatStatus(order.status)}</span>
+    </button>
+    <div class="status-menu" aria-hidden="true">
+      ${createStatusOptions(order.status, order.delivery_method)}
+    </div>
+  </div>
+  <p class="col-payment">${escapeHtml(order.payment_status)}</p>
+  <p class="col-method">${escapeHtml(order.delivery_method)}</p>
+  <div class="col-receipt">
+    <button class="dlBtn">
+      <img src="/leilife/public/assests/downloads.png" alt="Download" style="width:20px;">
+    </button>
+  </div>
+`;
+
       tableBody.appendChild(row);
 
       // download button handler
@@ -620,93 +832,92 @@ async function loadOrders(sortBy = 'order_date', searchTerm = '') {
    (kept intact from your previous version — not required if you don't call it)
    ------------------------- */
 
-  function renderOrders() { 
-  const tableBody = document.getElementById('table-body'); 
-  tableBody.innerHTML = ''; 
-  const total = allOrders.length; 
-  const totalPages = Math.max(1, Math.ceil(total / rowsPerPage)); 
-  if (currentPage > totalPages) currentPage = totalPages; 
-  const start = (currentPage - 1) * rowsPerPage; 
-  const slice = allOrders.slice(start, start + rowsPerPage); 
+//   function renderOrders() { 
+//   const tableBody = document.getElementById('table-body'); 
+//   tableBody.innerHTML = ''; 
+//   const total = allOrders.length; 
+//   const totalPages = Math.max(1, Math.ceil(total / rowsPerPage)); 
+//   if (currentPage > totalPages) currentPage = totalPages; 
+//   const start = (currentPage - 1) * rowsPerPage; 
+//   const slice = allOrders.slice(start, start + rowsPerPage); 
   
-  // create rows
-  slice.forEach(order => { 
-    const row = document.createElement('div'); 
-    row.classList.add('table-row'); 
-    row.dataset.orderId = order.order_id; 
+//   // create rows
+//   slice.forEach(order => { 
+//     const row = document.createElement('div'); 
+//     row.classList.add('table-row'); 
+//     row.dataset.orderId = order.order_id; 
     
-    // build status badge + button
-    const statusBadge = `<span class="badge s-${escapeCss(order.status)}">${formatStatus(order.status)}</span>`; 
-    row.innerHTML = `
-      <div class="col-order"><p>${escapeHtml(order.order_number)}</p></div> 
-      <div class="col-customer"><p>${escapeHtml(order.customer_name || 'Unknown User')}</p></div> 
-      <div class="col-amount"><p id="order-total-${order.order_id}">₱${parseFloat(order.total || 0).toFixed(2)}</p></div> 
-      <div class="col-items"><p style="text-align:left;">${order.items_count ?? 0}</p></div> 
-      <div class="col-status">
-        <div style="display:flex; gap:8px; align-items:center;"> 
-          <button class="status-btn" data-id="${escapeAttr(order.order_id)}" data-status="${escapeAttr(order.status)}">${statusBadge}</button> 
-        </div> 
-        <div class="status-menu" aria-hidden="true"> 
-          ${createStatusOptions(order.status, order.delivery_method)} 
-        </div> 
-      </div> 
-      <div class="col-payment"><p>${escapeHtml(order.payment_status)}</p></div> 
-      <div class="col-method"><p>${escapeHtml(order.delivery_method)}</p></div> 
-      <div class="col-receipt"> 
-        <button class="dlBtn" aria-label="Download Receipt" style="background:transparent; border:0; padding:4px; cursor:pointer;"> 
-          <img src="/leilife/public/assests/downloads.png" alt="Download" style="width:20px;"> 
-        </button> 
-      </div>
-    `; 
+//     // build status badge + button
+//     const statusBadge = `<span class="badge s-${escapeCss(order.status)}">${formatStatus(order.status)}</span>`; 
+//     row.innerHTML = `
+//       <div class="col-order"><p>${escapeHtml(order.order_number)}</p></div> 
+//       <div class="col-customer"><p>${escapeHtml(order.customer_name || 'Unknown User')}</p></div> 
+//       <div class="col-amount"><p id="order-total-${order.order_id}">₱${parseFloat(order.total || 0).toFixed(2)}</p></div> 
+//       <div class="col-items"><p style="text-align:left;">${order.items_count ?? 0}</p></div> 
+//       <div class="col-status">
+//         <div style="display:flex; gap:8px; align-items:center;"> 
+//           <button class="status-btn" data-id="${escapeAttr(order.order_id)}" data-status="${escapeAttr(order.status)}">${statusBadge}</button> 
+//         </div> 
+//         <div class="status-menu" aria-hidden="true"> 
+//           ${createStatusOptions(order.status, order.delivery_method)} 
+//         </div> 
+//       </div> 
+//       <div class="col-payment"><p>${escapeHtml(order.payment_status)}</p></div> 
+//       <div class="col-method"><p>${escapeHtml(order.delivery_method)}</p></div> 
+//       <div class="col-receipt"> 
+//         <button class="dlBtn" aria-label="Download Receipt" style="background:transparent; border:0; padding:4px; cursor:pointer;"> 
+//           <img src="/leilife/public/assests/downloads.png" alt="Download" style="width:20px;"> 
+//         </button> 
+//       </div>
+//     `; 
 
-    tableBody.appendChild(row); 
+//     tableBody.appendChild(row); 
 
-    // downloadable receipt
-    const dlBtn = row.querySelector('.dlBtn'); 
-    if (dlBtn) { 
-      dlBtn.addEventListener('click', (e) => { 
-        e.stopPropagation(); 
-        downloadReceipt(order.order_number, order.user_id); 
-      }); 
-    } 
+//     // downloadable receipt
+//     const dlBtn = row.querySelector('.dlBtn'); 
+//     if (dlBtn) { 
+//       dlBtn.addEventListener('click', (e) => { 
+//         e.stopPropagation(); 
+//         downloadReceipt(order.order_number, order.user_id); 
+//       }); 
+//     } 
 
-    // expandable area for items
-    const expandRow = document.createElement('div'); 
-    expandRow.classList.add('expandable-row'); 
-    expandRow.dataset.orderId = order.order_id; 
-    expandRow.style.display = 'none'; 
-    tableBody.appendChild(expandRow); 
+//     // expandable area for items
+//     const expandRow = document.createElement('div'); 
+//     expandRow.classList.add('expandable-row'); 
+//     expandRow.dataset.orderId = order.order_id; 
+//     expandRow.style.display = 'none'; 
+//     tableBody.appendChild(expandRow); 
 
-    // click to expand row (except when clicking status button or status menu)
-    row.addEventListener('click', async (e) => { 
-      if (e.target.closest('.status-btn') || e.target.closest('.status-menu') || e.target.closest('.status-option')) return; 
-      const wasVisible = expandRow.style.display === 'block'; 
-      document.querySelectorAll('.expandable-row').forEach(r => r.style.display = 'none'); 
-      if (wasVisible) { 
-        expandRow.style.display = 'none'; 
-        return; 
-      } 
-      expandRow.innerHTML = `<p style="color:var(--muted); padding:10px;">Loading items...</p>`; 
-      expandRow.style.display = 'block'; 
-      try { 
-        const itemsRes = await fetch(`/Leilife/backend/admin/get_order_items.php?order_id=${encodeURIComponent(order.order_id)}`); 
-        const itemData = await itemsRes.json(); 
-        if (itemData.success && Array.isArray(itemData.items)) { 
-          expandRow.innerHTML = renderItemTable(itemData.items); 
-          attachItemDelegatedListener(expandRow, order.order_id); 
-        } else { 
-          expandRow.innerHTML = `<p style="color:var(--muted); padding:10px;">No items found.</p>`; 
-        } 
-      } catch (err) { 
-        expandRow.innerHTML = `<p style="color:${'red'}; padding:10px;">Error loading items</p>`; 
-        console.error(err); 
-      } 
-    }); 
-  }); 
+//     // click to expand row (except when clicking status button or status menu)
+//     row.addEventListener('click', async (e) => { 
+//       if (e.target.closest('.status-btn') || e.target.closest('.status-menu') || e.target.closest('.status-option')) return; 
+//       const wasVisible = expandRow.style.display === 'block'; 
+//       document.querySelectorAll('.expandable-row').forEach(r => r.style.display = 'none'); 
+//       if (wasVisible) { 
+//         expandRow.style.display = 'none'; 
+//         return; 
+//       } 
+//       expandRow.innerHTML = `<p style="color:var(--muted); padding:10px;">Loading items...</p>`; 
+//       expandRow.style.display = 'block'; 
+//       try { 
+//         const itemsRes = await fetch(`/Leilife/backend/admin/get_order_items.php?order_id=${encodeURIComponent(order.order_id)}`); 
+//         const itemData = await itemsRes.json(); 
+//         if (itemData.success && Array.isArray(itemData.items)) { 
+//           expandRow.innerHTML = renderItemTable(itemData.items); 
+//           attachItemDelegatedListener(expandRow, order.order_id); 
+//         } else { 
+//           expandRow.innerHTML = `<p style="color:var(--muted); padding:10px;">No items found.</p>`; 
+//         } 
+//       } catch (err) { 
+//         expandRow.innerHTML = `<p style="color:${'red'}; padding:10px;">Error loading items</p>`; 
+//         console.error(err); 
+//       } 
+//     }); 
+//   }); 
   
-  renderPagination(); 
-  attachStatusListeners(); 
-} 
+//   attachStatusListeners(); 
+// } 
 
 
 

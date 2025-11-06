@@ -37,8 +37,9 @@ html, body {
 
 /* Content wrapper */
 #content-wrapper {
-    flex: 1;              /* take remaining space */
+     flex: 1;              /* take remaining space */
     padding: 20px 50px;
+    margin-left: 20px;
     
 }
 

@@ -103,7 +103,7 @@ $subCategories = array_values($subCategories);
         margin-bottom: 5px;
     }
 </style>
-
+<div class="surface"> 
 <div id="first-row"> 
     <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
     <span></span>
@@ -111,12 +111,11 @@ $subCategories = array_values($subCategories);
     <span></span>
   </button>
     <h2>Products</h2>
-    <div>
+</div>
+<div class="action-btns">
         <button type="button" id="edit-flavor-size-btn"><span>Edit Flavors/Sizes</span></button>
         <button type="button" id="view-archive"><span><?= $btnText ?></span></button>
     </div>
-</div>
-
 <div id="second-row">
     <button type="button" class="box-row clicked" data-category="all">All</button>
     <?php foreach ($subCategories as $sub): ?>
@@ -400,7 +399,7 @@ $subCategories = array_values($subCategories);
     </footer>
   </div>
 </div>
-
+</div>
 <!-- ===================== MODERN STYLES ===================== -->
 <style>
   :root {
@@ -1037,6 +1036,11 @@ filterProducts();
 
         if (viewArchiveBtn) {
             viewArchiveBtn.disabled = true;
+
+
+
+
+            
             viewArchiveBtn.style.opacity = "0.5";
             viewArchiveBtn.style.cursor = "not-allowed";
         }

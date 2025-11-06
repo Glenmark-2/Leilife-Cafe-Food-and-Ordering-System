@@ -21,6 +21,7 @@ require_once __DIR__ . '../../../backend/admin/fetch_audit_logs.php'; // Fetch l
   <title>Audit / Activity Logs</title>
   <style>
     /* === GENERAL LAYOUT === */
+    
     .page-container {
       padding: 20px;
       font-family: 'Poppins', sans-serif;

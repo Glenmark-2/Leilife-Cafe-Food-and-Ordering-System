@@ -25,7 +25,7 @@ body {
 
 /* Container */
 .container {
-  padding: 16px;
+  margin: 10px;
 }
 
 /* Row layout */
@@ -92,7 +92,11 @@ body {
 .export-buttons button:hover {
   background-color: #2e5b64;
 }
-
+@media (min-width: 768px) {
+  .hamburger {
+    display: none;
+  }
+}
 /* Responsive */
 @media (max-width: 767px) {
   #first-row {
@@ -124,6 +128,7 @@ body {
   gap: 15px;
   margin-bottom: 25px;
   flex-wrap: wrap;
+  margin: 10;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
@@ -152,6 +157,7 @@ select, input[type="date"] {
     padding: 22px;       /* keep container padding */
     margin-top: 30px !important;
     border: 1px solid var(--border);
+    margin: 10;
     
 }
 

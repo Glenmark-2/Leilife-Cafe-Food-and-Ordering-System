@@ -53,31 +53,31 @@ $messages = $appData->loadInbox($archived);
     <tbody id="inboxTableBody">
       <?php if ($messages && count($messages) > 0): ?>
         <?php foreach ($messages as $msg): ?>
-          <tr id="row-<?= $msg['sender_id'] ?>" class="<?= $msg['status'] == 0 ? 'unread' : '' ?>">
-            <td style="width: 15%;"><?= htmlspecialchars($msg['name'] ?? 'Guest') ?></td>
-            <td style="width: 15%;"><?= htmlspecialchars($msg['email'] ?? '-') ?></td>
-            <td style="width: 20%;"><?= htmlspecialchars($msg['subject'] ?? '(No Subject)') ?></td>
-            <td style="width: 15%;"><?= ucfirst(htmlspecialchars($msg['type'])) ?></td>
-            <td style="width: 15%;"><?= date('Y-m-d H:i', strtotime($msg['created_at'])) ?></td>
-            <td class="actions" style="flex:1">
-              <button
-                type="button"
-                class="editBtn"
-                data-message="<?= htmlspecialchars($msg['message']) ?>"
-                data-id="<?= $msg['sender_id'] ?>"
-                onclick="viewMessage(this)">
-                View
-              </button>
+         <tr id="row-<?= $msg['sender_id'] ?>" class="<?= $msg['status'] == 0 ? 'unread' : '' ?>">
+  <td data-label="Name"><?= htmlspecialchars($msg['name'] ?? 'Guest') ?></td>
+  <td data-label="Email"><?= htmlspecialchars($msg['email'] ?? '-') ?></td>
+  <td data-label="Subject"><?= htmlspecialchars($msg['subject'] ?? '(No Subject)') ?></td>
+  <td data-label="Type"><?= ucfirst(htmlspecialchars($msg['type'])) ?></td>
+  <td data-label="Date"><?= date('Y-m-d H:i', strtotime($msg['created_at'])) ?></td>
+  <td class="actions" data-label="Actions">
+    <button
+      type="button"
+      class="editBtn"
+      data-message="<?= htmlspecialchars($msg['message']) ?>"
+      data-id="<?= $msg['sender_id'] ?>"
+      onclick="viewMessage(this)">
+      View
+    </button>
 
-              <button
-                type="button"
-                class="archiveBtn"
-                data-id="<?= $msg['sender_id'] ?>">
-                <img src="public/assests/archive.png" alt="Archive" style="width:24px; height:24px;" title="Archive">
-              </button>
-            </td>
+    <button
+      type="button"
+      class="archiveBtn"
+      data-id="<?= $msg['sender_id'] ?>">
+      <img src="public/assests/archive.png" alt="Archive" style="width:24px; height:24px;" title="Archive">
+    </button>
+  </td>
+</tr>
 
-          </tr>
         <?php endforeach; ?>
       <?php else: ?>
         <tr>
@@ -87,6 +87,13 @@ $messages = $appData->loadInbox($archived);
     </tbody>
   </table>
   </div>
+  <div class="pagination-bar">
+  <div class="pagination-left">
+    Showing <span id="page-info"></span>
+  </div>
+  <div class="pagination-controls" id="pagination-controls"></div>
+</div>
+
 </div>
 
 <!-- === Message Details Modal === -->
@@ -231,4 +238,58 @@ document.querySelectorAll(".archiveBtn").forEach(btn => {
   });
 });
 
+document.addEventListener("DOMContentLoaded", function() {
+  const rows = Array.from(document.querySelectorAll("#inboxTableBody tr"));
+  const tableBody = document.getElementById("inboxTableBody");
+  const paginationControls = document.getElementById("pagination-controls");
+  const pageInfo = document.getElementById("page-info");
+
+  let itemsPerPage = window.innerWidth <= 768 ? 5 : 10;
+  let currentPage = 1;
+
+  function renderTable() {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    rows.forEach((row, i) => {
+      row.style.display = (i >= start && i < end) ? "" : "none";
+    });
+
+    // update page info
+    const totalPages = Math.ceil(rows.length / itemsPerPage);
+    pageInfo.textContent = `${start + 1}-${Math.min(end, rows.length)} of ${rows.length}`;
+
+    // render pagination buttons
+    paginationControls.innerHTML = "";
+    const prevBtn = createButton("Prev", currentPage > 1, () => { currentPage--; renderTable(); });
+    const nextBtn = createButton("Next", currentPage < totalPages, () => { currentPage++; renderTable(); });
+
+    paginationControls.appendChild(prevBtn);
+    for (let i = 1; i <= totalPages; i++) {
+      const btn = createButton(i, true, () => { currentPage = i; renderTable(); });
+      if (i === currentPage) btn.classList.add("active");
+      paginationControls.appendChild(btn);
+    }
+    paginationControls.appendChild(nextBtn);
+  }
+
+  function createButton(label, enabled, onClick) {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    btn.className = "pg-btn";
+    if (!enabled) btn.classList.add("disabled");
+    if (enabled) btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  window.addEventListener("resize", () => {
+    const newLimit = window.innerWidth <= 768 ? 5 : 10;
+    if (newLimit !== itemsPerPage) {
+      itemsPerPage = newLimit;
+      currentPage = 1;
+      renderTable();
+    }
+  });
+
+  renderTable();
+});
 </script>

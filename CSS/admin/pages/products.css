@@ -34,7 +34,7 @@ button:hover {
   display: block;
   height: 3px;
   width: 100%;
-  background-color: #1205ff;
+  background-color: #1a353c;;
   border-radius: 3px;
   transition: all 0.3s ease;
 }
@@ -65,7 +65,7 @@ button:hover {
 #first-row { display: flex; align-items: center; gap: 10px; } 
 #first-row h2 { margin: 0; font-size: 1.5rem; color: #1a353c; font-weight: 600; } /* Hamburger button container */ 
 .hamburger { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 28px; height: 24px; background: none; border: none; cursor: pointer; padding: 0; } /* The three bars */ 
-.hamburger span { display: block; height: 3px; width: 100%; background-color: #1205ff; border-radius: 3px; transition: all 0.3s ease; } /* Hide on desktop */ 
+.hamburger span { display: block; height: 3px; width: 100%; background-color: #1a353c;; border-radius: 3px; transition: all 0.3s ease; } /* Hide on desktop */ 
 @media (min-width: 768px) { .hamburger { display: none; } }
 
 
@@ -82,7 +82,7 @@ button:hover {
 #edit-flavor-size-btn {
   padding: 6px 12px;
   border-radius: 6px;
-  background: #4caf50;
+  background: #1a353c;;
   color: #fff;
   font-size: 12px;
   border: none;
@@ -92,7 +92,7 @@ button:hover {
 
 #view-archive:hover,
 #edit-flavor-size-btn:hover {
-  background: #43a047;
+  background: #415863;
 }
 
 
@@ -112,7 +112,7 @@ button:hover {
   font-size: 14px;
 }
 .box-row.clicked {
-  background: #4caf50;
+  background: #1a353c;
   color: #fff;
 }
 #table-container {
@@ -136,7 +136,7 @@ button:hover {
 }
 
 .pagination-btn {
-  background-color: #007bff;
+  background-color: #415863;
   color: white;
   border: none;
   border-radius: 6px;
@@ -147,8 +147,8 @@ button:hover {
 }
 
 .pagination-btn:hover:not(:disabled) {
-  background-color: #0056b3;
-}
+  background-color: #355b65;
+} 
 
 .pagination-btn:disabled {
   opacity: 0.5;
@@ -188,11 +188,12 @@ button:hover {
 #add-product {
   padding: 8px 12px;
   border-radius: 6px;
-  background: #1976d2;
+  background: #3c5960;
   color: #fff;
   font-size: 14px;
+}#add-product:hover {
+  background: #1a353c;
 }
-
 /* ========== Mobile-first Card Layout ========== */
 .product-table {
   border: none;
@@ -236,7 +237,7 @@ button:hover {
 /* product-row cells for mobile */
 .product-row td {
   display: flex;
-  justify-content: space-between;
+  
   align-items: center;
   padding: 4px 0;
   border: none;
@@ -331,7 +332,11 @@ button:hover {
 }
 
 .editBtn, .viewBtn {
-  background: #ffb700;
+  background: #415863;
+  color: #fff;
+}
+.editBtn, .viewBtn :hover{
+  background: #355b65;
   color: #fff;
 }
 .actions-cell .archive-icon {
@@ -349,7 +354,7 @@ button:hover {
 }
 /* Highlight editable row */
 .product-row.editing {
-  border: 2px solid #4caf50;   /* green border */
+  border: 2px solid #415863;   /* green border */
   box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
 }
 
@@ -519,7 +524,7 @@ button:hover {
 }
 
 .viewBtn{
-  background-color: #966363;
+  background-color: #1a353c;
   color: white;
 }
 

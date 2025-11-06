@@ -32,9 +32,11 @@
         --surface: #ffffff;
         --muted: #8a8f98;
         --accent-1: linear-gradient(90deg, #8b6f47, #c2a47c);
-        --primary: #8b6f47;
-        --secondary: #d2b48c;
-        --accent: #a67c52;
+        --primary: 
+#1a353c;
+        --secondary: #415863
+;
+        --accent: #355b65;
         --glass: rgba(255, 255, 255, 0.6);
         --shadow-1: 0 8px 24px rgba(18, 20, 25, 0.06);
         --shadow-2: 0 4px 12px rgba(18, 20, 25, 0.06);
@@ -55,13 +57,16 @@
   
         background:var(--bg,#f4f6f9);
          font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-       color: var(--text-dark, #2f2b24);
+       color: #415863;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         
       }
-
+      .surface {
+    
+       margin:20px 20px auto 20px;
       
+      }
 #first-row { display: flex; align-items: center; gap: 10px; padding-bottom: 10px;} 
 #first-row h2 { margin: 0; font-size: 1.5rem; color: #1a353c; font-weight: 600; } /* Hamburger button container */ 
 .hamburger { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 28px; height: 24px; background: none; border: none; cursor: pointer; padding: 0; } /* The three bars */ 
@@ -91,13 +96,6 @@
         margin: 0;
         font-size: 20px;
         font-weight: 700;
-      }
-
-      /* Content container */
-      .surface {
-    
-       margin:20px 20px auto 20px;
-      
       }
 
       /* Filters */
@@ -142,13 +140,15 @@
         padding: 10px 14px;
         border-radius: 10px;
         border: none;
-        background: linear-gradient(180deg, #8b6f47, #a0784f);
+        background: #1a353c;
         color: white;
         font-weight: 600;
         cursor: pointer;
         box-shadow: 0 6px 18px rgba(139, 111, 71, 0.12);
       }
-
+.report-filters button:hover {
+       background-color:  #355b65;
+      }
       .report-filters .spacer {
         flex: 1;
         min-width: 0;
@@ -216,7 +216,7 @@
 
       .chart-selector button {
         border: none;
-        background: linear-gradient(180deg, #8b6f47, #a0784f);
+        background: #1a353c;
         color: #fff;
         font-weight: 600;
         padding: 8px 14px;
@@ -292,8 +292,9 @@
 
       .export-section button {
         padding: 9px 14px;
+        margin-bottom: 10px;
         border-radius: 10px;
-        background-color: #826000;
+        background-color: #1a353c;
         min-width: 120px;
         cursor: pointer;
         font-weight: 300;
@@ -311,7 +312,11 @@
         .report-cards {
           grid-template-columns: repeat(2, 1fr);
         }
-
+.surface {
+    
+       margin:20px 0px 0px 0px;
+      width: 95%;
+      }
         .analytics-wrapper {
           grid-template-columns: 1fr;
         }
@@ -323,6 +328,12 @@
         .sentiment-side {
           margin-top: 14px;
         }
+        .report-filters select, .report-filters input[type="date"] {
+    padding: 5px 5px;
+  
+    min-width: 130px;
+    
+}
       }
 
       @media(max-width:640px) {
@@ -361,16 +372,14 @@
 
     <body>
       <div class="surface">
-      <div id="first-row"> 
-    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
-    <span></span>
-    <span></span>
-    <span></span>
-  </button>
-    <h2>Reports & Analytics</h2>
-</div>
-
-        
+        <div id="first-row"> 
+        <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+          <span></span>
+            <span></span>
+          <span></span>
+            </button>
+           <h2>Reports & Analytics</h2>
+                  </div>
           <div class="report-filters">
             <div>
               <label for="reportType">Report Type:</label>

@@ -1112,8 +1112,8 @@ filterProducts();
                 });
                 row.classList.remove('editing');
                 btn.textContent = "Edit";
-                btn.style.backgroundColor = "#ffc107";
-                btn.style.color = "#22333B";
+                btn.style.backgroundColor = "#415863";
+                btn.style.color = "#ffffff";
 
                 document.querySelectorAll('.editBtn').forEach(b => {
                     b.disabled = false;

@@ -14,6 +14,7 @@ html, body {
 
 /* Sidebar wrapper */
 #sidebar-wrapper {
+    
     flex-shrink: 0;        /* do not shrink */
     transition: width 0.4s ease;
     margin-right: 10px;

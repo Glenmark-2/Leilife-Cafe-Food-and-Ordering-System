@@ -102,6 +102,154 @@ $subCategories = array_values($subCategories);
     #new-flavors button {
         margin-bottom: 5px;
     }
+    :root {
+    --bg-overlay: rgba(0, 0, 0, 0.5);
+    --white: #fff;
+    --border: #e5e7eb;
+    --primary: #2563eb;
+    --primary-hover: #1e40af;
+    --text-dark: #1f2937;
+    --text-muted: #6b7280;
+    --shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  /* ===== Modal Base ===== */
+  .modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--bg-overlay);
+    z-index: 9999;
+    animation: fadeIn 0.25s ease;
+  }
+  .modal.hidden { display: none; }
+
+  .modal-card {
+    background: var(--white);
+    border-radius: 14px;
+    width: 92%;
+    max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+    position: relative;
+    animation: popUp 0.25s ease;
+  }
+
+  @keyframes popUp {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes fadeIn {
+    from { background: rgba(0, 0, 0, 0); }
+    to { background: var(--bg-overlay); }
+  }
+
+  /* ===== Header ===== */
+  .modal-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+  }
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-dark);
+  }
+
+  /* ===== Body ===== */
+  .modal-body {
+    color: var(--text-dark);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .modal-body p {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed var(--border);
+    padding: 6px 0;
+    margin: 0;
+  }
+  .modal-body p strong {
+    color: var(--text-muted);
+    flex: 1;
+    font-weight: 500;
+  }
+  .modal-body p span {
+    flex: 1;
+    text-align: right;
+    color: var(--text-dark);
+  }
+  .modal-body img {
+    display: block;
+    margin: 10px auto;
+    border-radius: 8px;
+    max-width: 180px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  /* ===== Footer Buttons ===== */
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn-primary, .btn-outline {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+  }
+  .btn-primary:hover { background: var(--primary-hover); }
+
+  .btn-outline {
+    border: 1px solid var(--border);
+    background: #f9fafb;
+    color: var(--text-dark);
+  }
+  .btn-outline:hover { background: #f3f4f6; }
+
+  /* ===== Close Button ===== */
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    font-size: 22px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .modal-close:hover { color: var(--text-dark); }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 480px) {
+    .modal-card { padding: 18px; }
+    .modal-body p { flex-direction: column; text-align: left; }
+    .modal-body p strong, .modal-body p span {
+      flex: none; text-align: left;
+    }
+    .modal-body img { max-width: 150px; }
+  }
 </style>
 <div class="surface"> 
 <div id="first-row"> 
@@ -130,7 +278,7 @@ $subCategories = array_values($subCategories);
 <hr>
 
 <div id="third-row">
-    <div id="top">
+    <div id="search-add">
         <form class="search-bar" role="search" onsubmit="return false;">
             <input type="search" id="search-input" placeholder="🔍 Search product" aria-label="Search products">
         </form>
@@ -399,158 +547,7 @@ $subCategories = array_values($subCategories);
     </footer>
   </div>
 </div>
-</div>
-<!-- ===================== MODERN STYLES ===================== -->
-<style>
-  :root {
-    --bg-overlay: rgba(0, 0, 0, 0.5);
-    --white: #fff;
-    --border: #e5e7eb;
-    --primary: #2563eb;
-    --primary-hover: #1e40af;
-    --text-dark: #1f2937;
-    --text-muted: #6b7280;
-    --shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  }
 
-  body {
-    font-family: 'Poppins', sans-serif;
-  }
-
-  /* ===== Modal Base ===== */
-  .modal {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: var(--bg-overlay);
-    z-index: 9999;
-    animation: fadeIn 0.25s ease;
-  }
-  .modal.hidden { display: none; }
-
-  .modal-card {
-    background: var(--white);
-    border-radius: 14px;
-    width: 92%;
-    max-width: 480px;
-    max-height: 85vh;
-    overflow-y: auto;
-    padding: 20px 24px;
-    box-shadow: var(--shadow);
-    position: relative;
-    animation: popUp 0.25s ease;
-  }
-
-  @keyframes popUp {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-
-  @keyframes fadeIn {
-    from { background: rgba(0, 0, 0, 0); }
-    to { background: var(--bg-overlay); }
-  }
-
-  /* ===== Header ===== */
-  .modal-header {
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-  }
-  .modal-header h2 {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--text-dark);
-  }
-
-  /* ===== Body ===== */
-  .modal-body {
-    color: var(--text-dark);
-    font-size: 15px;
-    line-height: 1.6;
-  }
-  .modal-body p {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px dashed var(--border);
-    padding: 6px 0;
-    margin: 0;
-  }
-  .modal-body p strong {
-    color: var(--text-muted);
-    flex: 1;
-    font-weight: 500;
-  }
-  .modal-body p span {
-    flex: 1;
-    text-align: right;
-    color: var(--text-dark);
-  }
-  .modal-body img {
-    display: block;
-    margin: 10px auto;
-    border-radius: 8px;
-    max-width: 180px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-
-  /* ===== Footer Buttons ===== */
-  .modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-  }
-
-  .btn-primary, .btn-outline {
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: 0.2s ease;
-  }
-
-  .btn-primary {
-    background: var(--primary);
-    color: #fff;
-    border: none;
-  }
-  .btn-primary:hover { background: var(--primary-hover); }
-
-  .btn-outline {
-    border: 1px solid var(--border);
-    background: #f9fafb;
-    color: var(--text-dark);
-  }
-  .btn-outline:hover { background: #f3f4f6; }
-
-  /* ===== Close Button ===== */
-  .modal-close {
-    position: absolute;
-    top: 14px;
-    right: 16px;
-    font-size: 22px;
-    color: var(--text-muted);
-    background: none;
-    border: none;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .modal-close:hover { color: var(--text-dark); }
-
-  /* ===== Responsive ===== */
-  @media (max-width: 480px) {
-    .modal-card { padding: 18px; }
-    .modal-body p { flex-direction: column; text-align: left; }
-    .modal-body p strong, .modal-body p span {
-      flex: none; text-align: left;
-    }
-    .modal-body img { max-width: 150px; }
-  }
-</style>
 
 <!-- ===================== BACKEND + LOGIC (Unchanged) ===================== -->
 <script>
@@ -628,12 +625,6 @@ $subCategories = array_values($subCategories);
     if (e.target === productModal) closeModal();
   });
 </script>
-
-
-
-
-
-
 
 
 
@@ -1025,7 +1016,10 @@ filterProducts();
                     v.style.cursor = "not-allowed";
                 });
 
-        const editFlavorBtn = document.getElementById("edit-flavor-size-btn");
+        const editFlavorBtn = document.getElementById("edit-flavor-size-btn"
+
+        
+        );
         const viewArchiveBtn = document.getElementById("view-archive");
 
         if (editFlavorBtn) {
@@ -1280,16 +1274,29 @@ filterProducts();
             });
 
             const viewArchiveBtn = document.getElementById('view-archive');
-            viewArchiveBtn.addEventListener('click', () => {
-                resetEditButtons();
-                const url = new URL(window.location.href);
-                if (url.searchParams.get('archived') === '1') {
-                    url.searchParams.set('archived', '0');
-                } else {
-                    url.searchParams.set('archived', '1');
-                }
-                window.location.href = url.toString();
-            });
+            if (viewArchiveBtn) {
+    viewArchiveBtn.addEventListener('click', () => {
+        const url = new URL(window.location.href);
+        const isArchivedView = url.searchParams.get('archived') === '1';
+
+        // Toggle archived view parameter
+        url.searchParams.set('archived', isArchivedView ? '0' : '1');
+
+        // Update button text for UX
+        viewArchiveBtn.textContent = isArchivedView ? "View Archive" : "View Active Products";
+
+        // Refresh page with updated filter
+        window.location.href = url.toString();
+    });
+
+    // Change button text immediately based on current view
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('archived') === '1') {
+        viewArchiveBtn.textContent = "View Active Products";
+    } else {
+        viewArchiveBtn.textContent = "View Archive";
+    }
+}
 
             // document.querySelectorAll('.archive-icon').forEach(icon => {
             //     icon.addEventListener('click', () => {

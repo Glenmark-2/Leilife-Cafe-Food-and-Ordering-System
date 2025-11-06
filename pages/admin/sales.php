@@ -47,7 +47,7 @@ $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: nul
 
 
 
-<div class="container">
+<div class="container1">
   <div id="first-row">
     <div class="top-left">
       <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
@@ -64,7 +64,7 @@ $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: nul
       <button onclick="exportFile('pdf')">Export PDF</button>
     </div>
   </div>
-</div>
+
 
 
   <div class="filters">
@@ -129,7 +129,6 @@ $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: nul
   </div>
 
 
-</div>
 
 
 <!-- ===== Order Details Modal ===== -->
@@ -159,6 +158,7 @@ $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: nul
     </div>
   </div>
 </div>
+
 
 <script>
   const downloadToken = '<?= $downloadToken ?>'; // single-use token for export
@@ -210,17 +210,20 @@ $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: nul
       const customer = order.customer_name || 'Undefined';
       const orderNumber = order.order_number || 'Undefined';
 
-      const row = document.createElement("tr");
-      row.innerHTML = `
-            <td>#${orderNumber}</td>
-            <td  style="text-transform: capitalize;">${customer}</td>
-            <td>₱${total}</td>
-            <td  style="text-transform: capitalize;">${order.status || 'Undefined'}</td>
-            <td  style="text-transform: capitalize;">${payment}</td>
-            <td>${date}</td>
-            <td style="display:flex; justify-content:center;" class="actions"><button class="view-btn" onclick="viewDetails('${orderNumber}')">View</button></td>
-        `;
-      tbody.appendChild(row);
+     const row = document.createElement("tr");
+row.innerHTML = `
+  <td data-label="Order ID">#${orderNumber}</td>
+  <td data-label="Customer" style="text-transform: capitalize;">${customer}</td>
+  <td data-label="Total">₱${total}</td>
+  <td data-label="Status" style="text-transform: capitalize;">${order.status || 'Undefined'}</td>
+  <td data-label="Payment" style="text-transform: capitalize;">${payment}</td>
+  <td data-label="Date">${date}</td>
+  <td data-label="Actions" style="display:flex; justify-content:center;" class="actions">
+    <button class="view-btn" onclick="viewDetails('${orderNumber}')">View</button>
+  </td>
+`;
+tbody.appendChild(row);
+
     });
   }
 

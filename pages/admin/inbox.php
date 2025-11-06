@@ -87,12 +87,7 @@ $messages = $appData->loadInbox($archived);
     </tbody>
   </table>
   </div>
-  <div class="pagination-bar">
-  <div class="pagination-left">
-    Showing <span id="page-info"></span>
-  </div>
-  <div class="pagination-controls" id="pagination-controls"></div>
-</div>
+  
 
 </div>
 

@@ -10,7 +10,6 @@ html, body {
     min-height: 100vh;
     font-family: 'Poppins', sans-serif;
     
-    
 }
 
 /* Sidebar wrapper */
@@ -24,7 +23,7 @@ html, body {
 /* Sidebar container inside wrapper */
 #db-container {
     width: 100%; /* always fill wrapper */
-    height: 100vh;
+    height: 100%;
     box-shadow: 3px 0 8px rgba(0, 0, 0, 0.15);
     transition: width 0.4s ease;
     
@@ -38,7 +37,7 @@ html, body {
 /* Content wrapper */
 #content-wrapper {
     flex: 1;              /* take remaining space */
-  
+
     
 }
 
@@ -48,8 +47,7 @@ html, body {
 
 @media (max-width: 768px) {
     #content-wrapper {
-    flex: 1;              /* take remaining space */
-
+    flex: 1;           /* take remaining space */
     
 }
 }

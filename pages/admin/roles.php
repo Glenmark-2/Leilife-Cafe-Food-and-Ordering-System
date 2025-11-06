@@ -23,7 +23,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 </style>
 
-<div class="container">
+<div class="container1">
     
     <div id="first-row">
         <button class="hamburger" id="hamburger" onclick="toggleSidebar()">

@@ -26,13 +26,9 @@
     ?>
 
     <style>
-      body {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-}
+      
       :root {
-        --bg: #f4f6f8;
+        --bg:#f4f6f9;;
         --surface: #ffffff;
         --muted: #8a8f98;
         --accent-1: linear-gradient(90deg, #8b6f47, #c2a47c);
@@ -52,18 +48,20 @@
 
       html,
       body {
-        height: 100%
-      }
-
-      body {
-        font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-        background:
-          linear-gradient(180deg, #f8fafb 0%, #f3f5f7 40%),
-          url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="%23f7f7f8"/><stop offset="1" stop-color="%23f1f3f5"/></linearGradient></defs><rect width="100%" height="100%" fill="url(%23g)"/></svg>') no-repeat center/cover;
-        color: var(--text-dark, #2f2b24);
+        height: 100%;
+ width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  
+        background:var(--bg,#f4f6f9);
+         font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+       color: var(--text-dark, #2f2b24);
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        
       }
+
+      
 #first-row { display: flex; align-items: center; gap: 10px; padding-bottom: 10px;} 
 #first-row h2 { margin: 0; font-size: 1.5rem; color: #1a353c; font-weight: 600; } /* Hamburger button container */ 
 .hamburger { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 28px; height: 24px; background: none; border: none; cursor: pointer; padding: 0; } /* The three bars */ 
@@ -97,11 +95,9 @@
 
       /* Content container */
       .surface {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.95));
-        border-radius: 18px;
-        margin:5px;
-        box-shadow: var(--shadow-1);
-        backdrop-filter: blur(6px) saturate(120%);
+    
+       margin:20px 20px auto 20px;
+      
       }
 
       /* Filters */
@@ -364,6 +360,7 @@
     </style>
 
     <body>
+      <div class="surface">
       <div id="first-row"> 
     <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
     <span></span>
@@ -373,7 +370,7 @@
     <h2>Reports & Analytics</h2>
 </div>
 
-        <div class="surface">
+        
           <div class="report-filters">
             <div>
               <label for="reportType">Report Type:</label>

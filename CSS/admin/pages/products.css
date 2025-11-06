@@ -4,6 +4,7 @@ html, body {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  background:#f4f6f9;
 }
 
 button {
@@ -61,23 +62,18 @@ button:hover {
 }
 
 /* Title + archive */
-#first-row { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; } 
+#first-row { display: flex; align-items: center; gap: 10px; } 
 #first-row h2 { margin: 0; font-size: 1.5rem; color: #1a353c; font-weight: 600; } /* Hamburger button container */ 
 .hamburger { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 28px; height: 24px; background: none; border: none; cursor: pointer; padding: 0; } /* The three bars */ 
 .hamburger span { display: block; height: 3px; width: 100%; background-color: #1205ff; border-radius: 3px; transition: all 0.3s ease; } /* Hide on desktop */ 
 @media (min-width: 768px) { .hamburger { display: none; } }
 
-.surface {
-  
-  margin: 10px;
-}
 
 /* Parent container that holds the buttons */
 .action-btns {
   display: flex;
   justify-content: flex-end; /* align buttons to the right */
   align-items: center;
-  padding: 10px 15px; /* small padding inside the section */
   box-sizing: border-box;
   gap: 5px;
 }
@@ -164,17 +160,23 @@ button:hover {
   text-align: center;
   font-weight: 500;
 }
-
+.surface {
+   margin:20px 20px auto 20px;
+   
+    box-sizing: border-box;
+  width: 96%;
+  font-family: "Inter", Arial, sans-serif;
+  color: #111827;
+}
 /* Search + Add Product */
-#top {
+#search-add {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  gap: 10px;
 }
 .search-bar {
   flex: 1;
+  margin-right:50px;
 }
 .search-bar input {
   width: 100%;
@@ -805,6 +807,11 @@ button {
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 640px) {
+  .surface {
+    margin-top: 15px;
+    margin-left: 10px;
+    width: 95%;
+  }
   .modal-content {
     padding: 18px;
     width: 100%;

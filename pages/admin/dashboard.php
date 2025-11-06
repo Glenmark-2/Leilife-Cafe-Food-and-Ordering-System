@@ -48,7 +48,7 @@ color:#111827;
 margin:0;
 padding:0;
 }
-#first-row { display: flex; align-items: center; gap: 10px;padding-bottom: 10px;} 
+#first-row { display: flex; align-items: center; gap: 10px;padding-bottom: 10px;margin-top: 10px;} 
 #first-row h2 { margin: 0; font-size: 1.5rem; color: #1a353c; font-weight: 600; } /* Hamburger button container */ 
 .hamburger { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 28px; height: 24px; background: none; border: none; cursor: pointer; padding: 0; } /* The three bars */ 
 .hamburger span { display: block; height: 3px; width: 100%; background-color: #1205ff; border-radius: 3px; transition: all 0.3s ease; } /* Hide on desktop */ 
@@ -61,7 +61,9 @@ grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
 gap: 14px;
 margin-bottom: 24px;
 }
-
+.surface{
+  margin-right: 30px;
+}
 .stat {
 background: var(--card);
 border-radius: 10px;
@@ -244,10 +246,23 @@ html, body {
 .staff-table tr:hover {
   background: #fafafa;
 }
+.table-wrapper {
+  max-height: 70vh;         /* Controls vertical scroll area height */
+  overflow-y: auto;          /* Enables vertical scrolling */
+  overflow-x: hidden;        /* Prevents horizontal scrolling */
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
 
 @media screen and (max-width: 720px) {
+  .table-wrapper {
+    overflow-x: auto;       /* Allow horizontal scroll for mobile */
+  }
   #table-title{
     display:none
+  }
+  .surface {
+    margin-right:40px;
   }
   #table-body {
     display: grid;
@@ -361,6 +376,7 @@ html, body {
     justify-content: flex-end; /* 👈 align button to right edge */
   }
  .staff-table {
+  width: 700px;  
     border: none;
     background: transparent;
   }
@@ -555,6 +571,7 @@ html, body {
 }
 
 </style>
+<div class="surface">
 <div id="first-row">
   <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
     <span></span>
@@ -614,9 +631,48 @@ html, body {
   </div>
 
   <!-- Recent orders -->
-  <div id="third-row" class="recent" aria-live="polite"> <div class="recent-top"> <p><strong>Recent Orders</strong></p> <div class="sort-dropdown" style="margin-left:auto;"> <label for="sort">Sort by:</label> <select id="sort" style="margin-left:6px;"> <option value="order_date">Order Date</option> <option value="status">Status</option> <option value="total">Total</option> <option value="pickup">Pick up</option> <option value="home_delivery">Home Delivery</option> </select> </div> </div> <div id="table" role="region" aria-label="Recent Orders Table"> <div id="table-title" aria-hidden="true"> <p class="col-order">Order #</p> <p class="col-customer">Customer</p> <p class="col-amount">Amount</p> <p class="col-items">Item</p> <p class="col-status">Status</p> <p class="col-payment">Payment Status</p> <p class="col-method">Method</p> <p class="col-receipt">Download Receipt</p> </div> <div id="table-body"> <!-- rows injected by JS --> </div> </div> <!-- pagination --> <div class="pagination-bar" aria-hidden="false"> <div class="pagination-left" id="pagination-summary">Showing 0 orders</div> <div class="pagination-controls" id="pagination-controls"></div> </div> </div> <!-- Inbox (unchanged) --> 
-  <div id="table-container" style="margin-top:12px;"> <p style="font-weight:700; margin-bottom:8px;">Recent Messages</p> <table class="staff-table" aria-live="polite" style="width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--surface-border);"> <thead> <tr style="background:#fbfdff;"> <th style="padding:10px; text-align:left;">Name</th> <th style="padding:10px; text-align:left;">Email</th> <th style="padding:10px; text-align:left;">Subject</th> <th style="padding:10px; text-align:left;">Type</th> <th style="padding:10px; text-align:left;">Date</th> <th style="text-align:center; padding:10px;">Actions</th> </tr> </thead> <tbody id="inboxTableBody"> <?php if ($messages && count($messages) > 0): ?> <?php foreach ($messages as $msg): ?> <tr id="row-<?= $msg['sender_id'] ?>" class="<?= $msg['status'] == 0 ? 'unread' : '' ?>"> <td style="padding:10px;"><?= htmlspecialchars($msg['name'] ?? 'Guest') ?></td> <td style="padding:10px;"><?= htmlspecialchars($msg['email'] ?? '-') ?></td> <td style="padding:10px;"><?= htmlspecialchars($msg['subject'] ?? '(No Subject)') ?></td> <td style="padding:10px;"><?= ucfirst(htmlspecialchars($msg['type'])) ?></td> <td style="padding:10px;"><?= date('Y-m-d H:i', strtotime($msg['created_at'])) ?></td> <td class="actions" style="padding:10px; text-align:center;"> <button type="button" class="editBtn" data-message="<?= htmlspecialchars($msg['message']) ?>" data-id="<?= $msg['sender_id'] ?>">View</button> </td> </tr> <?php endforeach; ?> <?php else: ?> <tr> <td colspan="6" style="text-align:center; padding:18px;">No messages found</td> </tr> <?php endif; ?> </tbody> </table> </div>
-  <!-- Message modal -->
+  <div id="third-row" class="recent" aria-live="polite"> <div class="recent-top"> <p><strong>Recent Orders</strong></p> <div class="sort-dropdown" style="margin-left:auto;"> <label for="sort">Sort by:</label> <select id="sort" style="margin-left:6px;"> <option value="order_date">Order Date</option> <option value="status">Status</option> <option value="total">Total</option> <option value="pickup">Pick up</option> <option value="home_delivery">Home Delivery</option> </select> </div> </div> <div id="table" role="region" aria-label="Recent Orders Table"> <div id="table-title" aria-hidden="true"> <p class="col-order">Order #</p> <p class="col-customer">Customer</p> <p class="col-amount">Amount</p> <p class="col-items">Item</p> <p class="col-status">Status</p> <p class="col-payment">Payment Status</p> <p class="col-method">Method</p> <p class="col-receipt">Download Receipt</p> </div> <div id="table-body"> <!-- rows injected by JS --> </div> </div> <!-- pagination -->
+   <div id="table-container" style="margin-top:12px;">
+  <p style="font-weight:700; margin-bottom:8px;">Recent Messages</p>
+
+  <div class="table-wrapper">
+    <table class="staff-table" aria-live="polite">
+      <thead>
+        <tr style="background:#fbfdff;">
+          <th style="padding:10px; text-align:left;">Name</th>
+          <th style="padding:10px; text-align:left;">Email</th>
+          <th style="padding:10px; text-align:left;">Subject</th>
+          <th style="padding:10px; text-align:left;">Type</th>
+          <th style="padding:10px; text-align:left;">Date</th>
+          <th style="text-align:center; padding:10px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="inboxTableBody">
+        <?php if ($messages && count($messages) > 0): ?>
+          <?php foreach ($messages as $msg): ?>
+            <tr id="row-<?= $msg['sender_id'] ?>" class="<?= $msg['status'] == 0 ? 'unread' : '' ?>">
+              <td style="padding:10px;"><?= htmlspecialchars($msg['name'] ?? 'Guest') ?></td>
+              <td style="padding:10px;"><?= htmlspecialchars($msg['email'] ?? '-') ?></td>
+              <td style="padding:10px;"><?= htmlspecialchars($msg['subject'] ?? '(No Subject)') ?></td>
+              <td style="padding:10px;"><?= ucfirst(htmlspecialchars($msg['type'])) ?></td>
+              <td style="padding:10px;"><?= date('Y-m-d H:i', strtotime($msg['created_at'])) ?></td>
+              <td class="actions" style="padding:10px; text-align:center;">
+                <button type="button" class="editBtn"
+                        data-message="<?= htmlspecialchars($msg['message']) ?>"
+                        data-id="<?= $msg['sender_id'] ?>">View</button>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <tr>
+            <td colspan="6" style="text-align:center; padding:18px;">No messages found</td>
+          </tr>
+        <?php endif; ?>
+      </tbody>
+    </table>
+  </div>
+</div>
+
   <div id="messageModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" style="display:none; position:fixed; inset:0; justify-content:center; align-items:center; z-index:60;">
     <div class="modal-content" role="document" style="background:var(--card); padding:18px; border-radius:10px; width:90%; max-width:600px; border:1px solid var(--surface-border);">
       <span class="close-btn" aria-label="Close" style="float:right; cursor:pointer; font-size:22px;">&times;</span>
@@ -642,7 +698,7 @@ html, body {
   <div class="notif-content" style="background:white; padding:20px; border-radius:12px; text-align:center; max-width:300px;">
   </div>
 </div>
-
+</div>
 
 <script>
 const BASE_URL = "<?= rtrim((isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://$_SERVER[HTTP_HOST]/Leilife/', '/') ?>/";
@@ -1065,13 +1121,16 @@ function attachItemDelegatedListener(container, orderId) {
     const select = e.target;
     const tr = select.closest('tr');
     const itemId = tr?.dataset?.itemId;
-    if (!itemId) return;
+    if (!itemId) {
+      console.warn('No itemId found in row:', tr);
+      return;
+    }
 
     const prev = select.dataset.prev;
     const newStatus = select.value;
     const feedback = tr.querySelector('.status-feedback');
     select.disabled = true;
-    if (feedback) feedback.textContent = '⏳';
+    if (feedback) feedback.textContent = '⏳ Updating...';
 
     try {
       const res = await fetch('/Leilife/backend/admin/update_order_item_status.php', {
@@ -1079,32 +1138,55 @@ function attachItemDelegatedListener(container, orderId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_item_id: itemId, status: newStatus })
       });
+
+      let resultText = await res.text();
+      console.log('Raw response:', resultText);
+
       let result;
-      try { result = await res.json(); } catch (err) { result = { success:false }; }
+      try {
+        result = JSON.parse(resultText);
+      } catch {
+        console.error('Invalid JSON response:', resultText);
+        result = { success: false };
+      }
+
       if (result.success) {
+        console.log('✅ Item status updated successfully:', itemId, newStatus);
+
+        // Update this row visually
         select.dataset.prev = newStatus;
         tr.className = `status-${escapeCss(newStatus)}`;
-        if (feedback) { feedback.textContent = '✅'; setTimeout(()=>feedback.textContent='','800'); }
-        const effOrderId = result.order_id || orderId || tr.closest('.expandable-row')?.dataset?.orderId;
-        if (result.order_status && effOrderId) {
-          const orderStatusBtn = document.querySelector(`.status-btn[data-id="${effOrderId}"]`);
-          if (orderStatusBtn) {
-            orderStatusBtn.innerHTML = `<span class="badge s-${escapeCss(result.order_status)}">${formatStatus(result.order_status)}</span>`;
-            orderStatusBtn.dataset.status = result.order_status;
-          }
+
+        // Update badge style instantly
+        select.closest('td').style.background = 'var(--card)';
+        if (feedback) {
+          feedback.textContent = '✅';
+          setTimeout(() => feedback.textContent = '', 800);
         }
-        if (result.new_total !== undefined && effOrderId) {
-          const totalEl = document.querySelector(`#order-total-${effOrderId}`);
-          if (totalEl) totalEl.textContent = `₱${parseFloat(result.new_total).toFixed(2)}`;
+
+        // Update main order badge (even without result.order_status)
+        const effOrderId = orderId || tr.closest('.expandable-row')?.dataset?.orderId;
+        const orderStatusBtn = document.querySelector(`.status-btn[data-id="${effOrderId}"]`);
+        if (orderStatusBtn) {
+          orderStatusBtn.innerHTML = `<span class="badge s-${escapeCss(newStatus)}">${formatStatus(newStatus)}</span>`;
+          orderStatusBtn.dataset.status = newStatus;
         }
+
       } else {
+        console.warn('❌ Backend returned failure:', result);
         select.value = prev;
-        if (feedback) { feedback.textContent='❌'; setTimeout(()=>feedback.textContent='','900'); }
+        if (feedback) {
+          feedback.textContent = '❌ Failed';
+          setTimeout(() => feedback.textContent = '', 900);
+        }
       }
     } catch (err) {
-      console.error('item status update error', err);
+      console.error('⚠️ Network or script error:', err);
       select.value = prev;
-      if (feedback) { feedback.textContent='⚠️'; setTimeout(()=>feedback.textContent='','900'); }
+      if (feedback) {
+        feedback.textContent = '⚠️';
+        setTimeout(() => feedback.textContent = '', 900);
+      }
     } finally {
       select.disabled = false;
     }
@@ -1113,6 +1195,8 @@ function attachItemDelegatedListener(container, orderId) {
   container._itemListener = listener;
   container.addEventListener('change', listener);
 }
+
+
 
 /* -------------------------
    Helpers (kept simple)

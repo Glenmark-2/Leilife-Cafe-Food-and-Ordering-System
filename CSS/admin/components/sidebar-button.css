@@ -58,7 +58,7 @@
     filter: brightness(0) invert(1); /* keep white icon */
 }
 
-@media (max-width: 767px) {
+@media (max-width: 267px) {
     .sidebar-btn{
         width: fit-content !important;
         height: fit-content;

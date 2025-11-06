@@ -1,5 +1,5 @@
     :root {
-        --bg: #f9fafb;
+        --bg:#f4f6f9;;
         --card: #ffffff;
         --border: #e5e7eb;
         --text: #111827;
@@ -22,10 +22,12 @@
     }
 
     /* Container */
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 24px 20px;
+    .container1 {
+               margin:20px 20px auto 20px;
+   
+    box-sizing: border-box;
+    width: 96%;
+        
     }/* ----------------------------
    HEADER BAR
 ---------------------------- */
@@ -35,7 +37,6 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 28px;
- 
   width: 100%;
   box-sizing: border-box;
   padding: 0;
@@ -43,8 +44,8 @@
 
 /* Header */
 #first-row h2 {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap:10px;
@@ -204,14 +205,6 @@
 .trash-icon.hidden {
     visibility: hidden; /* hidden but keeps its space */
 }
-
-
-
-
-
-
-
-
 /* Make table scrollable inside the container */
 #table-container {
     background: var(--card);
@@ -327,12 +320,19 @@
     @media (max-width: 768px) {
         #first-row h2 {
             font-size: 22px;
+            
         }
-
+#first-row{
+gap: 10px;
+  justify-content: normal;
+}
         .stats-row {
             grid-template-columns: repeat(2, 1fr);
         }
-
+        .container1 {
+            margin-left: 0px;
+            width: 95%;
+        }
         #third-row,
         #table-container {
             padding: 16px;
@@ -341,7 +341,39 @@
         .staff-table th,
         .staff-table td {
             font-size: 13px;
-        }
+        }#view-archive,
+#add-member,
+#add-admin {
+  border: none;
+  border-radius: 8px;
+  padding: 0 14px;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: capitalize;
+  transition: all 0.25s ease;
+  color: #fff;
+  background-color: #50c256;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+  box-sizing: border-box;
+}
+#view-archive{
+  margin-left: 45px;
+}
+
+        #view-archive,
+#add-member,
+#add-admin {
+ padding: 5px;
+ height: 30;
+ font-weight: 300;
+}
+
     }
 
     @media (max-width: 480px) {

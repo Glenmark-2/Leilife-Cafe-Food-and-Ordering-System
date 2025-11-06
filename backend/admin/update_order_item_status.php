@@ -1,5 +1,8 @@
 <?php
 header('Content-Type: application/json');
+
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // hide errors from direct output
 require_once __DIR__ . '/../db_script/db.php';
 require_once __DIR__ . '/../create_payment_intent.php'; // for refund helpers
 

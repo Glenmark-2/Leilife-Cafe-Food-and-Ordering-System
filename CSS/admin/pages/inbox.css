@@ -1,5 +1,5 @@
 :root {
-    --bg: #f9fafb;
+    --bg:#f4f6f9;;
     --card: #ffffff;
     --border: #e5e7eb;
     --text: #111827;
@@ -10,7 +10,12 @@
     --radius: 12px;
     font-family: "Poppins", "Inter", sans-serif;
 }
-
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  background:#f4f6f9;
+}
 /* Base Styles */
 body {
     margin: 0;
@@ -23,9 +28,8 @@ body {
 
 /* Main Container */
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 24px 20px;
+   margin:20px 20px auto 20px;
+   
     box-sizing: border-box;
 }
 
@@ -425,7 +429,7 @@ body {
   }
 
   .staff-table tr:hover {
-    background: #f5f7fa;
+    background: #f5faf6;
   }
 
   .staff-table .actions {
@@ -444,7 +448,7 @@ body {
   }
 
   .staff-table .editBtn:hover {
-    background: var(--accent-light);
+    background: var(--accent-dark);
   }
 
   .staff-table .archiveBtn {
@@ -462,6 +466,17 @@ body {
 
 /* ===== Mobile View (Cards) ===== */
 @media screen and (max-width: 720px) {
+
+#first-row{
+    justify-content: normal;
+}
+#view-archive{
+    margin-left:135px;
+    
+}
+.container{
+    margin:20px 15px 20px 10px;
+}
   .staff-table,
   .staff-table thead,
   .staff-table tbody,

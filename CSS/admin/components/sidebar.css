@@ -5,13 +5,14 @@
     padding: 10px; /* remove inner gap */
     width: 100%;  
     box-shadow: 3px 0 8px rgba(0,0,0,0.15);
-    height: 1100%;
+    height: 500;;
     transition: width 0.4s ease; /* smooth expand/collapse */
     overflow: hidden;
     background-color: #fefefe;
     
     
 }
+
 
 
 

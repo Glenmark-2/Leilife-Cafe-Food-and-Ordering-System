@@ -1,7 +1,5 @@
-
-
 :root {
-    --bg: #f9fafb;
+    --bg:#f4f6f9;;
     --card: #ffffff;
     --border: #e5e7eb;
     --text: #111827;
@@ -12,7 +10,12 @@
     --radius: 12px;
     font-family: "Poppins", "Inter", sans-serif;
 }
-
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  background:#f4f6f9;
+}
 /* Base Styles */
 body {
     margin: 0;
@@ -24,8 +27,9 @@ body {
 }
 
 /* Container */
-.container {
-  margin: 10px;
+.container1 {
+   margin:20px 20px auto 20px;
+    box-sizing: border-box;
 }
 
 /* Row layout */
@@ -104,15 +108,20 @@ body {
     align-items: flex-start;
     gap: 10px;
   }
-
+  .container1{
+    margin:10px 15px 0px 15px;
+    width: 85%;
+  }
   .export-buttons {
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
+  
   }
 
   .export-buttons button {
     flex: 1;
+    padding: 5px;
   }
 }
 
@@ -128,7 +137,7 @@ body {
   gap: 15px;
   margin-bottom: 25px;
   flex-wrap: wrap;
-  margin: 10;
+
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
@@ -157,7 +166,7 @@ select, input[type="date"] {
     padding: 22px;       /* keep container padding */
     margin-top: 30px !important;
     border: 1px solid var(--border);
-    margin: 10;
+    
     
 }
 
@@ -276,6 +285,7 @@ select, input[type="date"] {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  margin-bottom: 10px;
 }
 
 .export-buttons button {
@@ -426,68 +436,80 @@ font-size: 20px;
     opacity: 1;
   }
 }
-@media (max-width: 750px) {
-   
-    .container {
-        padding: 16px 12px;
-    }
+/* ===== Responsive Table-to-Card for Mobile ===== */
+@media (max-width: 768px) {
+  .table-wrapper {
+    width: 100%;
+    overflow-x: visible;
+  }
+  .container1{
+    margin:10px 20px 0px 30px;
 
-    #first-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
+  }
 
-    #first-row h2 {
-        font-size: 22px;
-    }
+  .staff-table,
+  .staff-table thead,
+  .staff-table tbody,
+  .staff-table th,
+  .staff-table td,
+  .staff-table tr {
+    display: block;
+    width: 100%;
+  }
 
-   .export-buttons button {
-    border: none;
-    border-radius: 5px;
-    padding:10px;
-    cursor: pointer;
-    font-weight: 600;
-    text-transform: capitalize;
-    transition: all 0.25s ease;
-    color: #fff;
-    background-color: var(--accent);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    height: fit-content;
+  .staff-table thead {
+    display: none; /* hide table headers */
+  }
+
+  .staff-table tr {
+    background: var(--card);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+    padding: 12px 14px;
+  }
+
+  .staff-table td {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-size: .7rem;
-}
-
-
-}
-
-@media (max-width:530px) {
-  #date-range {
-    display: flex;
-    flex-direction: column; /* stack inputs vertically */
-    gap: 6px;               /* space between label and inputs */
-    width: 100%;
-}
-
-#date-range label {
-    text-align: left;
-    font-weight: 600;
-    width: 100%;
-}
-
-#date-range input {
-    width: 100%;
-    padding: 7px 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+    padding: 6px 0;
     font-size: 14px;
-    box-sizing: border-box;
-}
+    border-bottom: 1px dashed var(--border);
+  }
 
+  .staff-table td:last-child {
+    border-bottom: none;
+  }
 
+  /* Label before each cell */
+  .staff-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: capitalize;
+    flex: 0 0 40%;
+  }
+
+  .staff-table td > * {
+    flex: 1;
+    text-align: right;
+  }
+
+  /* Buttons and actions inside cards */
+  .view-btn,
+  .actions button {
+    width: auto;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .actions-cell {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+  }
 }
 
 

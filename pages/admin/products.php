@@ -103,7 +103,7 @@ $subCategories = array_values($subCategories);
         margin-bottom: 5px;
     }
 </style>
-
+<div class="surface"> 
 <div id="first-row"> 
     <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
     <span></span>
@@ -399,7 +399,7 @@ $subCategories = array_values($subCategories);
     </footer>
   </div>
 </div>
-
+</div>
 <!-- ===================== MODERN STYLES ===================== -->
 <style>
   :root {

@@ -48,7 +48,7 @@ color:#111827;
 margin:0;
 padding:0;
 }
-#first-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; } 
+#first-row { display: flex; align-items: center; gap: 10px;padding-bottom: 10px;} 
 #first-row h2 { margin: 0; font-size: 1.5rem; color: #1a353c; font-weight: 600; } /* Hamburger button container */ 
 .hamburger { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 28px; height: 24px; background: none; border: none; cursor: pointer; padding: 0; } /* The three bars */ 
 .hamburger span { display: block; height: 3px; width: 100%; background-color: #1205ff; border-radius: 3px; transition: all 0.3s ease; } /* Hide on desktop */ 

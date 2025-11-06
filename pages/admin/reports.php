@@ -26,6 +26,11 @@
     ?>
 
     <style>
+      body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
       :root {
         --bg: #f4f6f8;
         --surface: #ffffff;
@@ -59,7 +64,11 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
-
+#first-row { display: flex; align-items: center; gap: 10px; padding-bottom: 10px;} 
+#first-row h2 { margin: 0; font-size: 1.5rem; color: #1a353c; font-weight: 600; } /* Hamburger button container */ 
+.hamburger { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 28px; height: 24px; background: none; border: none; cursor: pointer; padding: 0; } /* The three bars */ 
+.hamburger span { display: block; height: 3px; width: 100%; background-color: #1205ff; border-radius: 3px; transition: all 0.3s ease; } /* Hide on desktop */ 
+@media (min-width: 768px) { .hamburger { display: none; } }
       .page {
         max-width: 1200px;
         margin: 0 auto;
@@ -90,7 +99,7 @@
       .surface {
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.95));
         border-radius: 18px;
-        padding: 20px;
+        margin:5px;
         box-shadow: var(--shadow-1);
         backdrop-filter: blur(6px) saturate(120%);
       }
@@ -321,9 +330,6 @@
       }
 
       @media(max-width:640px) {
-        body {
-          padding: 14px;
-        }
 
         .report-cards {
           grid-template-columns: 1fr;
@@ -358,12 +364,14 @@
     </style>
 
     <body>
-      <div class="page">
-        <div class="header">
-          <div class="header-actions">
-            <div style="text-align:right;font-size:13px;color:#6b7280">Welcome, Admin</div>
-          </div>
-        </div>
+      <div id="first-row"> 
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+    <h2>Reports & Analytics</h2>
+</div>
 
         <div class="surface">
           <div class="report-filters">

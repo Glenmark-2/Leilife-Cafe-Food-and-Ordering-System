@@ -29,7 +29,7 @@ $totalActiveDriver = $appData->activeDriver();
 --bg:#f4f6f9;
 --card:#ffffff;
 --muted:#6b7280;
---accent:#007bff;
+--accent:#1a353c;
 --danger:#e85959;
 --success:#2aa05b;
 --surface-border:#e6e9ee;
@@ -51,7 +51,7 @@ padding:0;
 #first-row { display: flex; align-items: center; gap: 10px;padding-bottom: 10px;margin-top: 10px;} 
 #first-row h2 { margin: 0; font-size: 1.5rem; color: #1a353c; font-weight: 600; } /* Hamburger button container */ 
 .hamburger { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 28px; height: 24px; background: none; border: none; cursor: pointer; padding: 0; } /* The three bars */ 
-.hamburger span { display: block; height: 3px; width: 100%; background-color: #1205ff; border-radius: 3px; transition: all 0.3s ease; } /* Hide on desktop */ 
+.hamburger span { display: block; height: 3px; width: 100%; background-color: #1a353c; border-radius: 3px; transition: all 0.3s ease; } /* Hide on desktop */ 
 @media (min-width: 768px) { .hamburger { display: none; } }
 
 /* Stats Cards */
@@ -147,7 +147,7 @@ margin-bottom:16px;
   }
 
   .col-receipt button:hover {
-    background: #4338ca;
+    background: #415863;
   }
 /* Table body */
 #table-body { max-height:580px; overflow:auto; min-height:420px; background:transparent; }

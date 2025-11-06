@@ -4,8 +4,8 @@
     --border: #e5e7eb;
     --text: #111827;
     --muted: #6b7280;
-    --accent: #50c256;
-    --accent-dark: #2f7232;
+    --accent: #1a353c;;
+    --accent-dark: #415863;
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     --radius: 12px;
     font-family: "Poppins", "Inter", sans-serif;
@@ -70,7 +70,7 @@ body {
 .hamburger span {
   display: block;
   height: 3px;
-  background-color: #1205ff;
+  background-color: #1a353c;;
   border-radius: 2px;
   transition: all 0.3s ease;
 }
@@ -102,28 +102,6 @@ body {
   }
 }
 /* Responsive */
-@media (max-width: 767px) {
-  #first-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .container1{
-    margin:10px 15px 0px 15px;
-    width: 85%;
-  }
-  .export-buttons {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  
-  }
-
-  .export-buttons button {
-    flex: 1;
-    padding: 5px;
-  }
-}
 
 
 /* Filters */
@@ -245,7 +223,7 @@ select, input[type="date"] {
 }
 
 .table-wrapper::-webkit-scrollbar-thumb {
-    background: #c0a78a;
+    background: #355b65;
     border-radius: 6px;
 }
 
@@ -262,8 +240,8 @@ select, input[type="date"] {
 }
 
 .view-btn {
-    background: #fbf5ca;
-    color: #77681a;
+    background: #1a353c;
+    color: floralwhite;
     border: none;
     font-size: 13px;
     font-weight: 600;
@@ -277,7 +255,7 @@ select, input[type="date"] {
 }
 
 .view-btn:hover {
-    background: #cfc997;
+    background: #355b65;
     transform: translateY(-1px);
 }
 
@@ -442,11 +420,9 @@ font-size: 20px;
     width: 100%;
     overflow-x: visible;
   }
-  .container1{
-    margin:10px 20px 0px 30px;
-
-  }
-
+.table-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
   .staff-table,
   .staff-table thead,
   .staff-table tbody,
@@ -454,7 +430,7 @@ font-size: 20px;
   .staff-table td,
   .staff-table tr {
     display: block;
-    width: 100%;
+    width: auto;
   }
 
   .staff-table thead {
@@ -510,6 +486,37 @@ font-size: 20px;
     justify-content: flex-end;
     gap: 6px;
   }
+ 
+  #first-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .container1{
+    margin:10px 15px 0px 15px;
+    width: 90%;
+  }
+  .export-buttons {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    
+  }
+
+  .export-buttons button {
+    flex: 1;
+    padding: 3px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  select, input[type="date"] {
+   padding: 5px 5px;
+   font-size: 12px;
+   ;
+  }
+  .table-wrapper::-webkit-scrollbar {
+    display: none;
+}
 }
 
 

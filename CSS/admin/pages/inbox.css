@@ -4,8 +4,8 @@
     --border: #e5e7eb;
     --text: #111827;
     --muted: #6b7280;
-    --accent: #50c256;
-    --accent-dark: #2f7232;
+    --accent: #1a353c;
+    --accent-dark: #355b65;
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     --radius: 12px;
     font-family: "Poppins", "Inter", sans-serif;
@@ -236,7 +236,7 @@ body {
 }
 
 .table-wrapper::-webkit-scrollbar-thumb {
-    background: #c0a78a;
+    background: #355b65;
     border-radius: 6px;
 }
 
@@ -484,7 +484,7 @@ body {
   .staff-table td,
   .staff-table tr {
     display: block;
-    width: 100%;
+    width: auto;
   }
 
   .staff-table thead {
@@ -552,6 +552,10 @@ body {
     margin-left: 10px;
     cursor: pointer;
   }
+  /* Scrollbar styling for table only */
+.table-wrapper::-webkit-scrollbar {
+    display: none;
+}
 }
 
 
@@ -601,3 +605,4 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
+

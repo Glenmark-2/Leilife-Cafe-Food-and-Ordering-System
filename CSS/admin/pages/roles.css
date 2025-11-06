@@ -4,8 +4,8 @@
         --border: #e5e7eb;
         --text: #111827;
         --muted: #6b7280;
-        --accent: #4f46e5;
-        --accent-light: #eef2ff;
+        --accent: #1a353c;
+        --accent-light: #355b65;
         --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         --radius: 12px;
         font-family: "Poppins", "Inter", sans-serif;
@@ -71,7 +71,7 @@
   display: block;
   height: 3px;
   width: 100%;
-  background-color: #1205ff;
+  background-color: #1a353c;
   border-radius: 3px;
   transition: all 0.3s ease;
 }
@@ -95,7 +95,7 @@
   text-transform: capitalize;
   transition: all 0.25s ease;
   color: #fff;
-  background-color: #50c256;
+  background-color: var(--accent);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   height: 42px;
   display: flex;
@@ -341,35 +341,15 @@ gap: 10px;
         .staff-table th,
         .staff-table td {
             font-size: 13px;
-        }#view-archive,
-#add-member,
-#add-admin {
-  border: none;
-  border-radius: 8px;
-  padding: 0 14px;
-  cursor: pointer;
-  font-weight: 600;
-  text-transform: capitalize;
-  transition: all 0.25s ease;
-  color: #fff;
-  background-color: #50c256;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  line-height: 1;
-  box-sizing: border-box;
-}
+        }
 #view-archive{
-  margin-left: 45px;
+  margin-left: 30px;
 }
 
         #view-archive,
 #add-member,
 #add-admin {
- padding: 5px;
+ padding: 10px;
  height: 30;
  font-weight: 300;
 }

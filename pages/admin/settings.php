@@ -27,16 +27,16 @@ $delivery_methods = $appData->getDeliveryMethods();
 
 <div class="container">
      <div id="first-row">
-    <div class="top-left">
+            <div class="top-left">
       <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
         <span></span>
         <span></span>
         <span></span>
       </button>
       <h2>Payment</h2>
-    </div>
+            </div>
         <button id="edit-save-btn">Edit payment</button>
-    </div>
+        </div>
 
     <div class="settings-card">
         <div class="form-grid">

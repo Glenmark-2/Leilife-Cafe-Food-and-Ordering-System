@@ -587,15 +587,22 @@ function bindPlaceOrderHandler() {
   showModal(result.message || 'Order placed successfully!', 'success');
 
       // ✅ Redirect to GCash / PayMongo checkout URL if provided
-      if (result.checkout_url) {
-        setTimeout(() => {
-          window.location.href = result.checkout_url;
-        }, 900);
-      } else {
-        // Otherwise, reload cart & page for non-online payments
-        await fetchCartData();
-        setTimeout(() => location.reload(), 800);
-      }
+if (result.checkout_url) {
+  // ✅ GCash / PayMongo redirect
+  setTimeout(() => {
+    window.location.href = result.checkout_url;
+  }, 900);
+} else if (result.redirect_url) {
+  // ✅ Cash on Delivery redirect to order tracking page
+  setTimeout(() => {
+    window.location.href = result.redirect_url;
+  }, 900);
+} else {
+  // Fallback (e.g. no redirect link provided)
+  await fetchCartData();
+  setTimeout(() => location.reload(), 800);
+}
+
     } else {
       showModal(result?.message || 'Failed to place order.', 'error');
       if (result?.payment_unavailable) {

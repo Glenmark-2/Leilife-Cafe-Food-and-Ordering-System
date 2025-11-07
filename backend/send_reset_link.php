@@ -10,20 +10,20 @@ require_once __DIR__ . '/send_mail.php';
 $response = ["success" => true, "message" => "If that email exists, a reset link has been sent."];
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    $response = ["success" => false, "message" => "Invalid request."];
-    echo json_encode($response);
+    echo json_encode(["success" => false, "message" => "Invalid request."]);
     exit;
 }
 
 $email = trim($_POST["email"] ?? '');
 if (empty($email)) {
-    $response = ["success" => false, "message" => "Email is required."];
-    echo json_encode($response);
+    echo json_encode(["success" => false, "message" => "Email is required."]);
     exit;
 }
 
+// 🧹 Clean up old password reset tokens
 $pdo->exec("DELETE FROM password_resets WHERE expires_at < UTC_TIMESTAMP() OR used = 1");
 
+// 🔍 Search across multiple account tables
 $tables = [
     ["table" => "users", "id_field" => "user_id", "type" => "user"],
     ["table" => "admin_accounts", "id_field" => "admin_id", "type" => "admin"],
@@ -42,6 +42,7 @@ foreach ($tables as $t) {
 }
 
 if ($found) {
+    // 🔁 Limit to 3 reset emails per 24 hours
     $resendLimit = 3;
     $stmt = $pdo->prepare("
         SELECT COUNT(*) 
@@ -52,10 +53,7 @@ if ($found) {
     $stmt->execute([':id' => $found['id']]);
     $sentToday = (int)$stmt->fetchColumn();
 
-    if ($sentToday >= $resendLimit) {
-        echo json_encode($response);
-        exit;
-    } else {
+    if ($sentToday < $resendLimit) {
         $token = bin2hex(random_bytes(32));
         $createdAt = gmdate("Y-m-d H:i:s");
         $expiresAt = gmdate("Y-m-d H:i:s", time() + 3600);
@@ -72,11 +70,18 @@ if ($found) {
             ':user_type'  => $found['user_type'],
         ]);
 
-        $link = "http://localhost/Leilife/public/index.php?page=forgot-password&token=" . urlencode($token);
+        // 🌍 Dynamically determine base URL (works local & deployed)
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $origin = "$protocol://$host";
+
+        // 🧩 Build reset link dynamically
+        $link = rtrim($origin, '/') . "/Leilife/public/index.php?page=forgot-password&token=" . urlencode($token);
+
         sendResetLink($email, $token, $link);
     }
 }
 
-// ✅ Only echo JSON once at the end
+// ✅ Output final JSON
 echo json_encode($response);
 exit;

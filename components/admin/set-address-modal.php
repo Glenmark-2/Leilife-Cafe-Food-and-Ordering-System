@@ -5,7 +5,7 @@ include __DIR__ . "/../buttonTemplate.php";
   <div id="setAddressModal">
     <span class="close-btn" onclick="closeModal()">&times;</span>
     <h2>Edit Address</h2>
-    <form method="POST" action="/leilife/backend/update_user_address.php">
+    <form method="POST" action="/Leilife/backend/update_user_address.php">
 
       <div class="row">
         <select id="region" onchange="onRegionChange()" name="region">

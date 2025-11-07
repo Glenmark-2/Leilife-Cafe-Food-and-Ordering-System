@@ -272,8 +272,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 <script>
-    const BASE_URL = "http://localhost/Leilife/";
-
+const BASE_URL = "<?= rtrim((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/Leilife/', '/') ?>/";
     // --- Staff Modal ---
     const staffModal = document.getElementById("modal");
     const addMember = document.getElementById("add-member");

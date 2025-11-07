@@ -5,11 +5,22 @@ require_once __DIR__ . '/create_payment_intent.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-$data = json_decode(file_get_contents("php://input"), true);
+/* -------------------------------------------
+   Handle both JSON and FormData requests
+------------------------------------------- */
+$rawInput = file_get_contents("php://input");
+$data = json_decode($rawInput, true);
+if (!$data && !empty($_POST)) {
+    $data = $_POST; // Fallback for FormData
+}
+
 $payment_method = $data['payment_method'] ?? null;
 $user_id = $_SESSION['user_id'] ?? null;
 $delivery_method = $data['delivery_method'] ?? null;
 
+/* -------------------------------------------
+   Basic Validation
+------------------------------------------- */
 if (!$user_id) {
     echo json_encode(["success" => false, "message" => "User not logged in."]);
     exit;
@@ -25,6 +36,9 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit;
 }
 
+/* -------------------------------------------
+   Generate Order Number
+------------------------------------------- */
 function generateOrderNumber() {
     return "ORD-" . date("Ymd") . "-" . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
 }
@@ -32,7 +46,7 @@ function generateOrderNumber() {
 try {
     $pdo->beginTransaction();
 
-    // Get user's cart
+    // Fetch user's cart
     $cartQuery = $pdo->prepare("SELECT * FROM carts WHERE user_id = :uid LIMIT 1");
     $cartQuery->execute([':uid' => $user_id]);
     $cart = $cartQuery->fetch(PDO::FETCH_ASSOC);
@@ -45,7 +59,7 @@ try {
 
     $order_number = generateOrderNumber();
 
-    // Insert order
+    // Insert into orders
     $orderStmt = $pdo->prepare("
         INSERT INTO orders (user_id, total, payment_method, payment_status, order_number, delivery_method, status)
         VALUES (:uid, :total, :payment, :status, :order_number, :delivery_method, 'pending')
@@ -58,6 +72,7 @@ try {
         ':order_number' => $order_number,
         ':delivery_method' => $delivery_method
     ]);
+
     $order_id = $pdo->lastInsertId();
 
     // Fetch cart items
@@ -73,7 +88,7 @@ try {
 
     if (!$cartItems) throw new Exception("No items in cart.");
 
-    // Insert order items
+    // Insert each order item
     $orderItemStmt = $pdo->prepare("
         INSERT INTO order_items (order_id, product_id, quantity, price, size, flavor_ids)
         VALUES (:order_id, :product_id, :quantity, :price, :size, :flavor_ids)
@@ -84,7 +99,6 @@ try {
             ? $item['price_large']
             : $item['product_price'];
 
-        // Store selected flavor IDs as CSV string if exists
         $flavorCsv = ($item['has_flavor'] && !empty($item['flavor_ids']))
             ? $item['flavor_ids']
             : null;
@@ -101,28 +115,43 @@ try {
 
     $pdo->commit();
 
-    // Payment handling
+    /* -------------------------------------------
+       Payment Handling
+    ------------------------------------------- */
+    $response = [];
+
     if ($payment_method === 'gcash') {
+        // GCash / PayMongo flow
         $pi = createPaymentIntent($cart['total'], $order_id);
-        echo json_encode([
+
+        $response = [
             "success" => true,
             "message" => "Order created, redirecting to PayMongo.",
             "order_id" => $order_id,
             "order_number" => $order_number,
             "checkout_url" => $pi['checkout_url'] ?? null
-        ]);
+        ];
     } else {
-        // COD → clear cart
+        // Cash on Delivery (COD)
         $clearCartStmt = $pdo->prepare("DELETE FROM cart_items WHERE cart_id = :cart_id");
         $clearCartStmt->execute([':cart_id' => $cart['cart_id']]);
 
-        echo json_encode([
+        $host = $_SERVER['HTTP_HOST'];
+        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+
+        // Auto-detect URL for local or deployed
+        $redirectUrl = "$protocol://$host/Leilife/public/index.php?page=order-tracking&num=" . urlencode($order_number);
+
+        $response = [
             "success" => true,
             "message" => "Order created successfully.",
             "order_id" => $order_id,
-            "order_number" => $order_number
-        ]);
+            "order_number" => $order_number,
+            "redirect_url" => $redirectUrl
+        ];
     }
+
+    echo json_encode($response);
 
 } catch (Exception $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();

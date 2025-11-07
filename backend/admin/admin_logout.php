@@ -4,5 +4,5 @@ session_start();
 session_unset();
 session_destroy();
 
-header("Location: /leilife/public/index.php");
+header("Location: /Leilife/public/index.php?page=home");
 exit;

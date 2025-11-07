@@ -462,9 +462,12 @@ button:hover {
 #uploadBtn {
   padding: 8px 12px;
   border-radius: 6px;
-  background: #1976d2;
+  background: #1a353c;
   color: #fff;
   font-size: 14px;
+}
+#uploadBtn:hover {
+  background-color: #355b65;
 }
 #right {
   display: flex;
@@ -509,11 +512,14 @@ button:hover {
   margin-top: 10px;
 }
 #add {
-  background: #4caf50;
+  background: #1a353c;
   color: #fff;
   padding: 8px 14px;
   border-radius: 6px;
   font-weight: 600;
+}
+#add:hover{
+  background-color: #355b65;
 }
 #cancel {
   background: #e0e0e0;

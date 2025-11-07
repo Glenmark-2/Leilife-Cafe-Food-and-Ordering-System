@@ -7,4 +7,5 @@ return [
     'inbox'     => ['CSS/admin/pages/inbox.css'],
     'driver'    => ['CSS/admin/pages/driver.css'],
     'settings'    => ['CSS/admin/pages/settings.css'],
+    'reports'   => ['CSS/admin/pages/reports.css'],
 ];

@@ -25,350 +25,7 @@
 
     ?>
 
-    <style>
-      
-      :root {
-        --bg:#f4f6f9;;
-        --surface: #ffffff;
-        --muted: #8a8f98;
-        --accent-1: linear-gradient(90deg, #8b6f47, #c2a47c);
-        --primary: 
-#1a353c;
-        --secondary: #415863
-;
-        --accent: #355b65;
-        --glass: rgba(255, 255, 255, 0.6);
-        --shadow-1: 0 8px 24px rgba(18, 20, 25, 0.06);
-        --shadow-2: 0 4px 12px rgba(18, 20, 25, 0.06);
-        --radius: 14px;
-        color-scheme: light;
-      }
-
-      * {
-        box-sizing: border-box
-      }
-
-      html,
-      body {
-        height: 100%;
- width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-  
-        background:var(--bg,#f4f6f9);
-         font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-       color: #415863;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        
-      }
-      .surface {
-    
-       margin:20px 20px auto 20px;
-      
-      }
-#first-row { display: flex; align-items: center; gap: 10px; padding-bottom: 10px;} 
-#first-row h2 { margin: 0; font-size: 1.5rem; color: #1a353c; font-weight: 600; } /* Hamburger button container */ 
-.hamburger { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 28px; height: 24px; background: none; border: none; cursor: pointer; padding: 0; } /* The three bars */ 
-.hamburger span { display: block; height: 3px; width: 100%; background-color: #1205ff; border-radius: 3px; transition: all 0.3s ease; } /* Hide on desktop */ 
-@media (min-width: 768px) { .hamburger { display: none; } }
-      .page {
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-
-      .header {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 22px;
-      }
-
-      .header-actions {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-      }
-
-      h2 {
-        color: var(--primary);
-        margin: 0;
-        font-size: 20px;
-        font-weight: 700;
-      }
-
-      /* Filters */
-      .report-filters {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        padding: 14px;
-        border-radius: 12px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(250, 250, 250, 0.6));
-        border: 1px solid rgba(34, 40, 49, 0.03);
-        box-shadow: var(--shadow-2);
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-      }
-
-      .report-filters>div {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-
-      .report-filters label {
-        font-weight: 600;
-        color: var(--muted);
-        font-size: 13px;
-      }
-
-      .report-filters select,
-      .report-filters input[type="date"] {
-        padding: 9px 12px;
-        border-radius: 10px;
-        border: 1px solid #e6e7ea;
-        background: transparent;
-        font-size: 14px;
-        color: #222;
-        min-width: 150px;
-        box-shadow: 0 2px 6px rgba(16, 24, 32, 0.03);
-      }
-
-      .report-filters button {
-        padding: 10px 14px;
-        border-radius: 10px;
-        border: none;
-        background: #1a353c;
-        color: white;
-        font-weight: 600;
-        cursor: pointer;
-        box-shadow: 0 6px 18px rgba(139, 111, 71, 0.12);
-      }
-.report-filters button:hover {
-       background-color:  #355b65;
-      }
-      .report-filters .spacer {
-        flex: 1;
-        min-width: 0;
-      }
-
-      /* KPI Cards */
-      .report-cards {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-        margin-bottom: 26px;
-      }
-
-      .report-card {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(249, 249, 249, 0.6));
-        border-radius: 12px;
-        padding: 16px;
-        box-shadow: var(--shadow-2);
-        border: 1px solid rgba(14, 20, 30, 0.03);
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .report-card h4 {
-        color: var(--muted);
-        font-size: 13px;
-        margin: 0;
-        font-weight: 600;
-      }
-
-      .report-card p {
-        font-size: 18px;
-        color: var(--primary);
-        font-weight: 700;
-        margin: 0;
-        letter-spacing: 0.2px;
-      }
-
-      /* Charts unified layout */
-      .analytics-wrapper {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 20px;
-        margin-bottom: 26px;
-        align-items: start;
-      }
-
-      /* Chart "Table" Section */
-      .chart-table {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(250, 250, 250, 0.9));
-        border-radius: 14px;
-        box-shadow: var(--shadow-2);
-        border: 1px solid rgba(14, 20, 30, 0.03);
-        padding: 16px;
-      }
-
-      .chart-selector {
-        display: flex;
-        justify-content: flex-start;
-        gap: 8px;
-        margin-bottom: 14px;
-        flex-wrap: wrap;
-      }
-
-      .chart-selector button {
-        border: none;
-        background: #1a353c;
-        color: #fff;
-        font-weight: 600;
-        padding: 8px 14px;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all .2s ease;
-      }
-
-      .chart-selector button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(139, 111, 71, 0.15);
-      }
-
-      .chart-selector button.active {
-        background: var(--secondary);
-        color: #fff;
-        box-shadow: 0 4px 10px rgba(139, 111, 71, 0.2);
-        transform: translateY(-1px);
-      }
-
-      .chart-container canvas {
-        width: 100% !important;
-        height: 340px !important;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.4s ease, visibility 0.4s ease;
-        position: absolute;
-        top: 0;
-        left: 0;
-      }
-
-      .chart-container {
-        position: relative;
-        width: 100%;
-        height: 340px;
-        overflow: hidden;
-      }
-
-      .chart-container canvas.active {
-        opacity: 1;
-        visibility: visible;
-        position: relative;
-      }
-
-      /* Sentiment Section on the side */
-      .sentiment-side {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(250, 250, 250, 0.88));
-        padding: 16px;
-        border-radius: 12px;
-        box-shadow: var(--shadow-2);
-        border: 1px solid rgba(14, 20, 30, 0.03);
-      }
-
-      .sentiment-side h4 {
-        color: var(--primary);
-        margin: 0 0 10px 0;
-        font-size: 15px;
-        font-weight: 600;
-      }
-
-      .sentiment-side canvas {
-        width: 100% !important;
-        height: 320px !important;
-      }
-
-      /* Export Buttons */
-      .export-section {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-        margin-top: 18px;
-      }
-
-      .export-section button {
-        padding: 9px 14px;
-        margin-bottom: 10px;
-        border-radius: 10px;
-        background-color: #1a353c;
-        min-width: 120px;
-        cursor: pointer;
-        font-weight: 300;
-        color: white;
-        border: none;
-      }
-
-      .export-section button:hover {
-        transform: translateY(-3px);
-        transition: transform .18s ease;
-      }
-
-      /* Responsive */
-      @media(max-width:1000px) {
-        .report-cards {
-          grid-template-columns: repeat(2, 1fr);
-        }
-.surface {
-    
-       margin:20px 0px 0px 0px;
-      width: 95%;
-      }
-        .analytics-wrapper {
-          grid-template-columns: 1fr;
-        }
-
-        .chart-container canvas {
-          height: 280px !important;
-        }
-
-        .sentiment-side {
-          margin-top: 14px;
-        }
-        .report-filters select, .report-filters input[type="date"] {
-    padding: 5px 5px;
-  
-    min-width: 130px;
-    
-}
-      }
-
-      @media(max-width:640px) {
-
-        .report-cards {
-          grid-template-columns: 1fr;
-          gap: 12px;
-        }
-
-        .report-filters {
-          padding: 12px;
-          gap: 8px;
-        }
-
-        .header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 8px;
-        }
-
-        .chart-container canvas {
-          height: 220px !important;
-        }
-
-        .chart-selector {
-          justify-content: center;
-        }
-
-        .export-section {
-          justify-content: stretch;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-      }
-    </style>
+ 
 
     <body>
       <div class="surface">
@@ -931,169 +588,221 @@
 
         let salesTrendChart = null;
 
-        async function fetchSalesTrend(fromDate, toDate) {
-          const reportType = document.getElementById('reportType')?.value || 'weekly';
-          const canvas = document.getElementById('salesTrend');
-          if (!canvas) return;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return;
+async function fetchSalesTrend(fromDate, toDate) {
+  const reportType = document.getElementById('reportType')?.value || 'weekly';
+  const canvas = document.getElementById('salesTrend');
+  if (!canvas) {
+    console.warn('Sales Trend canvas not found.');
+    return;
+  }
 
-          const url = new URL('/Leilife/backend/admin/get_sales_trend.php', window.location.origin);
-          url.searchParams.set('type', reportType);
-          if (fromDate) url.searchParams.set('fromDate', fromDate);
-          if (toDate) url.searchParams.set('toDate', toDate);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    console.warn('Sales Trend context not available.');
+    return;
+  }
 
-          try {
-            const res = await fetch(url.toString(), {
-              cache: 'no-store'
-            });
-            if (!res.ok) throw new Error('Network error ' + res.status);
-            const data = await res.json();
+  // Build URL with parameters
+  const url = new URL('/Leilife/backend/admin/get_sales_trend.php', window.location.origin);
+  url.searchParams.set('type', reportType);
+  if (fromDate) url.searchParams.set('fromDate', fromDate);
+  if (toDate) url.searchParams.set('toDate', toDate);
 
-            if (!data.success || !Array.isArray(data.data)) throw new Error(data.error || 'Invalid response');
+  try {
+    const res = await fetch(url.toString(), { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Network error (${res.status})`);
 
-            // Sort by label (date or period)
-            const sorted = data.data.sort((a, b) => new Date(a.label) - new Date(b.label));
-            const labels = sorted.map(r => r.label);
-            const values = sorted.map(r => parseFloat(r.total_sales || 0));
+    const data = await res.json();
+    if (!data.success || !Array.isArray(data.data)) {
+      throw new Error(data.error || 'Invalid data format');
+    }
 
-            // No data fallback
-            if (!labels.length) {
-              const parent = canvas.parentElement;
-              parent.innerHTML = '<p style="color:#666;padding:15px;">No sales data found for the selected range.</p>';
-              return;
-            }
+    // Sort and map the data
+    const sorted = data.data.sort((a, b) => new Date(a.label) - new Date(b.label));
+    const labels = sorted.map(r => r.label);
+    const values = sorted.map(r => parseFloat(r.total_sales || 0));
 
-            // Destroy old chart if exists
-            if (salesTrendChart) salesTrendChart.destroy();
+    // Destroy any previous chart before redrawing
+    if (salesTrendChart) {
+      salesTrendChart.destroy();
+      salesTrendChart = null;
+    }
 
-            salesTrendChart = new Chart(ctx, {
-              type: 'line',
-              data: {
-                labels,
-                datasets: [{
-                  label: 'Sales (₱)',
-                  data: values,
-                  borderColor: '#8b6f47',
-                  backgroundColor: 'rgba(139,111,71,0.25)',
-                  fill: true,
-                  tension: 0.3,
-                  borderWidth: 2,
-                  pointRadius: 4,
-                  pointBackgroundColor: '#8b6f47'
-                }]
-              },
-              options: {
-                responsive: true,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    ticks: {
-                      callback: v => `₱${v.toLocaleString()}`
-                    }
-                  },
-                  x: {
-                    ticks: {
-                      autoSkip: true
-                    }
-                  }
-                },
-                plugins: {
-                  tooltip: {
-                    callbacks: {
-                      label: ctx => `₱${Number(ctx.raw || 0).toLocaleString()}`
-                    }
-                  },
-                  legend: {
-                    display: false
-                  }
-                }
-              }
-            });
+    // Handle "no data" case
+    if (!labels.length || values.every(v => v === 0)) {
+      const parent = canvas.parentElement;
+      if (parent) {
+        parent.querySelectorAll('.no-data-note').forEach(el => el.remove());
+        const msg = document.createElement('div');
+        msg.textContent = 'No sales data found for the selected range.';
+        msg.className = 'no-data-note';
+        msg.style.textAlign = 'center';
+        msg.style.color = '#666';
+        msg.style.padding = '20px';
+        msg.style.fontSize = '14px';
+        parent.appendChild(msg);
+      }
+      return;
+    }
 
-          } catch (err) {
-            console.error('fetchSalesTrend failed:', err);
-          }
+    // Remove "no data" message if previously shown
+    const parent = canvas.parentElement;
+    parent?.querySelectorAll('.no-data-note').forEach(el => el.remove());
+
+    // Render chart normally
+    salesTrendChart = new Chart(ctx, {
+  type: 'line',
+  data: { /* ... */ },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true, // ✅ Keep proportion (no stretch)
+    aspectRatio: 2,            // ✅ Adjust height-to-width ratio (1.5–2 looks good)
+    scales: {
+      x: {
+        ticks: {
+          color: '#3e2f1c',
+          autoSkip: true,
+          maxRotation: 0,
+          minRotation: 0
+        },
+        grid: { display: false }
+      },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: '#3e2f1c',
+          callback: v => `₱${v.toLocaleString()}`
+        },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => `₱${Number(ctx.raw || 0).toLocaleString()}`
         }
+      },
+      title: {
+        display: true,
+        text: `Sales Trend (${fromDate || 'Start'} → ${toDate || 'Today'})`,
+        color: '#3e2f1c',
+        font: { size: 14, weight: 'bold' },
+        padding: { top: 10, bottom: 10 }
+      }
+    },
+    animation: { duration: 400 }
+  }
+});
 
-        async function fetchRevenueBreakdown(fromDate, toDate) {
-          const canvas = document.getElementById('revenueBreakdown');
-          if (!canvas) {
-            console.warn('Revenue Breakdown canvas not found.');
-            return;
-          }
 
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            console.warn('Revenue Breakdown context not available.');
-            return;
-          }
+  } catch (err) {
+    console.error('fetchSalesTrend failed:', err);
+    const parent = canvas.parentElement;
+    if (parent) {
+      parent.querySelectorAll('.no-data-note').forEach(el => el.remove());
+      const msg = document.createElement('div');
+      msg.textContent = 'Error fetching sales data. Please try again later.';
+      msg.className = 'no-data-note';
+      msg.style.textAlign = 'center';
+      msg.style.color = '#b00';
+      msg.style.padding = '20px';
+      parent.appendChild(msg);
+    }
+  }
+}
 
-          const url = new URL('/Leilife/backend/admin/get_revenue_breakdown.php', window.location.origin);
-          if (fromDate) url.searchParams.set('fromDate', fromDate);
-          if (toDate) url.searchParams.set('toDate', toDate);
 
-          try {
-            const res = await fetch(url.toString(), {
-              cache: 'no-store'
-            });
-            if (!res.ok) throw new Error('Network error ' + res.status);
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error || 'Invalid response');
+async function fetchRevenueBreakdown(fromDate, toDate) {
+  let canvas = document.getElementById('revenueBreakdown');
+  if (!canvas) {
+    console.warn('Revenue Breakdown canvas not found, creating new one.');
+    const chartContainer = document.querySelector('.chart-container');
+    canvas = document.createElement('canvas');
+    canvas.id = 'revenueBreakdown';
+    chartContainer?.appendChild(canvas);
+  }
 
-            const categories = Object.keys(data.data);
-            const totals = categories.map(cat => data.data[cat].revenue[0] || 0);
+  const ctx = canvas?.getContext('2d');
+  if (!ctx) {
+    console.warn('Revenue Breakdown context not available.');
+    return;
+  }
 
-            if (!categories.length) {
-              const parent = canvas.parentElement;
-              parent.innerHTML = '<p style="color:#666;padding:15px;">No revenue data found for the selected range.</p>';
-              return;
-            }
+  const url = new URL('/Leilife/backend/admin/get_revenue_breakdown.php', window.location.origin);
+  if (fromDate) url.searchParams.set('fromDate', fromDate);
+  if (toDate) url.searchParams.set('toDate', toDate);
 
-            // Destroy old chart if any
-            if (window.revenueChart) window.revenueChart.destroy();
+  try {
+    const res = await fetch(url.toString(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('Network error ' + res.status);
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Invalid response');
 
-            window.revenueChart = new Chart(ctx, {
-              type: 'pie',
-              data: {
-                labels: categories,
-                datasets: [{
-                  data: totals,
-                  backgroundColor: ['#a67c52', '#d2b48c', '#8b6f47', '#c2a47c', '#b58c65']
-                }]
-              },
-              options: {
-                responsive: true,
-                plugins: {
-                  title: {
-                    display: true,
-                    text: 'Revenue by Category',
-                    color: '#3e2f1c',
-                    font: {
-                      size: 14
-                    }
-                  },
-                  legend: {
-                    position: 'bottom'
-                  },
-                  tooltip: {
-                    callbacks: {
-                      label: ctx => {
-                        const val = ctx.raw || 0;
-                        return `${ctx.label}: ₱${val.toLocaleString()}`;
-                      }
-                    }
-                  }
-                }
-              }
-            });
+    const categories = Object.keys(data.data);
+    const totals = categories.map(cat => data.data[cat].revenue[0] || 0);
 
-          } catch (err) {
-            console.error('fetchRevenueBreakdown failed:', err);
-          }
+    // ✅ Clear old notice
+    const note = canvas.nextElementSibling;
+    if (note && note.classList.contains('no-data-note')) note.remove();
+
+    if (!categories.length) {
+      let msg = document.createElement('div');
+      msg.textContent = 'No revenue data found for the selected range.';
+      msg.className = 'no-data-note';
+      msg.style.color = '#666';
+      msg.style.padding = '15px';
+      canvas.insertAdjacentElement('afterend', msg);
+      return;
+    }
+
+    if (window.revenueChart) window.revenueChart.destroy();
+
+    window.revenueChart = new Chart(ctx, {
+  type: 'pie',
+  data: {
+    labels: categories,
+    datasets: [{
+      data: totals,
+      backgroundColor: ['#a67c52', '#d2b48c', '#8b6f47', '#c2a47c', '#b58c65']
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true, // ✅ keeps circle circular
+    aspectRatio: 1.8,          // ✅ prevents tall or squashed pie
+    plugins: {
+      title: {
+        display: true,
+        text: 'Revenue by Category',
+        color: '#3e2f1c',
+        font: { size: 14, weight: 'bold' },
+        padding: { top: 10, bottom: 10 }
+      },
+      legend: {
+        position: 'bottom',
+        labels: {
+          boxWidth: 15,
+          color: '#3e2f1c'
         }
+      },
+      tooltip: {
+        callbacks: {
+          label: ctx => `${ctx.label}: ₱${(ctx.raw || 0).toLocaleString()}`
+        }
+      }
+    }
+  }
+});
 
+  } catch (err) {
+    console.error('fetchRevenueBreakdown failed:', err);
+  }
+}
 
+window.addEventListener('resize', () => {
+  if (salesTrendChart) salesTrendChart.resize();
+});
 
         document.addEventListener('DOMContentLoaded', () => {
           const fromInput = document.getElementById('fromDate');
@@ -1207,4 +916,5 @@
           exportButtons.excel?.addEventListener("click", () => downloadReport("excel"));
           exportButtons.csv?.addEventListener("click", () => downloadReport("csv"));
         });
+
       </script>

@@ -69,44 +69,54 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <tbody id="staff-content">
                 <?php foreach ($staffRoles as $staff): ?>
                     <tr class="staff-row" data-id="<?= isset($staff['staff_id']) ? htmlspecialchars($staff['staff_id']) : '' ?>">
-                        <td>
-                            <div class="name-cell">
-                                <label class="photo-wrapper">
-                                    <img class="profile-photo"
-                                        src="<?= !empty($staff['staff_image']) ? "public/staffs/" . $staff['staff_image'] : "public/assests/about us.png" ?>"
-                                        alt="profile-photo">
-                                    <input type="file" class="photoInput" accept="image/*" style="display:none;" disabled>
-                                </label>
-                                <div>
-                                    <input type="text" class="inputData" value="<?= htmlspecialchars($staff['staff_name']) ?>" disabled>
-                                </div>
-                            </div>
-                        </td>
 
-                        <td>
-                            <input type="text" class="inputData" value="<?= htmlspecialchars($staff['staff_role']) ?>" disabled>
-                        </td>
+    <!-- Name -->
+    <td data-label="Name">
+        <div class="name-cell">
+            <label class="photo-wrapper">
+                <img class="profile-photo"
+                    src="<?= !empty($staff['staff_image']) ? "public/staffs/" . $staff['staff_image'] : "public/assests/about us.png" ?>"
+                    alt="profile-photo">
+                <input type="file" class="photoInput" accept="image/*" style="display:none;" disabled>
+            </label>
+            <div>
+                <input type="text" class="inputData" 
+                       value="<?= htmlspecialchars($staff['staff_name']) ?>" disabled>
+            </div>
+        </div>
+    </td>
 
-                        <td>
-                            <select class="pcategory" disabled>
-                                <option value="Day" <?= $staff['shift'] == 'Day' ? 'selected' : '' ?>>Day</option>
-                                <option value="Night" <?= $staff['shift'] == 'Night' ? 'selected' : '' ?>>Night</option>
-                            </select>
-                        </td>
+    <!-- Position -->
+    <td data-label="Position">
+        <input type="text" class="inputData" 
+               value="<?= htmlspecialchars($staff['staff_role']) ?>" disabled>
+    </td>
 
-                        <td>
-                            <button type="button"
-                                class="statusBtn <?= strtolower($staff['status']) === 'active' ? 'active' : 'inactive' ?>"
-                                disabled>
-                                <?= ucfirst($staff['status']) ?>
-                            </button>
-                        </td>
+    <!-- Shift -->
+    <td data-label="Shift">
+        <select class="pcategory" disabled>
+            <option value="Day" <?= $staff['shift'] == 'Day' ? 'selected' : '' ?>>Day</option>
+            <option value="Night" <?= $staff['shift'] == 'Night' ? 'selected' : '' ?>>Night</option>
+        </select>
+    </td>
 
-                        <td class="actions-cell">
-                            <button class="editBtn" type="button">Edit</button>
-                            <img src="public/assests/archive.png" alt="Archive" class="archive-icon" title="Archive">
-                        </td>
-                    </tr>
+    <!-- Status -->
+    <td data-label="Status">
+        <button type="button"
+            class="statusBtn <?= strtolower($staff['status']) === 'active' ? 'active' : 'inactive' ?>"
+            disabled>
+            <?= ucfirst($staff['status']) ?>
+        </button>
+    </td>
+
+    <!-- Actions -->
+    <td data-label="Actions" class="actions-cell">
+        <button class="editBtn" type="button">Edit</button>
+        <img src="public/assests/archive.png" alt="Archive" 
+             class="archive-icon" title="Archive">
+    </td>
+
+</tr>
                 <?php endforeach; ?>
             </tbody>
         </table>

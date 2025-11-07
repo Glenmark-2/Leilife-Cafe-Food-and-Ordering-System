@@ -14,38 +14,35 @@ if (!$user_id) {
     exit;
 }
 
-// ✅ Fetch order number from router (?num=ORD-...)
+// ✅ Get order number from query
 $orderNumber = $_GET['num'] ?? null;
 if (!$orderNumber) {
     echo "<p>No order selected.</p>";
     exit;
 }
 
-// ✅ Fetch the order with items, ensuring it belongs to the user
+// ✅ Fetch order & ensure it belongs to user
 $order = $appData->getOrderByNumber($user_id, $orderNumber);
 if (!$order || count($order) === 0) {
     echo "<p>Order not found or access denied.</p>";
     exit;
 }
 
-// First row contains general order info
-$orderInfo = $order[0];
-
-// ✅ Fetch user address
+$orderInfo = $order[0]; // first row general info
 $userAddress = $appData->loadUserAddress($user_id);
-
 $delivery = ($orderInfo['delivery_method'] === "home") || ($orderInfo['order_status'] === 'delivered');
 $review = $appData->getReviewMessage($orderInfo['order_number']);
 ?>
 
 <?= createModal(); ?>
+
 <div class="tracking">
   <div class="your_order_title">
     <h3>Your Order #<?= htmlspecialchars($orderInfo['order_number']) ?></h3>
   </div>
 
   <?php if ($delivery): ?>
-    <!-- DELIVERY SECTION -->
+    <!-- ==================== DELIVERY SECTION ==================== -->
     <?php
     $steps = [
       'pending'            => 1,
@@ -58,35 +55,24 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
 
     <?php if ($orderInfo['order_status'] !== "cancelled"): ?>
       <div class="progress-container">
-        <div class="step <?= $activeStep >= 1 ? 'active' : '' ?>">
-          <div class="circle">1</div>
-          <div class="label">Queuing...</div>
-        </div>
-        <div class="step <?= $activeStep >= 2 ? 'active' : '' ?>">
-          <div class="circle">2</div>
-          <div class="label">Preparing...</div>
-        </div>
-        <div class="step <?= $activeStep >= 3 ? 'active' : '' ?>">
-          <div class="circle">3</div>
-          <div class="label">Out for delivery...</div>
-        </div>
-        <div class="step <?= $activeStep >= 4 ? 'active' : '' ?>">
-          <div class="circle">4</div>
-          <div class="label">Delivered</div>
-        </div>
+        <?php foreach (['Queuing...', 'Preparing...', 'Out for delivery...', 'Delivered'] as $i => $label): ?>
+          <div class="step <?= $activeStep >= ($i + 1) ? 'active' : '' ?>">
+            <div class="circle"><?= $i + 1 ?></div>
+            <div class="label"><?= $label ?></div>
+          </div>
+        <?php endforeach; ?>
       </div>
     <?php endif; ?>
 
     <div class="order_details">
       <!-- LEFT -->
-      <?php echo "<!-- DEBUG: Order status = {$orderInfo['order_status']} -->"; ?>
       <div class="left-details">
         <?php if ($orderInfo['order_status'] === "cancelled"): ?>
           <p><strong>Your order has been cancelled.</strong></p>
-          <img id="cancel-order-pic" src="/Leilife/public/assests/cancel-order.png" alt="Cancelled">
+          <img src="/Leilife/public/assests/cancel-order.png" alt="Cancelled">
         <?php elseif ($orderInfo['order_status'] === "delivered"): ?>
           <p><strong>Thanks for ordering!</strong></p>
-          <img id="cancel-order-pic" src="/Leilife/public/assests/success-order.png" alt="Delivered">
+          <img src="/Leilife/public/assests/success-order.png" alt="Delivered">
         <?php else: ?>
           <p style="color:#8f8d8dff;">Estimated time of delivery</p>
           <p id="live-eta"><strong>Fetching ETA...</strong></p>
@@ -118,24 +104,15 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
         <div class="right-content">
           <div class="order-items-list">
             <?php foreach ($order as $item): ?>
-              <?php
-              $isCancelled = strtolower($item['item_status'] ?? '') === 'cancelled';
-              $itemClass = $isCancelled ? 'order-item cancelled' : 'order-item';
-              ?>
-              <div class="<?= $itemClass ?>">
+              <?php $isCancelled = strtolower($item['item_status'] ?? '') === 'cancelled'; ?>
+              <div class="order-item <?= $isCancelled ? 'cancelled' : '' ?>">
                 <p>
                   <?= (int)$item['quantity'] ?> × <?= htmlspecialchars(ucwords($item['product_name'])) ?>
-                  <?php if (!empty($item['size'])): ?>
-                    <br><small>Size: <?= htmlspecialchars(ucwords($item['size'])) ?></small>
-                  <?php endif; ?>
-                  <?php if (!empty($item['flavors'])): ?>
-                    <br><small>Flavors: <?= htmlspecialchars(implode(", ", array_map('ucwords', $item['flavors']))) ?></small>
-                  <?php endif; ?>
+                  <?php if (!empty($item['size'])): ?><br><small>Size: <?= htmlspecialchars(ucwords($item['size'])) ?></small><?php endif; ?>
+                  <?php if (!empty($item['flavors'])): ?><br><small>Flavors: <?= htmlspecialchars(implode(", ", array_map('ucwords', $item['flavors']))) ?></small><?php endif; ?>
                   — ₱<?= number_format($item['price'], 2) ?>
                 </p>
-                <?php if ($isCancelled): ?>
-                  <p class="cancelled-label">Cancelled item</p>
-                <?php endif; ?>
+                <?php if ($isCancelled): ?><p class="cancelled-label">Cancelled item</p><?php endif; ?>
               </div>
             <?php endforeach; ?>
           </div>
@@ -143,14 +120,14 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
           <p><strong>Total:</strong> ₱<?= number_format($orderInfo['total'], 2) ?></p>
         </div>
 
-        <!-- CANCELLED or SUCCESSFUL -->
+        <!-- Cancel / Reorder -->
         <?php if ($orderInfo['order_status'] === 'cancelled'): ?>
           <div id="reorder-btns">
             <form id="reorderForm" action="../backend/reorder.php" method="POST">
               <input type="hidden" name="order_id" value="<?= htmlspecialchars($orderInfo['order_id']) ?>">
               <?= createButton(45, 150, "Reorder", "reorderBtn", 16, "submit"); ?>
             </form>
-            <a href="/leilife/public/index.php?page=menu">
+            <a href="/Leilife/public/index.php?page=menu">
               <?= createButton(45, 150, "Go to menu"); ?>
             </a>
           </div>
@@ -177,7 +154,7 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
     </div>
 
   <?php else: ?>
-    <!-- PICKUP SECTION -->
+    <!-- ==================== PICKUP SECTION ==================== -->
     <?php
     $steps = [
       'pending'   => 1,
@@ -189,18 +166,12 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
 
     <?php if ($orderInfo['order_status'] !== "cancelled"): ?>
       <div class="progress-container">
-        <div class="step <?= $activeStep >= 1 ? 'active' : '' ?>">
-          <div class="circle">1</div>
-          <div class="label">Pending...</div>
-        </div>
-        <div class="step <?= $activeStep >= 2 ? 'active' : '' ?>">
-          <div class="circle">2</div>
-          <div class="label">Preparing...</div>
-        </div>
-        <div class="step <?= $activeStep >= 3 ? 'active' : '' ?>">
-          <div class="circle">3</div>
-          <div class="label">Picked up</div>
-        </div>
+        <?php foreach (['Pending...', 'Preparing...', 'Picked up'] as $i => $label): ?>
+          <div class="step <?= $activeStep >= ($i + 1) ? 'active' : '' ?>">
+            <div class="circle"><?= $i + 1 ?></div>
+            <div class="label"><?= $label ?></div>
+          </div>
+        <?php endforeach; ?>
       </div>
     <?php endif; ?>
 
@@ -209,21 +180,21 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
       <div class="left-details">
         <?php if ($orderInfo['order_status'] === "cancelled"): ?>
           <p><strong>Your order has been cancelled.</strong></p>
-          <img id="cancel-order-pic" src="/Leilife/public/assests/cancel-order.png" alt="Cancelled">
+          <img src="/Leilife/public/assests/cancel-order.png" alt="Cancelled">
         <?php elseif ($orderInfo['order_status'] === "picked_up"): ?>
           <p><strong>Thanks for ordering!</strong></p>
-          <img id="cancel-order-pic" src="/Leilife/public/assests/success-order.png" alt="Delivered">
+          <img src="/Leilife/public/assests/success-order.png" alt="Picked up">
         <?php elseif ($orderInfo['payment_status'] === "unpaid"): ?>
           <p>Time remaining to pick up your order:</p>
           <p><strong>
             <span id="pickup-timer"
               data-order-number="<?= htmlspecialchars($orderInfo['order_number']) ?>"
-              data-order-date="<?= htmlspecialchars($orderInfo['order_date'] ?? date('Y-m-d H:i:s')) ?>">
+              data-order-date="<?= htmlspecialchars(date('Y-m-d\TH:i:s', strtotime($orderInfo['order_date'] ?? date('Y-m-d H:i:s')))) ?>">
               00:10
             </span>
           </strong></p>
           <img id="motor" src="/Leilife/public/assests/walk.png" alt="Walk">
-        <?php elseif ($orderInfo['payment_status'] === "paid"): ?>
+        <?php else: ?>
           <p>Go to store now!</p>
           <img id="motor" src="/Leilife/public/assests/walk.png" alt="Walk">
         <?php endif; ?>
@@ -246,11 +217,8 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
         <p style="color:#8f8d8dff; margin:0">Order details</p>
         <div class="right-content">
           <?php foreach ($order as $item): ?>
-            <?php
-            $isCancelled = strtolower($item['item_status'] ?? '') === 'cancelled';
-            $itemClass = $isCancelled ? 'order-item cancelled' : 'order-item';
-            ?>
-            <div class="<?= $itemClass ?>">
+            <?php $isCancelled = strtolower($item['item_status'] ?? '') === 'cancelled'; ?>
+            <div class="order-item <?= $isCancelled ? 'cancelled' : '' ?>">
               <p>
                 <?= (int)$item['quantity'] ?> × <?= htmlspecialchars(ucwords($item['product_name'])) ?>
                 <?php if (!empty($item['size'])): ?><br>Size: <?= htmlspecialchars(ucwords($item['size'])) ?><?php endif; ?>
@@ -270,7 +238,7 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
               <input type="hidden" name="order_id" value="<?= htmlspecialchars($orderInfo['order_id']) ?>">
               <?= createButton(45, 150, "Reorder", "reorderBtn", 16, "submit"); ?>
             </form>
-            <a href="/leilife/public/index.php?page=menu">
+            <a href="/Leilife/public/index.php?page=menu">
               <?= createButton(45, 150, "Go to menu"); ?>
             </a>
           </div>
@@ -319,149 +287,116 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const cancelBtn = document.getElementById("cancelOrderBtn");
-        if (cancelBtn) {
-            cancelBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                const orderNumber = "<?= $orderInfo['order_number'] ?>";
+document.addEventListener("DOMContentLoaded", () => {
 
-                showConfirmModal("Are you sure you want to cancel this order?", async () => {
-                    showModal("Cancelling your order...", "warning", false);
-                    try {
-                        const res = await fetch("/leilife/backend/auto_cancel_order.php", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/x-www-form-urlencoded"
-                            },
-                            body: "order_number=" + encodeURIComponent(orderNumber),
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            showModal("Order cancelled successfully!", "success", true, 2500);
-                            setTimeout(() => location.reload(), 2000);
-                        } else {
-                            showModal(data.message || "Failed to cancel order", "error", true, 4000);
-                            console.warn("Debug:", data.debug);
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        showModal("Network error. Please try again.", "error", true, 4000);
-                    }
-                });
-            });
+  /* ========== CANCEL ORDER ========== */
+  const cancelBtn = document.getElementById("cancelOrderBtn");
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      const orderNumber = "<?= $orderInfo['order_number'] ?>";
+      showConfirmModal("Are you sure you want to cancel this order?", async () => {
+        showModal("Cancelling your order...", "warning", false);
+        try {
+          const res = await fetch("/Leilife/backend/auto_cancel_order.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "order_number=" + encodeURIComponent(orderNumber),
+          });
+          const data = await res.json();
+          if (data.success) {
+            showModal("Order cancelled successfully!", "success", true, 2500);
+            setTimeout(() => location.reload(), 2000);
+          } else {
+            showModal(data.message || "Failed to cancel order", "error", true, 4000);
+          }
+        } catch {
+          showModal("Network error. Please try again.", "error", true, 4000);
         }
-
-const etaEl = document.getElementById("live-eta");
-if (!etaEl) return;
-
-const PREP_TIME_MIN = 10;
-
-// Hard-coded store lat/lng (same as you have)
-const storeLat = 14.6543;
-const storeLng = 120.9721;
-const store = `${storeLng},${storeLat}`;
-
-// From PHP
-const userLat = "<?= $userAddress['latitude'] ?? '' ?>";
-const userLng = "<?= $userAddress['longitude'] ?? '' ?>";
-
-if (!userLat || !userLng) {
-    etaEl.textContent = "ETA unavailable";
-    return;
-}
-
-const customer = `${userLng},${userLat}`;
-
-function roundToNearest5(n) {
-    return Math.round(n / 5) * 5;
-}
-
-async function fetchETA() {
-    try {
-        const res = await fetch(`/Leilife/backend/get_eta.php?from=${store}&to=${customer}`);
-        const data = await res.json();
-
-        if (!data.success) {
-            etaEl.innerHTML = `<strong>ETA unavailable</strong>`;
-            return;
-        }
-
-        const driverSec = data.duration || 0;
-        const driverMin = Math.round(driverSec / 60);
-
-        const minETA = PREP_TIME_MIN;                   // minimum
-        const maxETA = roundToNearest5(PREP_TIME_MIN + driverMin);  // rounded max
-
-        etaEl.innerHTML = `<strong>${minETA}–${maxETA} mins</strong>`;
-    } catch (err) {
-        etaEl.innerHTML = `<strong>ETA unavailable</strong>`;
-    }
-}
-
-fetchETA();
-setInterval(fetchETA, 30000);
-
-
-        const timerEl = document.getElementById('pickup-timer');
-        if (timerEl) {
-            const orderNumber = timerEl.dataset.orderNumber;
-            const orderDate = timerEl.dataset.orderDate;
-            const orderTimestamp = new Date(orderDate.replace(" ", "T")).getTime();
-
-            // PHP server time sync
-            const serverNow = <?= round(microtime(true) * 1000) ?>; // milliseconds
-            const clientNow = Date.now();
-            const offset = serverNow - clientNow; // difference between server and client
-
-            // Auto-cancel duration (example: 10 minutes)
-            const AUTO_CANCEL_DURATION = 20 * 60 * 1000;
-            const endTime = orderTimestamp + AUTO_CANCEL_DURATION;
-
-            const updateTimer = async () => {
-                const now = Date.now() + offset;
-                const timeLeft = Math.floor((endTime - now) / 1000);
-
-                if (timeLeft <= 0) {
-                    clearInterval(countdown);
-                    timerEl.textContent = "00:00";
-
-                    // 🔄 Auto-cancel when time expires
-                    try {
-                        const res = await fetch("/leilife/backend/auto_cancel_order.php", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/x-www-form-urlencoded"
-                            },
-                            body: "order_number=" + encodeURIComponent(orderNumber),
-                        });
-                        const data = await res.json();
-
-                        if (data.success) {
-                            showModal("Order automatically cancelled after timeout.", "warning", true, 3000);
-                            setTimeout(() => location.reload(), 2500);
-                        } else {
-                            showModal(data.message || "Failed to auto-cancel order", "error", true, 4000);
-                        }
-                    } catch (err) {
-                        console.error("Auto-cancel error:", err);
-                        showModal("Network error during auto-cancel.", "error", true, 4000);
-                    }
-                    return;
-                }
-
-                // Format time as MM:SS
-                const m = Math.floor(timeLeft / 60);
-                const s = timeLeft % 60;
-                timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            };
-
-            updateTimer(); // run immediately
-            const countdown = setInterval(updateTimer, 1000);
-        }
-
+      });
     });
-</script>
+  }
 
+  /* ========== ETA FETCHER (for delivery) ========== */
+  const etaEl = document.getElementById("live-eta");
+  if (etaEl) {
+    const PREP_TIME_MIN = 10;
+    const storeLat = 14.6543, storeLng = 120.9721;
+    const userLat = "<?= $userAddress['latitude'] ?? '' ?>";
+    const userLng = "<?= $userAddress['longitude'] ?? '' ?>";
+
+    if (!userLat || !userLng) {
+      etaEl.textContent = "ETA unavailable";
+      return;
+    }
+
+    async function fetchETA() {
+      try {
+        const res = await fetch(`/Leilife/backend/get_eta.php?from=${storeLng},${storeLat}&to=${userLng},${userLat}`);
+        const data = await res.json();
+        if (!data.success) {
+          etaEl.innerHTML = "<strong>ETA unavailable</strong>";
+          return;
+        }
+        const driverMin = Math.round((data.duration || 0) / 60);
+        const minETA = PREP_TIME_MIN;
+        const maxETA = Math.ceil((PREP_TIME_MIN + driverMin) / 5) * 5;
+        etaEl.innerHTML = `<strong>${minETA}–${maxETA} mins</strong>`;
+      } catch {
+        etaEl.innerHTML = "<strong>ETA unavailable</strong>";
+      }
+    }
+    fetchETA();
+    setInterval(fetchETA, 30000);
+  }
+
+/* ========== PICKUP TIMER (FIXED) ========== */
+const timerEl = document.getElementById("pickup-timer");
+if (timerEl) {
+  const orderNumber = timerEl.dataset.orderNumber;
+
+  // ✅ We ignore MySQL's ambiguous timestamp and start countdown fresh on page load.
+  const AUTO_CANCEL_DURATION = 30 * 1000; // 30 seconds
+  const endTime = Date.now() + AUTO_CANCEL_DURATION;
+
+  const updateTimer = async () => {
+    const now = Date.now();
+    const timeLeft = Math.floor((endTime - now) / 1000);
+
+    if (timeLeft <= 0) {
+      clearInterval(countdown);
+      timerEl.textContent = "00:00";
+
+      try {
+        const res = await fetch("/Leilife/backend/auto_cancel_order.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: "order_number=" + encodeURIComponent(orderNumber),
+        });
+        const data = await res.json();
+        if (data.success) {
+          showModal("Order automatically cancelled after 30 seconds timeout.", "warning", true, 3000);
+          setTimeout(() => location.reload(), 2500);
+        } else {
+          showModal(data.message || "Failed to auto-cancel order", "error", true, 4000);
+        }
+      } catch {
+        showModal("Network error during auto-cancel.", "error", true, 4000);
+      }
+      return;
+    }
+
+    const m = Math.floor(timeLeft / 60);
+    const s = timeLeft % 60;
+    timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  updateTimer();
+  const countdown = setInterval(updateTimer, 1000);
+}
+
+
+});
+</script>
 
 <script src="/Leilife/Scripts/pages/order-tracking.js" defer></script>

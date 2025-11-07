@@ -746,11 +746,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // periodic refresh if you want
-  // setInterval(() => {
-  //   const s = document.getElementById('sort');
-  //   loadOrders(s ? s.value : 'order_date', document.getElementById('orderSearch')?.value || '');
-  // }, 60000);
+  periodic refresh if you want
+  setInterval(() => {
+    const s = document.getElementById('sort');
+    loadOrders(s ? s.value : 'order_date', document.getElementById('orderSearch')?.value || '');
+  }, 60000);
 });
 
 /* -------------------------

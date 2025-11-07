@@ -100,13 +100,21 @@ function createPaymentMethodGCash($secretKey, $billing = []) {
 
 // Attach Payment Method to Payment Intent
 function attachPaymentMethodToIntent($secretKey, $piId, $pmId, $order_id) {
+    // Detect current origin (works for localhost or production)
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+    $host = $_SERVER['HTTP_HOST'];
+    $baseUrl = "{$protocol}://{$host}";
+
+    // Use dynamic return URL
+    $returnUrl = "{$baseUrl}/Leilife/public/index.php?page=thankyou&order_id={$order_id}";
+
     $ch = curl_init("https://api.paymongo.com/v1/payment_intents/{$piId}/attach");
 
     $data = [
         "data" => [
             "attributes" => [
                 "payment_method" => $pmId,
-                "return_url" => "http://localhost/Leilife/public/index.php?page=thankyou&order_id={$order_id}"
+                "return_url" => $returnUrl
             ]
         ]
     ];
@@ -131,6 +139,7 @@ function attachPaymentMethodToIntent($secretKey, $piId, $pmId, $order_id) {
 
     return $decoded['data']['attributes'];
 }
+
 
 // Refund API
 // ----------- corrected createRefund -----------

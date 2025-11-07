@@ -179,8 +179,8 @@ include "../backend/db_script/appData.php";
       <h5>Get In Touch</h5>
     </div>
     <p>
-      If you want, I can also design this in the same style and color layout as the sample image so it matches your
-      website’s aesthetic. I can make it visually similar but with Leilife Cafe and Resto branding.
+      Have questions or want to reach out? We're here to help! Choose any of the contact methods below to get in touch with us. 
+      We'll respond to your inquiries as quickly as possible.
     </p>
 
     <div class="info-item">

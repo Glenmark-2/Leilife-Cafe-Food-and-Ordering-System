@@ -272,7 +272,7 @@
 .staff-table th:last-child,
 .staff-table td:last-child {
     text-align: center;
-    width: 140px;
+    width: 100%;
 }
 
 /* Hover effect */
@@ -297,6 +297,10 @@
    
     /* ==== RESPONSIVE DESIGN ==== */
     @media (max-width: 768px) {
+        .table-wrapper::-webkit-scrollbar {
+   display: none};
+
+
 
         #table-title,
         .table-row {
@@ -304,11 +308,7 @@
             align-items: flex-start;
         }
 
-        .table-row p,
-        .status-btn {
-            width: 100%;
-            margin-bottom: 6px;
-        }
+        
     }
 
 
@@ -390,7 +390,7 @@ gap: 10px;
   font-size: 12px;
   cursor: pointer;
   display: inline-block;
-  margin: auto;
+  
 }
 
 /* Active */
@@ -959,193 +959,107 @@ font-size: 12px;
 /* =======================
    MOBILE CARD VIEW (Staff Table)
    ======================= */
-@media (max-width: 768px) {
+@media (max-width: 720px) {
   .table-wrapper {
-    overflow-x: hidden; /* prevent horizontal scroll */
+    overflow-x: hidden;
   }
 
-  /* ===== Staff Table Layout ===== */
-.staff-table {
-  border: none;
-  display: block;
-  width: 100%;
-  font-family: "Inter", system-ui, sans-serif;
-}
+  .staff-table,
+  .staff-table thead,
+  .staff-table tbody,
+  .staff-table th,
+  .staff-table tr,
+  .staff-table td {
+    display: block;
+  }
 
-.staff-table thead {
-  display: none;
-}
+  .staff-table thead {
+    display: none;
+  }
 
-.staff-table tbody {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 10px;
-}
-
-/* Each card (staff row) */
-.staff-table tr {
-  display: flex;
-  flex-direction: column;
-  background: var(--card, #ffffff);
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: 12px;
-  padding: 18px 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.staff-table tr:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-}
-
-/* Each detail row inside a card */
-.staff-table td {
-  display: flex;
-  align-items: center;
-  padding: 6px 0;
-  font-size: 14px;
-  color: var(--text, #111827);
-  line-height: 1.5;
-}
-
-/* Labels (left side) */
-.staff-table td::before {
-  content: attr(data-label) ":";
-  display: inline-block;
-  width: 100px; /* Adjust alignment width */
-  min-width: 100px;
-  color: var(--muted, #6b7280);
-  font-weight: 600;
-  text-transform: capitalize;
-  flex-shrink: 0;
-}
-
-/* Values (right side) */
-.staff-table td > *:not(:first-child),
-.staff-table td input,
-.staff-table td select,
-.staff-table td button {
-  flex: 1;
-  text-align: left;
-  font-weight: 500;
-  color: var(--text, #111827);
-  border: none;
-  background: transparent;
-}
-
-/* ===== Name + Photo ===== */
-.name-cell {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.photo-wrapper {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid var(--border, #e5e7eb);
-  flex-shrink: 0;
-}
-
-.profile-photo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* ===== Status Button ===== */
-.statusBtn {
-  border: none;
-  border-radius: 20px;
-  padding: 5px 12px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: capitalize;
-  transition: background 0.2s ease, transform 0.1s ease;
-}
-
-.statusBtn.active {
-  background-color: #16a34a;
-  color: #fff;
-}
-
-.statusBtn.inactive {
-  background-color: #dc2626;
-  color: #fff;
-}
-
-.statusBtn:active {
-  transform: scale(0.96);
-}
-
-/* ===== Action Buttons ===== */
-.actions-cell {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.editBtn {
-  padding: 6px 14px;
-  font-size: 13px;
-  border: none;
-  border-radius: 8px;
-  background: var(--accent, #4f46e5);
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.editBtn:hover {
-  background: #4338ca;
-}
-
-.archive-icon {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-}
-
-.archive-icon:hover {
-  opacity: 1;
-}
-
-/* ===== Responsive Grid (Desktop) ===== */
-@media (min-width: 720px) {
   .staff-table tbody {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
 
   .staff-table tr {
-    padding: 20px 22px;
+    background: var(--card, #ffffff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .staff-table tr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  /* === Clean two-column alignment for labels and values === */
+  .staff-table td {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 14px;
   }
 
   .staff-table td::before {
-    width: 110px;
-    min-width: 110px;
+    content: attr(data-label) ":";
+    font-weight: 600;
+    color: var(--muted, #6b7280);
+    text-transform: capitalize;
+    text-align: left;
+    margin-right: 8px;
+  }
+
+  /* === Actions area neatly aligned side-by-side === */
+  .actions-cell {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px; /* tighter spacing */
+    border-top: 1px solid var(--border, #e5e7eb);
+    margin-top: 12px;
+    padding-top: 10px;
+    flex-wrap: nowrap; /* ensure same line */
+  }
+
+  .editBtn {
+    background: #fef3c7;
+    color: #78350f;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+
+  .editBtn:hover {
+    background: #fde68a;
+    transform: translateY(-1px);
+  }
+
+  .archive-icon {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .archive-icon:hover {
+    opacity: 1;
+    transform: scale(1.05);
   }
 }
-
-/* ===== Animation ===== */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-}
-
-
-
-
-

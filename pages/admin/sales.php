@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
 if (!isset($_SESSION['admin_id'])) {
-  header('Location: /Leilife/public/index.php');
+  header('Location: /leilife/public/index.php');
   exit;
 }
 
@@ -16,7 +16,7 @@ $currentAdmin =  $appData->getCurrentAdmin();
 $isMainAdmin = $currentAdmin['isMainAdmin'];
 
 if (!$isMainAdmin) {
-  header('Location: /Leilife/public/index.php');
+  header('Location: /leilife/public/index.php');
   exit;
 }
 
@@ -131,166 +131,169 @@ $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: nul
 
 
 
-<!-- ===== Order Details Modal ===== -->
-<div id="detailsModal" class="modal" style="text-transform: capitalize;">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h2>Order Details</h2>
-      <button class="modal-close" onclick="closeModal()">✖</button>
-    </div>
+  <!-- ===== Order Details Modal ===== -->
+  <div id="detailsModal" class="modal" style="text-transform: capitalize;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Order Details</h2>
+        <button class="modal-close" onclick="closeModal()">✖</button>
+      </div>
 
-    <div class="modal-info" >
-      <p><strong>Order No:</strong> <span id="modalOrderNumber"></span></p>
-      <p><strong>Customer:</strong> <span id="modalCustomer"></span></p>
-      <p><strong>Date:</strong> <span id="modalDate"></span></p>
-      <p><strong>Payment:</strong> <span id="modalPayment"></span></p>
-      <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-      <p><strong>Total:</strong> <span id="modalTotal"></span></p>
-    </div>
+      <div class="modal-info">
+        <p><strong>Order No:</strong> <span id="modalOrderNumber"></span></p>
+        <p><strong>Customer:</strong> <span id="modalCustomer"></span></p>
+        <p><strong>Date:</strong> <span id="modalDate"></span></p>
+        <p><strong>Payment:</strong> <span id="modalPayment"></span></p>
+        <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+        <p><strong>Total:</strong> <span id="modalTotal"></span></p>
+      </div>
 
-    <div class="modal-body">
-      <h4>Items Ordered:</h4>
-      <ul id="modalItemsList"></ul>
-    </div>
+      <div class="modal-body">
+        <h4>Items Ordered:</h4>
+        <ul id="modalItemsList"></ul>
+      </div>
 
-    <div class="modal-buttons">
-      <button id="closeMessageBtn" onclick="closeModal()">Close</button>
+      <div class="modal-buttons">
+        <button id="closeMessageBtn" onclick="closeModal()">Close</button>
+      </div>
     </div>
   </div>
-</div>
 
 
-<script>
-  const downloadToken = '<?= $downloadToken ?>'; // single-use token for export
-  const orders = <?= json_encode($orders) ?>;
+  <script>
+    const downloadToken = '<?= $downloadToken ?>'; // single-use token for export
+    const orders = <?= json_encode($orders) ?>;
 
-  function exportFile(type) {
-    const status = document.getElementById('statusFilter').value;
+    function exportFile(type) {
+      const status = document.getElementById('statusFilter').value;
 
-    if (status.toLowerCase() === 'cancelled') {
-      alert('Cancelled orders cannot be included in the sales report.');
-      return;
+      if (status.toLowerCase() === 'cancelled') {
+        alert('Cancelled orders cannot be included in the sales report.');
+        return;
+      }
+
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+      const payment = document.getElementById('paymentFilter').value;
+
+      let page = '';
+      if (type === 'pdf') page = 'sales-report-pdf';
+      else if (type === 'excel') page = 'sales-report-excel';
+      else if (type === 'csv') page = 'sales-report-csv';
+      else return alert('Invalid export type.');
+
+      const params = [];
+      params.push('page=' + encodeURIComponent(page));
+      params.push('download=1');
+      params.push('token=' + encodeURIComponent(downloadToken));
+
+      if (fromDate) params.push(`fromDate=${encodeURIComponent(fromDate)}`);
+      if (toDate) params.push(`toDate=${encodeURIComponent(toDate)}`);
+      if (status && status.toLowerCase() !== 'all') params.push(`status=${encodeURIComponent(status)}`);
+      if (payment && payment.toLowerCase() !== 'all') params.push(`payment=${encodeURIComponent(payment)}`);
+
+      const url = '/leilife/public/admin.php?' + params.join('&');
+      window.open(url, '_blank');
     }
 
-    const fromDate = document.getElementById('fromDate').value;
-    const toDate = document.getElementById('toDate').value;
-    const payment = document.getElementById('paymentFilter').value;
 
-    let page = '';
-    if (type === 'pdf') page = 'sales-report-pdf';
-    else if (type === 'excel') page = 'sales-report-excel';
-    else if (type === 'csv') page = 'sales-report-csv';
-    else return alert('Invalid export type.');
+    // TABLE RENDER
+    const tbody = document.getElementById("ordersTableBody");
 
-    const params = [];
-    params.push('page=' + encodeURIComponent(page));
-    params.push('download=1');
-    params.push('token=' + encodeURIComponent(downloadToken));
+    function renderTable(filtered = orders) {
+      tbody.innerHTML = "";
+      filtered.forEach(order => {
+        // const driver = order.driver_name || 'Undefined';
+        const payment = order.payment_method || 'Undefined';
+        const date = order.date ? order.date.slice(0, 10) : 'Undefined';
+        const total = parseFloat(order.total || 0).toFixed(2);
+        const customer = order.customer_name || 'Undefined';
+        const orderNumber = order.order_number || 'Undefined';
 
-    if (fromDate) params.push(`fromDate=${encodeURIComponent(fromDate)}`);
-    if (toDate) params.push(`toDate=${encodeURIComponent(toDate)}`);
-    if (status && status.toLowerCase() !== 'all') params.push(`status=${encodeURIComponent(status)}`);
-    if (payment && payment.toLowerCase() !== 'all') params.push(`payment=${encodeURIComponent(payment)}`);
-
-    const url = '/Leilife/public/admin.php?' + params.join('&');
-    window.open(url, '_blank');
-  }
-
-
-  // TABLE RENDER
-  const tbody = document.getElementById("ordersTableBody");
-
-  function renderTable(filtered = orders) {
-    tbody.innerHTML = "";
-    filtered.forEach(order => {
-      // const driver = order.driver_name || 'Undefined';
-      const payment = order.payment_method || 'Undefined';
-      const date = order.date ? order.date.slice(0, 10) : 'Undefined';
-      const total = parseFloat(order.total || 0).toFixed(2);
-      const customer = order.customer_name || 'Undefined';
-      const orderNumber = order.order_number || 'Undefined';
-
-     const row = document.createElement("tr");
-row.innerHTML = `
+        const row = document.createElement("tr");
+        row.innerHTML = `
   <td data-label="Order ID">#${orderNumber}</td>
   <td data-label="Customer" style="text-transform: capitalize;">${customer}</td>
   <td data-label="Total">₱${total}</td>
   <td data-label="Status" style="text-transform: capitalize;">${order.status || 'Undefined'}</td>
   <td data-label="Payment" style="text-transform: capitalize;">${payment}</td>
-  <td data-label="Date">${date}</td>
+  <td data-label="Date">${new Date(date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric'
+  })}</td>
+
   <td data-label="Actions" style="display:flex; justify-content:center;" class="actions">
     <button class="view-btn" onclick="viewDetails('${orderNumber}')">View</button>
   </td>
 `;
-tbody.appendChild(row);
+        tbody.appendChild(row);
 
-    });
-  }
-
-  renderTable();
-
-  // VIEW DETAILS MODAL
-function viewDetails(orderNumber) {
-  const order = orders.find(o => o.order_number === orderNumber);
-  if (!order) return;
-
-  document.getElementById("modalOrderNumber").textContent = order.order_number || "Undefined";
-  document.getElementById("modalCustomer").textContent = order.customer_name || "Undefined";
-  document.getElementById("modalPayment").textContent = order.payment_method || "Undefined";
-  document.getElementById("modalStatus").textContent = order.status || "Undefined";
-  document.getElementById("modalDate").textContent = order.date ? order.date.slice(0, 10) : "Undefined";
-  document.getElementById("modalTotal").textContent = `₱${parseFloat(order.total || 0).toFixed(2)}`;
-
-  const itemsList = document.getElementById("modalItemsList");
-  const items = Array.isArray(order.items) ? order.items : [];
-  itemsList.innerHTML = items.length
-    ? items.map(i => `<li>${i.product_name || "Undefined"} × ${i.quantity || 1}</li>`).join("")
-    : "<li>No items found</li>";
-
-  document.getElementById("detailsModal").style.display = "flex";
-}
-
-
-  function closeModal() {
-    document.getElementById("detailsModal").style.display = "none";
-  }
-
-window.addEventListener("click", function (e) {
-  const modal = document.getElementById("detailsModal");
-  if (e.target === modal) {
-    modal.style.display = "none";
-  }
-});
-
-
-  // FILTER CHANGE HANDLING — RELOAD WITH GET PARAMS
-  document.querySelectorAll('#statusFilter, #paymentFilter, #fromDate, #toDate')
-    .forEach(el => el.addEventListener('change', () => {
-      const params = new URLSearchParams(window.location.search);
-      params.set('status', document.getElementById('statusFilter').value);
-      params.set('payment', document.getElementById('paymentFilter').value);
-      params.set('fromDate', document.getElementById('fromDate').value);
-      params.set('toDate', document.getElementById('toDate').value);
-      window.location.search = params.toString(); // refresh page with filters
-    }));
-
-
-
-      const dash = document.getElementById('dash');
-
-  function updateDash() {
-    if (window.innerWidth <= 530) {
-      dash.style.display = 'none'; // remove dash
-    } else {
-      dash.style.display = 'inline'; // show dash
+      });
     }
-  }
 
-  // Run on load
-  updateDash();
+    renderTable();
 
-  // Run on window resize
-  window.addEventListener('resize', updateDash);
-</script>
+    // VIEW DETAILS MODAL
+    function viewDetails(orderNumber) {
+      const order = orders.find(o => o.order_number === orderNumber);
+      if (!order) return;
+
+      document.getElementById("modalOrderNumber").textContent = order.order_number || "Undefined";
+      document.getElementById("modalCustomer").textContent = order.customer_name || "Undefined";
+      document.getElementById("modalPayment").textContent = order.payment_method || "Undefined";
+      document.getElementById("modalStatus").textContent = order.status || "Undefined";
+      document.getElementById("modalDate").textContent = order.date ? order.date.slice(0, 10) : "Undefined";
+      document.getElementById("modalTotal").textContent = `₱${parseFloat(order.total || 0).toFixed(2)}`;
+
+      const itemsList = document.getElementById("modalItemsList");
+      const items = Array.isArray(order.items) ? order.items : [];
+      itemsList.innerHTML = items.length ?
+        items.map(i => `<li>${i.product_name || "Undefined"} × ${i.quantity || 1}</li>`).join("") :
+        "<li>No items found</li>";
+
+      document.getElementById("detailsModal").style.display = "flex";
+    }
 
 
+    function closeModal() {
+      document.getElementById("detailsModal").style.display = "none";
+    }
+
+    window.addEventListener("click", function(e) {
+      const modal = document.getElementById("detailsModal");
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+
+
+    // FILTER CHANGE HANDLING — RELOAD WITH GET PARAMS
+    document.querySelectorAll('#statusFilter, #paymentFilter, #fromDate, #toDate')
+      .forEach(el => el.addEventListener('change', () => {
+        const params = new URLSearchParams(window.location.search);
+        params.set('status', document.getElementById('statusFilter').value);
+        params.set('payment', document.getElementById('paymentFilter').value);
+        params.set('fromDate', document.getElementById('fromDate').value);
+        params.set('toDate', document.getElementById('toDate').value);
+        window.location.search = params.toString(); // refresh page with filters
+      }));
+
+
+
+    const dash = document.getElementById('dash');
+
+    function updateDash() {
+      if (window.innerWidth <= 530) {
+        dash.style.display = 'none'; // remove dash
+      } else {
+        dash.style.display = 'inline'; // show dash
+      }
+    }
+
+    // Run on load
+    updateDash();
+
+    // Run on window resize
+    window.addEventListener('resize', updateDash);
+  </script>

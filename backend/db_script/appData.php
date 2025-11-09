@@ -260,10 +260,10 @@ if (!class_exists('AppData')) {
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
-      public function getOrderByNumber($user_id, $order_number)
-{
-    // 1️⃣ Fetch order + items with proper aliases
-    $stmt = $this->db->prepare("
+        public function getOrderByNumber($user_id, $order_number)
+        {
+            // 1️⃣ Fetch order + items with proper aliases
+            $stmt = $this->db->prepare("
         SELECT 
             o.*, 
             o.status AS order_status,                          -- 👈 Alias order table's status
@@ -282,30 +282,30 @@ if (!class_exists('AppData')) {
         JOIN products p ON oi.product_id = p.product_id
         WHERE o.order_number = :onum AND o.user_id = :uid
     ");
-    $stmt->execute([
-        ':onum' => $order_number,
-        ':uid'  => $user_id
-    ]);
+            $stmt->execute([
+                ':onum' => $order_number,
+                ':uid'  => $user_id
+            ]);
 
-    $orderItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $orderItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    if (!$orderItems) return [];
+            if (!$orderItems) return [];
 
-    // 2️⃣ Resolve flavor names for each item
-    foreach ($orderItems as &$item) {
-        if ($item['has_flavor'] && !empty($item['flavor_ids'])) {
-            $ids = explode(',', $item['flavor_ids']);
-            $placeholders = implode(',', array_fill(0, count($ids), '?'));
-            $flavorStmt = $this->db->prepare("SELECT flavor_name FROM product_flavors WHERE flavor_id IN ($placeholders)");
-            $flavorStmt->execute($ids);
-            $item['flavors'] = $flavorStmt->fetchAll(PDO::FETCH_COLUMN);
-        } else {
-            $item['flavors'] = [];
+            // 2️⃣ Resolve flavor names for each item
+            foreach ($orderItems as &$item) {
+                if ($item['has_flavor'] && !empty($item['flavor_ids'])) {
+                    $ids = explode(',', $item['flavor_ids']);
+                    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+                    $flavorStmt = $this->db->prepare("SELECT flavor_name FROM product_flavors WHERE flavor_id IN ($placeholders)");
+                    $flavorStmt->execute($ids);
+                    $item['flavors'] = $flavorStmt->fetchAll(PDO::FETCH_COLUMN);
+                } else {
+                    $item['flavors'] = [];
+                }
+            }
+
+            return $orderItems;
         }
-    }
-
-    return $orderItems;
-}
 
 
 
@@ -589,79 +589,83 @@ if (!class_exists('AppData')) {
 
 
         //for sales report
-public function getSalesSummary($fromDate = null, $toDate = null, $status = null, $payment = null)
-{
-    $params = [];
-    $where = [];
+        public function getSalesSummary($fromDate = null, $toDate = null, $status = null, $payment = null)
+        {
+            $params = [];
+            $where = [];
 
-    // 📅 Date filters
-    if ($fromDate) {
-        $where[] = "DATE(o.order_date) >= :fromDate";
-        $params[':fromDate'] = $fromDate;
-    }
-    if ($toDate) {
-        $where[] = "DATE(o.order_date) <= :toDate";
-        $params[':toDate'] = $toDate;
-    }
+            // 📅 Date filters
+            if ($fromDate) {
+                $where[] = "DATE(o.order_date) >= :fromDate";
+                $params[':fromDate'] = $fromDate;
+            }
+            if ($toDate) {
+                $where[] = "DATE(o.order_date) <= :toDate";
+                $params[':toDate'] = $toDate;
+            }
 
-    // 🟢 Status filter — exclude cancelled by default
-    if ($status && strtolower($status) !== 'all') {
-        $where[] = "LOWER(o.status) = :status";
-        $params[':status'] = strtolower($status);
-    } else {
-        // Default: only include completed/finalized orders
-        $where[] = "LOWER(o.status) IN ('delivered', 'picked_up')";
-    }
+            // 🟢 Status filter — exclude cancelled by default
+            if ($status && strtolower($status) !== 'all') {
+                $where[] = "LOWER(o.status) = :status";
+                $params[':status'] = strtolower($status);
+            } else {
+                // Default: only include completed/finalized orders
+                $where[] = "LOWER(o.status) IN ('delivered', 'picked_up')";
+            }
 
-    // 💳 Payment filter
-    if ($payment && strtolower($payment) !== 'all') {
-        $where[] = "LOWER(COALESCE(o.payment_method, '')) = :payment";
-        $params[':payment'] = strtolower($payment);
-    }
+            // 💳 Payment filter
+            if ($payment && strtolower($payment) !== 'all') {
+                $where[] = "LOWER(COALESCE(o.payment_method, '')) = :payment";
+                $params[':payment'] = strtolower($payment);
+            }
 
-    $whereSQL = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
+            $whereSQL = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
-    // === 🧾 SALES SUMMARY ===
-    $sqlSummary = "
-        SELECT 
-            COUNT(DISTINCT o.order_id) AS total_orders,
-            COALESCE(SUM(o.total), 0) AS total_revenue,
-            COALESCE((
-                SELECT SUM(oi.quantity * oi.price)
-                FROM order_items oi
-                WHERE oi.status = 'finished'
-                  AND oi.order_id IN (
-                      SELECT o2.order_id FROM orders o2 " . str_replace('o.', '', $whereSQL) . "
-                  )
-            ), 0) AS total_product_revenue
-        FROM orders o
-        $whereSQL
-    ";
-    $stmt = $this->db->prepare($sqlSummary);
-    $stmt->execute($params);
-    $summary = $stmt->fetch(PDO::FETCH_ASSOC);
+            // === 🧾 SALES SUMMARY ===
+            $sqlSummary = "
+    SELECT 
+        -- Count orders
+        COUNT(DISTINCT o.order_id) AS total_orders,
 
-    // === 🏆 TOP 5 PRODUCTS ===
-    $sqlTop5 = "
+        -- Get total revenue from orders table (includes delivery & charges)
+        COALESCE(SUM(o.total), 0) AS total_revenue,
+
+        -- Get total product revenue from order_items table only
+        COALESCE((
+            SELECT SUM(oi.quantity * oi.price)
+            FROM order_items oi
+            WHERE oi.order_id IN (
+                SELECT o2.order_id FROM orders o2 " . str_replace('o.', '', $whereSQL) . "
+            )
+        ), 0) AS total_product_revenue
+    FROM orders o
+    $whereSQL
+";
+
+            $stmt = $this->db->prepare($sqlSummary);
+            $stmt->execute($params);
+            $summary = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // === 🏆 TOP 5 PRODUCTS ===
+            $sqlTop5 = "
         SELECT 
             p.product_name,
-            COUNT(DISTINCT oi.order_id) AS orders,
+            COUNT(oi.order_id) AS orders,
             SUM(oi.quantity * oi.price) AS revenue
         FROM order_items oi
         JOIN products p ON oi.product_id = p.product_id
         JOIN orders o ON o.order_id = oi.order_id
-        WHERE oi.status = 'finished'
-        " . (!empty($where) ? "AND " . implode(" AND ", array_map(fn($w) => preg_replace('/^o\./', '', $w), $where)) : "") . "
+        $whereSQL
         GROUP BY p.product_id, p.product_name
         ORDER BY revenue DESC
         LIMIT 5
     ";
-    $stmtTop5 = $this->db->prepare($sqlTop5);
-    $stmtTop5->execute($params);
-    $topProducts = $stmtTop5->fetchAll(PDO::FETCH_ASSOC);
+            $stmtTop5 = $this->db->prepare($sqlTop5);
+            $stmtTop5->execute($params);
+            $topProducts = $stmtTop5->fetchAll(PDO::FETCH_ASSOC);
 
-    // === 🗂 MAIN CATEGORIES ===
-    $sqlMain = "
+            // === 🗂 MAIN CATEGORIES ===
+            $sqlMain = "
         SELECT 
             mc.main_category_name AS category,
             COUNT(DISTINCT o.order_id) AS total_orders,
@@ -675,17 +679,16 @@ public function getSalesSummary($fromDate = null, $toDate = null, $status = null
             FROM categories
             GROUP BY main_category_id, main_category_name
         ) mc ON sc.main_category_id = mc.main_category_id
-        WHERE oi.status = 'finished'
-        " . (!empty($where) ? "AND " . implode(" AND ", $where) : "") . "
+        $whereSQL
         GROUP BY mc.main_category_id, mc.main_category_name
         ORDER BY total_revenue DESC
     ";
-    $stmtMain = $this->db->prepare($sqlMain);
-    $stmtMain->execute($params);
-    $mainCategories = $stmtMain->fetchAll(PDO::FETCH_ASSOC);
+            $stmtMain = $this->db->prepare($sqlMain);
+            $stmtMain->execute($params);
+            $mainCategories = $stmtMain->fetchAll(PDO::FETCH_ASSOC);
 
-    // === 📊 SUBCATEGORIES ===
-    $sqlSub = "
+            // === 📊 SUBCATEGORIES ===
+            $sqlSub = "
         SELECT 
             sc.category_id,
             sc.category_name,
@@ -698,38 +701,37 @@ public function getSalesSummary($fromDate = null, $toDate = null, $status = null
         JOIN products p ON oi.product_id = p.product_id
         JOIN categories sc ON p.category_id = sc.category_id
         JOIN orders o ON o.order_id = oi.order_id
-        WHERE oi.status = 'finished'
-        " . (!empty($where) ? "AND " . implode(" AND ", $where) : "") . "
+        $whereSQL
         GROUP BY sc.category_id, sc.category_name, p.product_id, p.product_name, oi.price
         ORDER BY sc.category_name, total_revenue DESC
     ";
-    $stmtSub = $this->db->prepare($sqlSub);
-    $stmtSub->execute($params);
-    $rows = $stmtSub->fetchAll(PDO::FETCH_ASSOC);
+            $stmtSub = $this->db->prepare($sqlSub);
+            $stmtSub->execute($params);
+            $rows = $stmtSub->fetchAll(PDO::FETCH_ASSOC);
 
-    // 🧩 Group products under their subcategory
-    $subCategories = [];
-    foreach ($rows as $r) {
-        $cat = $r['category_name'] ?? 'Uncategorized';
-        if (!isset($subCategories[$cat])) {
-            $subCategories[$cat] = [];
+            // 🧩 Group products under their subcategory
+            $subCategories = [];
+            foreach ($rows as $r) {
+                $cat = $r['category_name'] ?? 'Uncategorized';
+                if (!isset($subCategories[$cat])) {
+                    $subCategories[$cat] = [];
+                }
+                $subCategories[$cat][] = [
+                    'product_name' => $r['product_name'],
+                    'sold_price' => $r['sold_price'],
+                    'total_quantity' => $r['total_quantity'],
+                    'total_orders' => $r['total_orders'],
+                    'total_revenue' => $r['total_revenue']
+                ];
+            }
+
+            return [
+                'summary' => $summary,
+                'top_products' => $topProducts,
+                'main_categories' => $mainCategories,
+                'sub_categories' => $subCategories
+            ];
         }
-        $subCategories[$cat][] = [
-            'product_name' => $r['product_name'],
-            'sold_price' => $r['sold_price'],
-            'total_quantity' => $r['total_quantity'],
-            'total_orders' => $r['total_orders'],
-            'total_revenue' => $r['total_revenue']
-        ];
-    }
-
-    return [
-        'summary' => $summary,
-        'top_products' => $topProducts,
-        'main_categories' => $mainCategories,
-        'sub_categories' => $subCategories
-    ];
-}
 
 
         public function reorder($order_id, $user_id, $session_id, $option_type = 'delivery')
@@ -946,52 +948,43 @@ public function getSalesSummary($fromDate = null, $toDate = null, $status = null
         }
 
         // for receipt
-public function getOrderWithItems($user_id, $order_number)
-{
-    // 🧩 1️⃣ Fetch all order items
-    $orderItems = $this->getOrderByNumber($user_id, $order_number);
+        public function getOrderWithItems($user_id, $order_number)
+        {
+            $orderItems = $this->getOrderByNumber($user_id, $order_number);
 
-    if (!$orderItems) return [];
+            if (!$orderItems) return [];
 
-    // 🧹 2️⃣ Keep only finished items
-    $orderItems = array_values(array_filter($orderItems, function($item) {
-        return $item['item_status'] === 'finished';
-    }));
+            // ✅ Calculate subtotal from order_items (price * quantity)
+            $subtotal = 0;
+            foreach ($orderItems as &$item) {
+                $item['total_price'] = $item['price'] * $item['quantity'];
+                $subtotal += $item['total_price'];
+            }
 
-    // If no finished items, you can either return [] or still return order info
-    if (empty($orderItems)) return [];
+            // ✅ Base order info (from first item)
+            $order = [
+                'order_id'         => $orderItems[0]['order_id'],
+                'order_number'     => $orderItems[0]['order_number'],
+                'user_id'          => $orderItems[0]['user_id'],
+                'delivery_method'  => $orderItems[0]['delivery_method'],
+                'payment_method'   => $orderItems[0]['payment_method'],
+                'total'            => $orderItems[0]['total'] ?? $subtotal,
+                'order_date'       => $orderItems[0]['order_date'] ?? '',
+                'customer_name'    => '',
+                'delivery_address' => '',
+            ];
 
-    // 🧮 3️⃣ Calculate subtotal and per-item total_price
-    $subtotal = 0;
-    foreach ($orderItems as &$item) {
-        $item['total_price'] = $item['price'] * $item['quantity'];
-        $subtotal += $item['total_price'];
-    }
-
-    // 🧾 4️⃣ Base order info (from first item)
-    $order = [
-        'order_id'         => $orderItems[0]['order_id'],
-        'order_number'     => $orderItems[0]['order_number'],
-        'user_id'          => $orderItems[0]['user_id'],
-        'delivery_method'  => $orderItems[0]['delivery_method'],
-        'payment_method'   => $orderItems[0]['payment_method'],
-        'total'            => $orderItems[0]['total'] ?? $subtotal,
-        'order_date'       => $orderItems[0]['order_date'] ?? '',
-        'customer_name'    => '',
-        'delivery_address' => '',
-    ];
-
-    // 👤 5️⃣ Fetch customer full name
-    $stmt = $this->db->prepare("
+            // ✅ Fetch customer full name from `users` table
+            $stmt = $this->db->prepare("
         SELECT CONCAT(first_name, ' ', last_name) AS customer_name 
         FROM users 
         WHERE user_id = :uid
     ");
-    $stmt->execute([':uid' => $order['user_id']]);
-    $order['customer_name'] = $stmt->fetchColumn() ?: 'Unknown Customer';
+            $stmt->execute([':uid' => $order['user_id']]);
+            $order['customer_name'] = $stmt->fetchColumn() ?: 'Unknown Customer';
 
-    // 🏠 6️⃣ Fetch delivery address
-    $stmt = $this->db->prepare("
+            // ✅ Fetch delivery address from `address` table
+            $stmt = $this->db->prepare("
         SELECT 
             street_address, 
             barangay, 
@@ -1002,32 +995,32 @@ public function getOrderWithItems($user_id, $order_number)
         WHERE user_id = :uid
         LIMIT 1
     ");
-    $stmt->execute([':uid' => $order['user_id']]);
-    $address = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->execute([':uid' => $order['user_id']]);
+            $address = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($address) {
-        $order['delivery_address'] = sprintf(
-            "%s, Barangay %s, %s, %s, %s",
-            $address['street_address'] ?? '',
-            $address['barangay'] ?? '',
-            $address['city_name'] ?? '',
-            $address['region_name'] ?? '',
-            $address['province_name'] ?? ''
-        );
-    }
+            if ($address) {
+                // Combine address parts into a readable string
+                $order['delivery_address'] = sprintf(
+                    "%s, Barangay %s, %s, %s, %s",
+                    $address['street_address'] ?? '',
+                    $address['barangay'] ?? '',
+                    $address['city_name'] ?? '',
+                    $address['region_name'] ?? '',
+                    $address['province_name'] ?? ''
+                );
+            }
 
-    // 🚚 7️⃣ Compute delivery fee (ensure non-negative)
-    $deliveryFee = max(($order['total'] - $subtotal), 0);
+            // ✅ Calculate delivery fee
+            $deliveryFee = max(($order['total'] - $subtotal), 0);
 
-    // ✅ 8️⃣ Return structured result
-    return [
-        'order'        => $order,
-        'items'        => $orderItems,
-        'subtotal'     => $subtotal,
-        'delivery_fee' => $deliveryFee,
-    ];
-}
-
+            // ✅ Final return
+            return [
+                'order'        => $order,
+                'items'        => $orderItems,
+                'subtotal'     => $subtotal,
+                'delivery_fee' => $deliveryFee,
+            ];
+        }
 
         public function payment_info()
         {
@@ -1176,6 +1169,30 @@ public function getOrderWithItems($user_id, $order_number)
             }
 
             return $admin ?: null;
+        }
+
+        public function cartCounter(?int $userId = null, ?string $guestToken = null): int
+        {
+            if ($userId) {
+                $stmt = $this->db->prepare("SELECT cart_id FROM carts WHERE user_id = :uid LIMIT 1");
+                $stmt->execute([':uid' => $userId]);
+            } elseif ($guestToken) {
+                $stmt = $this->db->prepare("SELECT cart_id FROM carts WHERE guest_token = :gtoken LIMIT 1");
+                $stmt->execute([':gtoken' => $guestToken]);
+            } else {
+                return 0;
+            }
+
+            $cart = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$cart) {
+                return 0; 
+            }
+
+            $stmt = $this->db->prepare("SELECT COUNT(*) FROM cart_items WHERE cart_id = :cid");
+            $stmt->execute([':cid' => $cart['cart_id']]);
+
+            return (int)$stmt->fetchColumn();
         }
     }
 }

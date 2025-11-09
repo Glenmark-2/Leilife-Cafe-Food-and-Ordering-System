@@ -219,7 +219,7 @@ include "../backend/db_script/appData.php";
 
       <input class="contact-input" type="text" placeholder="Subject" class="form-control" name="subject">
 
-      <textarea style="height: 142px; width: 357px;" placeholder="Comments/Questions:" name="message"
+      <textarea style="width: max-width; height:100px" placeholder="Comments/Questions:" name="message"
         required></textarea>
 
       <div style="display: flex; justify-content:center; margin-top:10px">

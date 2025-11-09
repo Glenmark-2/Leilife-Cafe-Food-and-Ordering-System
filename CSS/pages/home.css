@@ -577,7 +577,6 @@
     width: 90%;
     margin: 0 auto 10px auto;
     display: block;
-    resize: none;
   }
 
   .contact-form div[style*="display: flex; justify-content:flex-end;"] {

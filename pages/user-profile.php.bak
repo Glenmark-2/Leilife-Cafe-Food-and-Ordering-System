@@ -385,7 +385,7 @@ $activeTab = $_GET['tab'] ?? 'personal';
             });
         }
 
-       // Order row click -> show order details and reorder button creation (kept)
+        // Order row click -> show order details and reorder button creation (kept)
         const orderRows = document.querySelectorAll('.order-row');
         orderRows.forEach(row => {
             row.style.cursor = "pointer";
@@ -409,7 +409,6 @@ $activeTab = $_GET['tab'] ?? 'personal';
                     }).join('')}
                 </ul>
             `;
-
 
                 if (order.review) {
                     html += `<p><strong>Feedback:</strong> ${order.review}</p>`;
@@ -453,28 +452,20 @@ $activeTab = $_GET['tab'] ?? 'personal';
                         </div>
                     `;
                 } else {
-                    const base = "<?= $protocol . '://' . $host ?>/Leilife/public";
                     html += `
                         <div id="reorder-receipt-btn">
-                            <button id="trackOrderBtn" class="custom-btn" 
-                                style="width:150px;height:35px;font-size:16px;">
-                                Track my order
-                            </button>
+                            <?= createButton(
+                                35,
+                                150,
+                                "Track my order",
+                                "track",
+                                16,
+                                "button",
+                                ['onclick' => 'window.location.href = "http://localhost/Leilife/public/index.php?page=order-tracking&num=${order.order_number}"']
+                            ); ?>
                         </div>
                     `;
                 }
-
-                modalContent.innerHTML = html;
-
-                const base = "<?= $protocol . '://' . $host ?>/Leilife/public";
-                const trackBtn = document.getElementById('trackOrderBtn');
-                if (trackBtn) {
-                    trackBtn.addEventListener('click', () => {
-                        window.location.href = `${base}/index.php?page=order-tracking&num=${order.order_number}`;
-                    });
-                }
-
-
 
 
 

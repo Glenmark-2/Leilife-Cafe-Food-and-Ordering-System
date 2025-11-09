@@ -37,6 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// lets test if this works i want you to work
+
 </script>
 
 <!-- Bootstrap JS -->

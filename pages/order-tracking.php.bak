@@ -399,4 +399,4 @@ if (timerEl) {
 });
 </script>
 
-<script src="/Leilife/Scripts/pages/order-tracking.js"></script>
+<script src="/Leilife/Scripts/pages/order-tracking.js" defer></script>

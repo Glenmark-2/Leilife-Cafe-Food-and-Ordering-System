@@ -363,9 +363,3 @@ button {
 .tab-content {
         min-height: 300px;
     }
-    
-    
-  .order-item.cancelled { text-decoration: line-through; color: #888; }
-  .order-item .cancel-label { font-size: 0.85em; color: #c00; margin-left: 6px; }    
-    
-    

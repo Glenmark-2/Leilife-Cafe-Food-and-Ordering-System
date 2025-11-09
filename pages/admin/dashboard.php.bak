@@ -125,7 +125,7 @@ margin-bottom:16px;
 .col-amount { width:100%; min-width:90px; }
 .col-items { width:100%; min-width:50px; text-align:left; }
 .col-status { width:100%; min-width:120px; position:relative; }
-.col-payment { width:100%; min-width:100px; flex-wrap}
+.col-payment { width:100%; min-width:100px; }
 .col-method { width:100%; min-width:90px; }
 .col-receipt { width:100%; min-width:90px; display:flex; justify-content:center; }
 .col-receipt button {
@@ -568,11 +568,6 @@ html, body {
     color: var(--text);
     margin-bottom: 10px;
   }
-  
-  .white-icon {
-  filter: brightness(0) invert(1);
-}
-
 }
 
 </style>
@@ -751,24 +746,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-//   periodic refresh if you want
+  periodic refresh if you want
   setInterval(() => {
     const s = document.getElementById('sort');
     loadOrders(s ? s.value : 'order_date', document.getElementById('orderSearch')?.value || '');
   }, 60000);
 });
-
-function disableCancelledItemDropdowns(container = document) {
-  container.querySelectorAll('.item-status').forEach(select => {
-    const tr = select.closest('tr');
-    const status = select.value?.toLowerCase();
-    if (status === 'cancelled') {
-      select.disabled = true;
-      tr?.classList.add('status-cancelled');
-    }
-  });
-}
-
 
 /* -------------------------
    Robust loadOrders() (keeps your original structure)
@@ -823,10 +806,9 @@ async function loadOrders(sortBy = 'order_date', searchTerm = '') {
   <p class="col-payment">${escapeHtml(order.payment_status)}</p>
   <p class="col-method">${escapeHtml(order.delivery_method)}</p>
   <div class="col-receipt">
-<button class="dlBtn">
-  <img src="/Leilife/public/assests/downloads.png" alt="Download" class="white-icon" style="width:20px;">
-</button>
-
+    <button class="dlBtn">
+      <img src="/leilife/public/assests/downloads.png" alt="Download" style="width:20px;">
+    </button>
   </div>
 `;
 
@@ -878,10 +860,8 @@ async function loadOrders(sortBy = 'order_date', searchTerm = '') {
             return;
           }
 
-expandRow.innerHTML = renderItemTable(itemData.items);
-attachItemDelegatedListener(expandRow, order.order_id);
-disableCancelledItemDropdowns(expandRow);
-
+          expandRow.innerHTML = renderItemTable(itemData.items);
+          attachItemDelegatedListener(expandRow, order.order_id);
         } catch (err) {
           console.error('Error fetching order items:', err);
           expandRow.innerHTML = `<p style="color:red; padding:10px;">Error loading items.</p>`;
@@ -901,8 +881,101 @@ disableCancelledItemDropdowns(expandRow);
     tableBody.innerHTML = `<p style="text-align:center; width:100%; padding:15px;">Error loading orders.</p>`;
     updateCounts(0,0,0);
   }
-  disableCancelledItemDropdowns();
 }
+
+/* -------------------------
+   renderOrders() and pagination code preserved below if you use it elsewhere
+   (kept intact from your previous version — not required if you don't call it)
+   ------------------------- */
+
+//   function renderOrders() { 
+//   const tableBody = document.getElementById('table-body'); 
+//   tableBody.innerHTML = ''; 
+//   const total = allOrders.length; 
+//   const totalPages = Math.max(1, Math.ceil(total / rowsPerPage)); 
+//   if (currentPage > totalPages) currentPage = totalPages; 
+//   const start = (currentPage - 1) * rowsPerPage; 
+//   const slice = allOrders.slice(start, start + rowsPerPage); 
+  
+//   // create rows
+//   slice.forEach(order => { 
+//     const row = document.createElement('div'); 
+//     row.classList.add('table-row'); 
+//     row.dataset.orderId = order.order_id; 
+    
+//     // build status badge + button
+//     const statusBadge = `<span class="badge s-${escapeCss(order.status)}">${formatStatus(order.status)}</span>`; 
+//     row.innerHTML = `
+//       <div class="col-order"><p>${escapeHtml(order.order_number)}</p></div> 
+//       <div class="col-customer"><p>${escapeHtml(order.customer_name || 'Unknown User')}</p></div> 
+//       <div class="col-amount"><p id="order-total-${order.order_id}">₱${parseFloat(order.total || 0).toFixed(2)}</p></div> 
+//       <div class="col-items"><p style="text-align:left;">${order.items_count ?? 0}</p></div> 
+//       <div class="col-status">
+//         <div style="display:flex; gap:8px; align-items:center;"> 
+//           <button class="status-btn" data-id="${escapeAttr(order.order_id)}" data-status="${escapeAttr(order.status)}">${statusBadge}</button> 
+//         </div> 
+//         <div class="status-menu" aria-hidden="true"> 
+//           ${createStatusOptions(order.status, order.delivery_method)} 
+//         </div> 
+//       </div> 
+//       <div class="col-payment"><p>${escapeHtml(order.payment_status)}</p></div> 
+//       <div class="col-method"><p>${escapeHtml(order.delivery_method)}</p></div> 
+//       <div class="col-receipt"> 
+//         <button class="dlBtn" aria-label="Download Receipt" style="background:transparent; border:0; padding:4px; cursor:pointer;"> 
+//           <img src="/leilife/public/assests/downloads.png" alt="Download" style="width:20px;"> 
+//         </button> 
+//       </div>
+//     `; 
+
+//     tableBody.appendChild(row); 
+
+//     // downloadable receipt
+//     const dlBtn = row.querySelector('.dlBtn'); 
+//     if (dlBtn) { 
+//       dlBtn.addEventListener('click', (e) => { 
+//         e.stopPropagation(); 
+//         downloadReceipt(order.order_number, order.user_id); 
+//       }); 
+//     } 
+
+//     // expandable area for items
+//     const expandRow = document.createElement('div'); 
+//     expandRow.classList.add('expandable-row'); 
+//     expandRow.dataset.orderId = order.order_id; 
+//     expandRow.style.display = 'none'; 
+//     tableBody.appendChild(expandRow); 
+
+//     // click to expand row (except when clicking status button or status menu)
+//     row.addEventListener('click', async (e) => { 
+//       if (e.target.closest('.status-btn') || e.target.closest('.status-menu') || e.target.closest('.status-option')) return; 
+//       const wasVisible = expandRow.style.display === 'block'; 
+//       document.querySelectorAll('.expandable-row').forEach(r => r.style.display = 'none'); 
+//       if (wasVisible) { 
+//         expandRow.style.display = 'none'; 
+//         return; 
+//       } 
+//       expandRow.innerHTML = `<p style="color:var(--muted); padding:10px;">Loading items...</p>`; 
+//       expandRow.style.display = 'block'; 
+//       try { 
+//         const itemsRes = await fetch(`/Leilife/backend/admin/get_order_items.php?order_id=${encodeURIComponent(order.order_id)}`); 
+//         const itemData = await itemsRes.json(); 
+//         if (itemData.success && Array.isArray(itemData.items)) { 
+//           expandRow.innerHTML = renderItemTable(itemData.items); 
+//           attachItemDelegatedListener(expandRow, order.order_id); 
+//         } else { 
+//           expandRow.innerHTML = `<p style="color:var(--muted); padding:10px;">No items found.</p>`; 
+//         } 
+//       } catch (err) { 
+//         expandRow.innerHTML = `<p style="color:${'red'}; padding:10px;">Error loading items</p>`; 
+//         console.error(err); 
+//       } 
+//     }); 
+//   }); 
+  
+//   attachStatusListeners(); 
+// } 
+
+
 
 /* -------------------------
    Status menu generation & listeners
@@ -967,17 +1040,11 @@ function attachStatusListeners() {
             // Update expandable items if visible
             const expandRow = document.querySelector(`.expandable-row[data-order-id="${orderId}"]`);
             if (expandRow) {
-  expandRow.querySelectorAll('tr[data-item-id]').forEach(tr => {
-    const sel = tr.querySelector('.item-status');
-    if (sel && sel.value !== 'cancelled') { // only update non-cancelled
-      const mapped = mapOrderToItemStatus(newStatus);
-      sel.value = mapped;
-      sel.dataset.prev = mapped;
-      tr.className = `status-${escapeCss(mapped)}`;
-    }
-  });
-}
-
+              expandRow.querySelectorAll('.item-status').forEach(sel => {
+                sel.value = mapOrderToItemStatus(newStatus);
+                sel.dataset.prev = sel.value;
+              });
+            }
 
             // Reattach listeners to keep menus working
             attachStatusListeners();
@@ -1062,76 +1129,72 @@ function attachItemDelegatedListener(container, orderId) {
     const prev = select.dataset.prev;
     const newStatus = select.value;
     const feedback = tr.querySelector('.status-feedback');
+    select.disabled = true;
+    if (feedback) feedback.textContent = '⏳ Updating...';
 
-    // 🧠 1️⃣ Ask confirmation if cancelling
-    if (newStatus === 'cancelled') {
-      showConfirmModal("Are you sure you want to cancel this item?", async () => {
-        await updateItemStatus(select, tr, itemId, prev, newStatus, feedback);
-      }, () => {
-        // user pressed cancel → revert immediately
-        select.value = prev;
+    try {
+      const res = await fetch('/Leilife/backend/admin/update_order_item_status.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_item_id: itemId, status: newStatus })
       });
-    } else {
-      // Normal flow for non-cancelled
-      await updateItemStatus(select, tr, itemId, prev, newStatus, feedback);
+
+      let resultText = await res.text();
+      console.log('Raw response:', resultText);
+
+      let result;
+      try {
+        result = JSON.parse(resultText);
+      } catch {
+        console.error('Invalid JSON response:', resultText);
+        result = { success: false };
+      }
+
+      if (result.success) {
+        console.log('✅ Item status updated successfully:', itemId, newStatus);
+
+        // Update this row visually
+        select.dataset.prev = newStatus;
+        tr.className = `status-${escapeCss(newStatus)}`;
+
+        // Update badge style instantly
+        select.closest('td').style.background = 'var(--card)';
+        if (feedback) {
+          feedback.textContent = '✅';
+          setTimeout(() => feedback.textContent = '', 800);
+        }
+
+        // Update main order badge (even without result.order_status)
+        const effOrderId = orderId || tr.closest('.expandable-row')?.dataset?.orderId;
+        const orderStatusBtn = document.querySelector(`.status-btn[data-id="${effOrderId}"]`);
+        if (orderStatusBtn) {
+          orderStatusBtn.innerHTML = `<span class="badge s-${escapeCss(newStatus)}">${formatStatus(newStatus)}</span>`;
+          orderStatusBtn.dataset.status = newStatus;
+        }
+
+      } else {
+        console.warn('❌ Backend returned failure:', result);
+        select.value = prev;
+        if (feedback) {
+          feedback.textContent = '❌ Failed';
+          setTimeout(() => feedback.textContent = '', 900);
+        }
+      }
+    } catch (err) {
+      console.error('⚠️ Network or script error:', err);
+      select.value = prev;
+      if (feedback) {
+        feedback.textContent = '⚠️';
+        setTimeout(() => feedback.textContent = '', 900);
+      }
+    } finally {
+      select.disabled = false;
     }
   };
 
   container._itemListener = listener;
   container.addEventListener('change', listener);
 }
-
-/* Helper for status update logic (shared by both paths) */
-async function updateItemStatus(select, tr, itemId, prev, newStatus, feedback) {
-  select.disabled = true;
-  if (feedback) feedback.textContent = '⏳ Updating...';
-
-  try {
-    const res = await fetch('/Leilife/backend/admin/update_order_item_status.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ order_item_id: itemId, status: newStatus })
-    });
-
-    let text = await res.text();
-    let result;
-    try { result = JSON.parse(text); } catch { result = { success: false }; }
-
-    if (result.success) {
-      console.log('✅ Item status updated successfully:', itemId, newStatus);
-      select.dataset.prev = newStatus;
-      tr.className = `status-${escapeCss(newStatus)}`;
-      if (feedback) {
-        feedback.textContent = '✅';
-        setTimeout(() => feedback.textContent = '', 800);
-      }
-
-      // 🧱 2️⃣ If cancelled → lock permanently
-      if (newStatus === 'cancelled') {
-        select.disabled = true;
-      } else {
-        select.disabled = false;
-      }
-    } else {
-      console.warn('❌ Backend returned failure:', result);
-      select.value = prev;
-      if (feedback) {
-        feedback.textContent = '❌ Failed';
-        setTimeout(() => feedback.textContent = '', 900);
-      }
-      select.disabled = false;
-    }
-  } catch (err) {
-    console.error('⚠️ Network or script error:', err);
-    select.value = prev;
-    if (feedback) {
-      feedback.textContent = '⚠️';
-      setTimeout(() => feedback.textContent = '', 900);
-    }
-    select.disabled = false;
-  }
-}
-
 
 
 
@@ -1173,7 +1236,7 @@ function escapeAttr(v){ return String(v).replace(/"/g,'&quot;').replace(/'/g,'&#
 function escapeCss(v){ return String(v||'').replace(/[^a-z0-9_-]/gi,''); }
 
 /* Confirm modal and Inbox preserved (assumes your HTML exists) */
-function showConfirmModal(message, onConfirm, onCancel) {
+function showConfirmModal(message, onConfirm) {
   let modal = document.getElementById("notif-modal");
   if (!modal) { onConfirm(); return; }
   const content = modal.querySelector(".notif-content");
@@ -1186,18 +1249,9 @@ function showConfirmModal(message, onConfirm, onCancel) {
     </div>
   `;
   modal.style.display = 'flex';
-  document.getElementById('confirm-yes').onclick = () => {
-    modal.style.display = 'none';
-    content.innerHTML = originalHTML;
-    onConfirm();
-  };
-  document.getElementById('confirm-no').onclick = () => {
-    modal.style.display = 'none';
-    content.innerHTML = originalHTML;
-    if (onCancel) onCancel();
-  };
+  document.getElementById('confirm-yes').onclick = () => { modal.style.display='none'; content.innerHTML = originalHTML; onConfirm(); };
+  document.getElementById('confirm-no').onclick = () => { modal.style.display='none'; content.innerHTML = originalHTML; };
 }
-
 function initInboxModal() {
   const modal = document.getElementById('messageModal');
   const modalMsg = document.getElementById('modalMessage');

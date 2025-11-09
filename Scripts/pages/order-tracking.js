@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
             submitBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const formData = new FormData(reviewForm);
-                fetch("/leilife/backend/mail.php", {
+                fetch("/Leilife/backend/mail.php", {
                         method: "POST",
                         body: formData
                     })
@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     .then(data => {
                         if (data.success) {
                             showModal(data.message, "success");
-                            setTimeout(() => window.location.href = "/leilife/public/index.php?page=home", 2000);
+                            setTimeout(() => window.location.href = "/Leilife/public/index.php?page=home", 2000);
                         } else showModal(data.message || "Your review did not send!", "error");
                     })
                     .catch(err => {

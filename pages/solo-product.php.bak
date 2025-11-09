@@ -220,9 +220,7 @@ if (isset($_SESSION['user_id'])) {
 
         // auto-close both after 2s
         setTimeout(() => {
-          sessionStorage.setItem("openCartOnLoad", "true");
-window.location.href = '/Leilife/public/index.php?page=menu';
-
+          successModal.style.display = 'none';window.location.href='/Leilife/public/index.php?page=menu';
         }, 1000);
                   
                  }

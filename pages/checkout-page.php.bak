@@ -195,5 +195,5 @@ $delivery_methods = $appData->getDeliveryMethods();
 </div>
 
 <?php include "../components/admin/set-address-modal.php"; ?>
-<!--<script src="../Scripts/pages/cart.js"></script>-->
+<script src="../Scripts/pages/cart.js"></script>
 <script src="../Scripts/pages/checkout-page.js"></script>

@@ -124,7 +124,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div id="new-product-modal">
         
         <div id="left">
-            <img id="new-product-photo" src="public/assests/uploadImg.jpg" alt="photo">
+            <img id="new-product-photo" src="public/assests /uploadImg.jpg" alt="photo">
             <input type="file" id="uploadInput" style="display:none;" accept="image/*">
             <button id="uploadBtn">Upload Photo</button>
         </div>

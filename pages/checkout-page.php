@@ -131,17 +131,31 @@ $delivery_methods = $appData->getDeliveryMethods();
     <!-- Payment Method -->
     <div class="card" style="margin-bottom: 0;">
       <h3>Payment Method</h3>
-      <?php foreach ($payment_methods as $pm): ?>
+<?php foreach ($payment_methods as $pm): ?>
   <?php if ($pm['status'] == "enabled"): 
-    $id = 'pm-' . strtolower(str_replace(' ', '-', $pm['method'])); // e.g. pm-gcash or pm-cash
+    $id = 'pm-' . strtolower(str_replace(' ', '-', $pm['method']));
+    $method = strtolower($pm['method']);
+
+    if ($method === 'cash') {
+        $label = 'Cash on Delivery';
+    } elseif ($method === 'gcash') {
+        $label = 'E-wallet (GCash)';
+    } else {
+        $label = ucwords($pm['method']);
+    }
   ?>
     <label class="options">
-      <input type="radio" name="payment_method" id="<?= $id ?>" 
-             value="<?= htmlspecialchars(strtolower($pm['method'])) ?>">
-      <span class="label"><?= htmlspecialchars($pm['method']) ?></span>
+      <input 
+        type="radio" 
+        name="payment_method" 
+        id="<?= $id ?>" 
+        value="<?= htmlspecialchars($method) ?>"
+      >
+      <span class="label"><?= htmlspecialchars($label) ?></span>
     </label>
   <?php endif; ?>
 <?php endforeach; ?>
+
 
     </div>
   </div>

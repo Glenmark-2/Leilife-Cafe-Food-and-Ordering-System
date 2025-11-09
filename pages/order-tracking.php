@@ -10,22 +10,22 @@ $appData = new AppData($pdo);
 // ✅ Ensure user is logged in
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
-    echo "<p>You must be logged in to view orders.</p>";
-    exit;
+  echo "<p>You must be logged in to view orders.</p>";
+  exit;
 }
 
 // ✅ Fetch order number from router (?num=ORD-...)
 $orderNumber = $_GET['num'] ?? null;
 if (!$orderNumber) {
-    echo "<p>No order selected.</p>";
-    exit;
+  echo "<p>No order selected.</p>";
+  exit;
 }
 
 // ✅ Fetch the order with items, ensuring it belongs to the user
 $order = $appData->getOrderByNumber($user_id, $orderNumber);
 if (!$order || count($order) === 0) {
-    echo "<p>Order not found or access denied.</p>";
-    exit;
+  echo "<p>Order not found or access denied.</p>";
+  exit;
 }
 
 // First row contains general order info
@@ -216,12 +216,12 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
         <?php elseif ($orderInfo['payment_status'] === "unpaid"): ?>
           <p>Time remaining to pick up your order:</p>
           <p><strong>
-            <span id="pickup-timer"
-              data-order-number="<?= htmlspecialchars($orderInfo['order_number']) ?>"
-              data-order-date="<?= htmlspecialchars($orderInfo['order_date'] ?? date('Y-m-d H:i:s')) ?>">
-              00:10
-            </span>
-          </strong></p>
+              <span id="pickup-timer"
+                data-order-number="<?= htmlspecialchars($orderInfo['order_number']) ?>"
+                data-order-date="<?= htmlspecialchars($orderInfo['order_date'] ?? date('Y-m-d H:i:s')) ?>">
+                00:10
+              </span>
+            </strong></p>
           <img id="motor" src="/Leilife/public/assests/walk.png" alt="Walk">
         <?php elseif ($orderInfo['payment_status'] === "paid"): ?>
           <p>Go to store now!</p>
@@ -254,8 +254,8 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
               <p>
                 <?= (int)$item['quantity'] ?> × <?= htmlspecialchars(ucwords($item['product_name'])) ?>
                 <?php if (!empty($item['size'])): ?><br>Size: <?= htmlspecialchars(ucwords($item['size'])) ?><?php endif; ?>
-                <?php if (!empty($item['flavors'])): ?><br>Flavors: <?= htmlspecialchars(implode(", ", array_map('ucwords', $item['flavors']))) ?><?php endif; ?>
-                — ₱<?= number_format($item['price'], 2) ?>
+                  <?php if (!empty($item['flavors'])): ?><br>Flavors: <?= htmlspecialchars(implode(", ", array_map('ucwords', $item['flavors']))) ?><?php endif; ?>
+                    — ₱<?= number_format($item['price'], 2) ?>
               </p>
               <?php if ($isCancelled): ?><p class="cancelled-label">Cancelled item</p><?php endif; ?>
             </div>
@@ -319,148 +319,150 @@ $review = $appData->getReviewMessage($orderInfo['order_number']);
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const cancelBtn = document.getElementById("cancelOrderBtn");
-        if (cancelBtn) {
-            cancelBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                const orderNumber = "<?= $orderInfo['order_number'] ?>";
+  document.addEventListener("DOMContentLoaded", () => {
+    const cancelBtn = document.getElementById("cancelOrderBtn");
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const orderNumber = "<?= $orderInfo['order_number'] ?>";
 
-                showConfirmModal("Are you sure you want to cancel this order?", async () => {
-                    showModal("Cancelling your order...", "warning", false);
-                    try {
-                        const res = await fetch("/leilife/backend/auto_cancel_order.php", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/x-www-form-urlencoded"
-                            },
-                            body: "order_number=" + encodeURIComponent(orderNumber),
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            showModal("Order cancelled successfully!", "success", true, 2500);
-                            setTimeout(() => location.reload(), 2000);
-                        } else {
-                            showModal(data.message || "Failed to cancel order", "error", true, 4000);
-                            console.warn("Debug:", data.debug);
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        showModal("Network error. Please try again.", "error", true, 4000);
-                    }
-                });
+        showConfirmModal("Are you sure you want to cancel this order?", async () => {
+          showModal("Cancelling your order...", "warning", false);
+          try {
+            const res = await fetch("/leilife/backend/auto_cancel_order.php", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+              },
+              body: "order_number=" + encodeURIComponent(orderNumber),
             });
-        }
+            const data = await res.json();
+            if (data.success) {
+              showModal("Order cancelled successfully!", "success", true, 2500);
+              setTimeout(() => location.reload(), 2000);
+            } else {
+              showModal(data.message || "Failed to cancel order", "error", true, 4000);
+              console.warn("Debug:", data.debug);
+            }
+          } catch (err) {
+            console.error(err);
+            showModal("Network error. Please try again.", "error", true, 4000);
+          }
+        });
+      });
+    }
 
-const etaEl = document.getElementById("live-eta");
-if (!etaEl) return;
+    const etaEl = document.getElementById("live-eta");
+    if (!etaEl) return;
 
-const PREP_TIME_MIN = 10;
+    const PREP_TIME_MIN = 10;
 
-// Hard-coded store lat/lng (same as you have)
-const storeLat = 14.6543;
-const storeLng = 120.9721;
-const store = `${storeLng},${storeLat}`;
+    // Hard-coded store lat/lng (same as you have)
+    const storeLat = 14.6543;
+    const storeLng = 120.9721;
+    const store = `${storeLng},${storeLat}`;
 
-// From PHP
-const userLat = "<?= $userAddress['latitude'] ?? '' ?>";
-const userLng = "<?= $userAddress['longitude'] ?? '' ?>";
+    // From PHP
+    const userLat = "<?= $userAddress['latitude'] ?? '' ?>";
+    const userLng = "<?= $userAddress['longitude'] ?? '' ?>";
 
-if (!userLat || !userLng) {
-    etaEl.textContent = "ETA unavailable";
-    return;
-}
+    if (!userLat || !userLng) {
+      etaEl.textContent = "ETA unavailable";
+      return;
+    }
 
-const customer = `${userLng},${userLat}`;
+    const customer = `${userLng},${userLat}`;
 
-function roundToNearest5(n) {
-    return Math.round(n / 5) * 5;
-}
+    function roundToNearest5(n) {
+      return Math.round(n / 5) * 5;
+    }
 
-async function fetchETA() {
-    try {
+    async function fetchETA() {
+      try {
         const res = await fetch(`/Leilife/backend/get_eta.php?from=${store}&to=${customer}`);
         const data = await res.json();
 
         if (!data.success) {
-            etaEl.innerHTML = `<strong>ETA unavailable</strong>`;
-            return;
+          etaEl.innerHTML = `<strong>ETA unavailable</strong>`;
+          return;
         }
 
         const driverSec = data.duration || 0;
         const driverMin = Math.round(driverSec / 60);
 
-        const minETA = PREP_TIME_MIN;                   // minimum
-        const maxETA = roundToNearest5(PREP_TIME_MIN + driverMin);  // rounded max
+        const minETA = PREP_TIME_MIN; // minimum
+        const maxETA = roundToNearest5(PREP_TIME_MIN + driverMin); // rounded max
 
         etaEl.innerHTML = `<strong>${minETA}–${maxETA} mins</strong>`;
-    } catch (err) {
+      } catch (err) {
         etaEl.innerHTML = `<strong>ETA unavailable</strong>`;
+      }
     }
-}
 
-fetchETA();
-setInterval(fetchETA, 30000);
+    fetchETA();
+    setInterval(fetchETA, 30000);
 
 
-        const timerEl = document.getElementById('pickup-timer');
-        if (timerEl) {
-            const orderNumber = timerEl.dataset.orderNumber;
-            const orderDate = timerEl.dataset.orderDate;
-            const orderTimestamp = new Date(orderDate.replace(" ", "T")).getTime();
+    const timerEl = document.getElementById('pickup-timer');
+    if (timerEl) {
+      const orderNumber = timerEl.dataset.orderNumber;
+      const orderDate = timerEl.dataset.orderDate;
+      // const orderTimestamp = new Date(orderDate.replace(" ", "T")).getTime();
+      const orderTimestamp = new Date(orderDate.replace(" ", "T") + "+08:00").getTime();
 
-            // PHP server time sync
-            const serverNow = <?= round(microtime(true) * 1000) ?>; // milliseconds
-            const clientNow = Date.now();
-            const offset = serverNow - clientNow; // difference between server and client
 
-            // Auto-cancel duration (example: 10 minutes)
-            const AUTO_CANCEL_DURATION = 20 * 60 * 1000;
-            const endTime = orderTimestamp + AUTO_CANCEL_DURATION;
+      // PHP server time sync
+      const serverNow = <?= round(microtime(true) * 1000) ?>; // milliseconds
+      const clientNow = Date.now();
+      const offset = serverNow - clientNow; // difference between server and client
 
-            const updateTimer = async () => {
-                const now = Date.now() + offset;
-                const timeLeft = Math.floor((endTime - now) / 1000);
+      // Auto-cancel duration (example: 10 minutes)
+      const AUTO_CANCEL_DURATION = 20 * 60 * 1000;
+      const endTime = orderTimestamp + AUTO_CANCEL_DURATION;
 
-                if (timeLeft <= 0) {
-                    clearInterval(countdown);
-                    timerEl.textContent = "00:00";
+      const updateTimer = async () => {
+        const now = Date.now() + offset;
+        const timeLeft = Math.floor((endTime - now) / 1000);
 
-                    // 🔄 Auto-cancel when time expires
-                    try {
-                        const res = await fetch("/leilife/backend/auto_cancel_order.php", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/x-www-form-urlencoded"
-                            },
-                            body: "order_number=" + encodeURIComponent(orderNumber),
-                        });
-                        const data = await res.json();
+        if (timeLeft <= 0) {
+          clearInterval(countdown);
+          timerEl.textContent = "00:00";
 
-                        if (data.success) {
-                            showModal("Order automatically cancelled after timeout.", "warning", true, 3000);
-                            setTimeout(() => location.reload(), 2500);
-                        } else {
-                            showModal(data.message || "Failed to auto-cancel order", "error", true, 4000);
-                        }
-                    } catch (err) {
-                        console.error("Auto-cancel error:", err);
-                        showModal("Network error during auto-cancel.", "error", true, 4000);
-                    }
-                    return;
-                }
+          // 🔄 Auto-cancel when time expires
+          try {
+            const res = await fetch("/leilife/backend/auto_cancel_order.php", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+              },
+              body: "order_number=" + encodeURIComponent(orderNumber),
+            });
+            const data = await res.json();
 
-                // Format time as MM:SS
-                const m = Math.floor(timeLeft / 60);
-                const s = timeLeft % 60;
-                timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            };
-
-            updateTimer(); // run immediately
-            const countdown = setInterval(updateTimer, 1000);
+            if (data.success) {
+              showModal("Order automatically cancelled after timeout.", "warning", true, 3000);
+              setTimeout(() => location.reload(), 2500);
+            } else {
+              showModal(data.message || "Failed to auto-cancel order", "error", true, 4000);
+            }
+          } catch (err) {
+            console.error("Auto-cancel error:", err);
+            showModal("Network error during auto-cancel.", "error", true, 4000);
+          }
+          return;
         }
 
-    });
+        // Format time as MM:SS
+        const m = Math.floor(timeLeft / 60);
+        const s = timeLeft % 60;
+        timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      };
+
+      updateTimer(); // run immediately
+      const countdown = setInterval(updateTimer, 1000);
+    }
+
+  });
 </script>
 
 

@@ -54,11 +54,12 @@ $messages = $appData->loadInbox($archived);
       <?php if ($messages && count($messages) > 0): ?>
         <?php foreach ($messages as $msg): ?>
          <tr id="row-<?= $msg['sender_id'] ?>" class="<?= $msg['status'] == 0 ? 'unread' : '' ?>">
-  <td data-label="Name"><?= htmlspecialchars($msg['name'] ?? 'Guest') ?></td>
+  <td data-label="Name"><?= ucfirst(htmlspecialchars($msg['name'] ?? 'Guest')) ?></td>
   <td data-label="Email"><?= htmlspecialchars($msg['email'] ?? '-') ?></td>
   <td data-label="Subject"><?= htmlspecialchars($msg['subject'] ?? '(No Subject)') ?></td>
   <td data-label="Type"><?= ucfirst(htmlspecialchars($msg['type'])) ?></td>
-  <td data-label="Date"><?= date('Y-m-d H:i', strtotime($msg['created_at'])) ?></td>
+<td data-label="Date"><?= htmlspecialchars(date('F j, Y g:i A', strtotime($msg['created_at']))) ?></td>
+
   <td class="actions" data-label="Actions">
     <button
       type="button"

@@ -29,6 +29,7 @@ $subCategories = array_values($subCategories);
 
 ?>
 
+
 <style>
     .dropdown {
         position: relative;
@@ -364,7 +365,7 @@ $subCategories = array_values($subCategories);
                         <td class="actions-cell">
                             <button id="editBtn" class="editBtn" type="button">Edit</button>
                             <button class="viewBtn" data-product-id="<?= $product['product_id'] ?>">View</button>
-                            <img src="public/assests/archive.png" alt="Archive" class="archive-icon" title="archive">
+                            <img src="public/assests/archive.png" alt="Archive" class="archive-icon">
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -860,7 +861,7 @@ $subCategories = array_values($subCategories);
 </script>
 
 <script>
-const BASE_URL = `${window.location.origin}/Leilife/`;
+const BASE_URL = "http://localhost/Leilife/";
 
 // --- Search & Filter ---
 const searchInput = document.getElementById('search-input');

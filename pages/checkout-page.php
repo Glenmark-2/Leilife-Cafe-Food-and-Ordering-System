@@ -57,21 +57,21 @@ $delivery_methods = $appData->getDeliveryMethods();
 
 
 
-<div class="card">
-  <h3>Delivery Options</h3>
+    <div class="card">
+      <h3>Delivery Options</h3>
 
-  <?php 
-  $firstEnabled = true; // track first enabled option for default selection
-  foreach ($delivery_methods as $dm):
-      if ($dm['status'] !== 'enabled') continue;
+      <?php
+      $firstEnabled = true; // track first enabled option for default selection
+      foreach ($delivery_methods as $dm):
+        if ($dm['status'] !== 'enabled') continue;
 
-      // Map option_name to JS-compatible value
-      $value = strtolower(str_replace([' ', '-'], '_', $dm['option_name'])); 
-      $checked = $firstEnabled ? 'checked' : '';
-  ?>
+        // Map option_name to JS-compatible value
+        $value = strtolower(str_replace([' ', '-'], '_', $dm['option_name']));
+        $checked = $firstEnabled ? 'checked' : '';
+      ?>
 
-      <?php if (strtolower($dm['option_name']) === "pick-up" || strtolower($dm['option_name']) === "pickup"): ?>
-          
+        <?php if (strtolower($dm['option_name']) === "pick-up" || strtolower($dm['option_name']) === "pickup"): ?>
+
           <label class="options">
             <input type="radio" name="delivery" value="pickup" onchange="toggleDelivery()" <?= $checked ?>>
             <span class="label"><?= htmlspecialchars($dm['option_name']) ?></span>
@@ -84,7 +84,7 @@ $delivery_methods = $appData->getDeliveryMethods();
             </label>
           </div>
 
-      <?php elseif (strtolower($dm['option_name']) === "home delivery"): ?>
+        <?php elseif (strtolower($dm['option_name']) === "home delivery"): ?>
 
           <label class="options">
             <input type="radio" name="delivery" value="home" onchange="toggleDelivery()" <?= $checked ?>>
@@ -117,14 +117,14 @@ $delivery_methods = $appData->getDeliveryMethods();
             </div>
           </div>
 
-      <?php endif; ?>
+        <?php endif; ?>
 
-  <?php 
-      if ($firstEnabled) $firstEnabled = false; // only first option gets checked
-  endforeach; 
-  ?>
+      <?php
+        if ($firstEnabled) $firstEnabled = false; // only first option gets checked
+      endforeach;
+      ?>
 
-</div>
+    </div>
 
 
 
@@ -132,16 +132,28 @@ $delivery_methods = $appData->getDeliveryMethods();
     <div class="card" style="margin-bottom: 0;">
       <h3>Payment Method</h3>
       <?php foreach ($payment_methods as $pm): ?>
-  <?php if ($pm['status'] == "enabled"): 
-    $id = 'pm-' . strtolower(str_replace(' ', '-', $pm['method'])); // e.g. pm-gcash or pm-cash
-  ?>
-    <label class="options">
-      <input type="radio" name="payment_method" id="<?= $id ?>" 
-             value="<?= htmlspecialchars(strtolower($pm['method'])) ?>">
-      <span class="label"><?= htmlspecialchars($pm['method']) ?></span>
-    </label>
-  <?php endif; ?>
-<?php endforeach; ?>
+        <?php if ($pm['status'] == "enabled"):
+          $id = 'pm-' . strtolower(str_replace(' ', '-', $pm['method']));
+          $method = strtolower($pm['method']);
+
+          if ($method === 'cash') {
+            $label = 'Cash on Delivery';
+          } elseif ($method === 'gcash') {
+            $label = 'E-wallet (GCash)';
+          } else {
+            $label = ucwords($pm['method']);
+          }
+        ?>
+          <label class="options">
+            <input
+              type="radio"
+              name="payment_method"
+              id="<?= $id ?>"
+              value="<?= htmlspecialchars($method) ?>">
+            <span class="label"><?= htmlspecialchars($label) ?></span>
+          </label>
+        <?php endif; ?>
+      <?php endforeach; ?>
 
     </div>
   </div>

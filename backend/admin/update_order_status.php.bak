@@ -2,7 +2,7 @@
 // update_order_status.php
 header('Content-Type: application/json');
 require_once __DIR__ . '/../db_script/db.php';
-require_once __DIR__ . '/../create_payment_intent.php'; // provides createRefund() and getRemainingRefundable()
+require_once __DIR__ . '/../create_payment_intent.php'; // must provide createRefund() and getRemainingRefundable()
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(["success" => false, "error" => "Invalid request"]);
@@ -23,7 +23,7 @@ if (!$order_id || !in_array($new_status, $valid_status)) {
 try {
     $pdo->beginTransaction();
 
-    // --- Fetch order info ---
+    // Fetch order
     $stmt = $pdo->prepare("SELECT * FROM orders WHERE order_id = ?");
     $stmt->execute([$order_id]);
     $order = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -38,7 +38,13 @@ try {
     $payment_status = $order['payment_status'] ?? null;
     $payment_id = $order['payment_id'] ?? null;
 
-    // --- Map new status to item status ---
+    // === 1) Update order status ===
+    $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE order_id = ?");
+    $stmt->execute([$new_status, $order_id]);
+
+    $refund_result = null;
+
+    // === 2) Update order_items to match ===
     $item_status_map = [
         'pending' => 'pending',
         'preparing' => 'preparing',
@@ -47,28 +53,18 @@ try {
         'picked_up' => 'finished',
         'cancelled' => 'cancelled'
     ];
-
     $item_status = $item_status_map[$new_status] ?? 'pending';
+    $stmt = $pdo->prepare("UPDATE order_items SET status = ? WHERE order_id = ?");
+    $stmt->execute([$item_status, $order_id]);
 
-    // --- Update order items ---
-    if ($new_status === 'cancelled') {
-        // Cancel all items if the whole order is cancelled
-        $stmt = $pdo->prepare("UPDATE order_items SET status = 'cancelled' WHERE order_id = ?");
-        $stmt->execute([$order_id]);
-    } else {
-        // Update only non-cancelled & non-finished items
-        $stmt = $pdo->prepare("UPDATE order_items SET status = ? WHERE order_id = ? AND status NOT IN ('cancelled')");
-        $stmt->execute([$item_status, $order_id]);
-    }
-
-    // --- Trigger refund if order is cancelled and GCash paid ---
-    $refund_result = null;
+    // === 3) If cancelled, trigger refund if needed ===
     if ($new_status === 'cancelled' && $payment_method === 'gcash' && $payment_status === 'paid') {
 
         if (empty($payment_id)) {
             error_log("Refund skipped: no payment_id for order {$order_id}");
             $refund_result = ['success' => false, 'message' => 'No payment_id available'];
         } else {
+            // Check remaining refundable amount (for safety)
             $remaining_centavos = 0;
             try {
                 $remaining_centavos = getRemainingRefundable($payment_id);
@@ -106,6 +102,7 @@ try {
                         'refunded_amount' => $refund_pesos
                     ];
 
+                    // PayMongo webhook will later finalize transaction/refund records
                 } catch (Exception $e) {
                     $refund_result = ['success' => false, 'message' => $e->getMessage()];
                     error_log("Refund creation failed: " . $e->getMessage());
@@ -113,10 +110,6 @@ try {
             }
         }
     }
-
-    // --- Finally, update order status ---
-    $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE order_id = ?");
-    $stmt->execute([$new_status, $order_id]);
 
     $pdo->commit();
 
@@ -127,9 +120,7 @@ try {
         "item_status" => $item_status,
         "refund" => $refund_result
     ]);
-
 } catch (Exception $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
     echo json_encode(["success" => false, "error" => $e->getMessage()]);
 }
-?>

@@ -25,32 +25,19 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const cartBtn = document.getElementById("cartBtn");
-  const cartModal = document.getElementById("cartModal");
+  const cartBtn = document.getElementById("cartBtn"); // button in header
+  const cartModal = document.getElementById("cartModal"); // modal in index
 
   if (cartBtn && cartModal) {
     cartBtn.addEventListener("click", (e) => {
       e.preventDefault();
-      cartModal.classList.toggle("show");
-      document.body.classList.toggle("cart-open");
+      cartModal.classList.toggle("show");         // adds/removes CSS class
+      document.body.classList.toggle("cart-open"); // optional for shifting page content
     });
-  }
-
-  // ✅ Auto-open cart if previous page set the flag
-  if (sessionStorage.getItem("openCartOnLoad") === "true") {
-    sessionStorage.removeItem("openCartOnLoad");
-
-    // Dispatch a custom event for consistency
-    document.dispatchEvent(new Event("cart:autoOpen"));
-
-    // Actually open the cart modal
-    if (cartModal) {
-      cartModal.classList.add("show");
-      document.body.classList.add("cart-open");
-    }
   }
 });
 
+// lets test if this works i want you to work
 
 </script>
 

@@ -211,8 +211,8 @@ $activeTab = $_GET['tab'] ?? 'personal';
                             <tr class="order-row"
                                 data-order='<?= json_encode($order, JSON_HEX_APOS | JSON_HEX_QUOT) ?>'>
                                 <td>#<?= htmlspecialchars($order["order_number"]) ?></td>
-                                <td><?= htmlspecialchars(substr($order["date"], 0, 10)) ?></td>
-                                <td><?= htmlspecialchars($order["status"] ?? 'Undefined') ?></td>
+                                <td><?= htmlspecialchars(date("F j, Y", strtotime($order["date"]))) ?></td>
+                                <td><?= ucfirst(htmlspecialchars($order["status"] ?? 'Undefined')) ?></td>
                                 <td>₱<?= number_format($order["total"] ?? 0, 2) ?></td>
                             </tr>
                         <?php endforeach; ?>
@@ -395,9 +395,14 @@ $activeTab = $_GET['tab'] ?? 'personal';
                 const items = Array.isArray(order.items) ? order.items : [];
                 let html = `
                 <p><strong>Order #:</strong> ${order.order_number || 'Undefined'}</p>
-                <p><strong>Date:</strong> ${order.date ? order.date.slice(0,10) : 'Undefined'}</p>
-                <p><strong>Status:</strong> ${order.status || 'Undefined'}</p>
-                <p><strong>Payment:</strong> ${order.payment_method || 'Undefined'}</p>
+                <p><strong>Date:</strong> ${order.date ? new Date(order.date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+                }) : 'Undefined'}</p>
+
+                <p><strong>Status:</strong> ${order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase() : 'Undefined'}</p>
+                <p><strong>Payment:</strong> ${order.payment_method ? order.payment_method.charAt(0).toUpperCase() + order.payment_method.slice(1).toLowerCase() : 'Undefined'}</p>
                 <p><strong>Total:</strong> ₱${parseFloat(order.total || 0).toFixed(2)}</p>
                 <p><strong>Items:</strong></p>
                 <ul>

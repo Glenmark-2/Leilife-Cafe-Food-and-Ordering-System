@@ -141,7 +141,6 @@ function attachPaymentMethodToIntent($secretKey, $piId, $pmId, $order_id) {
 }
 
 
-
 // Refund API
 // ----------- corrected createRefund -----------
 function createRefund(string $payment_id, $amount_pesos, $order_id = null, $item_id = null, $reason = "requested_by_customer") {

@@ -66,7 +66,7 @@ try {
                 "redirect" => "/Leilife/public/admin.php?page=dashboard"
             ]);
             // Trigger sentiment processor silently (non-blocking)
-            // @exec("C:\\xampp\\php\\php.exe " . __DIR__ . "\\sentiment_cron.php > NUL 2>&1 &");
+            @exec("C:\\xampp\\php\\php.exe " . __DIR__ . "\\sentiment_cron.php > NUL 2>&1 &");
             exit;
         }
     }

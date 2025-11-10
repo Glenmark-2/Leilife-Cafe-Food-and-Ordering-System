@@ -136,7 +136,7 @@ if (
     $stmt->execute([$order_id]);
     $statuses = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-    $active_statuses = array_filter($statuses, fn($s) => $s !== 'cancelled');
+    $active_statuses = array_filter($statuses, fn($s) => strtolower(trim($s)) !== 'cancelled');
     $new_order_status = 'pending';
 
     if (empty($active_statuses)) {

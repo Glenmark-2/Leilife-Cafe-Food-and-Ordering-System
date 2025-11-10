@@ -104,10 +104,12 @@ $cartCount = $appData->cartCounter($_SESSION['user_id'] ?? null, $guestToken);
       <?php if (isset($_SESSION['user_id'])): ?>
         <a href="index.php?page=user-profile" class="btn-link">Profile</a>
         <a href="../backend/logout.php" class="btn-dark">Sign out</a>
-<a href="#" id="cartBtn" class="cart-container">
-  <img src="../public/assests/cart.png" alt="cart" id="cartImg">
-  <span class="cart-badge" id="cart-counter"><?= $cartCount ?></span>
-</a>
+        <a href="#" id="cartBtn" class="cart-container">
+          <img src="../public/assests/cart.png" alt="cart" id="cartImg">
+          <?php if ($cartCount > 0): ?>
+            <span class="cart-badge" id="cart-count"><?= $cartCount ?></span>
+          <?php endif; ?>
+        </a>
 
 
         </a>

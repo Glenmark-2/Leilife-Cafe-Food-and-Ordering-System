@@ -125,7 +125,7 @@ margin-bottom:16px;
 .col-amount { width:100%; min-width:90px; }
 .col-items { width:100%; min-width:50px; text-align:left; }
 .col-status { width:100%; min-width:120px; position:relative; }
-.col-payment { width:100%; min-width:100px; flex-wrap}
+.col-payment { width:100%; min-width:100px; }
 .col-method { width:100%; min-width:90px; }
 .col-receipt { width:100%; min-width:90px; display:flex; justify-content:center; }
 .col-receipt button {

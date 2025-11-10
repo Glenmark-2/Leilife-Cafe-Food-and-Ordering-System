@@ -1,5 +1,5 @@
 // ===============================
-// Delivery / Pickup toggle + Cart logic (fixed)
+// Delivery / Pickup toggle + Cart logic (clean version)
 // ===============================
 const changeBtn = document.getElementById("change");
 const mode = document.getElementById("mode");
@@ -23,7 +23,6 @@ function updateModeUI(modeType) {
 
 // -------------------------------
 // Helper: Update totals UI (single canonical function)
-// Element IDs used: #subtotal, #delivery-fee, #total
 function updateTotals(totals) {
   if (!totals) return;
   const subtotalEl = document.getElementById("subtotal");
@@ -56,9 +55,12 @@ async function fetchCart() {
     updateModeUI(currentMode);
 
     // Notify other components
-    document.dispatchEvent(new CustomEvent("cart:updated", {
-      detail: { cart: cart, totals: data.totals }
-    }));
+    document.dispatchEvent(
+      new CustomEvent("cart:updated", {
+        detail: { cart: cart, totals: data.totals },
+      })
+    );
+
     toggleCheckoutButton();
   } catch (err) {
     console.error("Failed to fetch cart:", err);
@@ -66,7 +68,7 @@ async function fetchCart() {
 }
 
 // -------------------------------
-// Render cart items (keeps your original markup)
+// Render cart items
 function renderCart() {
   const midDiv = document.getElementById("mid-div");
   if (!midDiv) return;
@@ -89,11 +91,12 @@ function renderCart() {
 
     const price = item.final_price;
 
-    const minusOrTrash = item.quantity > 1
-      ? `<button class="qty-btn" onclick="changeItemQty(${index}, -1)">−</button>`
-      : `<button class="qty-btn" onclick="removeItem(${index})">
-          <img src="../public/assests/trash-bin.png" alt="trash" class="trash-icon">
-        </button>`;
+    const minusOrTrash =
+      item.quantity > 1
+        ? `<button class="qty-btn" onclick="changeItemQty(${index}, -1)">−</button>`
+        : `<button class="qty-btn" onclick="removeItem(${index})">
+            <img src="../public/assests/trash-bin.png" alt="trash" class="trash-icon">
+          </button>`;
 
     itemDiv.innerHTML = `
       <div class="qty-controls">
@@ -103,14 +106,15 @@ function renderCart() {
       </div>
       <p class="product-name">
         ${item.product_name || "Unknown Product"}
-        ${item.size ? ' (' + item.size + ')' : ''}
-        ${item.flavor_names ? ' - ' + item.flavor_names : ''}
+        ${item.size ? " (" + item.size + ")" : ""}
+        ${item.flavor_names ? " - " + item.flavor_names : ""}
       </p>
       <p class="product-price">₱${(price * item.quantity).toFixed(2)}</p>
     `;
 
     midDiv.appendChild(itemDiv);
   });
+
   toggleCheckoutButton();
 }
 
@@ -128,19 +132,24 @@ function changeItemQty(index, change) {
   updateSession({
     action: "update",
     cart_item_id: item.cart_item_id,
-    quantity: newQty
+    quantity: newQty,
   });
 
-  document.dispatchEvent(new CustomEvent("cart:updated", {
-    detail: { cart: cart }
-  }));
+  document.dispatchEvent(
+    new CustomEvent("cart:updated", {
+      detail: { cart: cart },
+    })
+  );
+
   toggleCheckoutButton();
 }
 
 // -------------------------------
 // Remove item
 async function removeItem(index) {
-  const confirmed = await showConfirm("Are you sure you want to remove this item?");
+  const confirmed = await showConfirm(
+    "Are you sure you want to remove this item?"
+  );
   if (!confirmed) return;
 
   const removedItem = cart[index];
@@ -149,13 +158,17 @@ async function removeItem(index) {
 
   updateSession({
     action: "remove",
-    cart_item_id: removedItem.cart_item_id
+    cart_item_id: removedItem.cart_item_id,
   });
 
   showModal(`Item removed from the cart.`, "success");
-  document.dispatchEvent(new CustomEvent("cart:updated", {
-    detail: { cart: cart }
-  }));
+
+  document.dispatchEvent(
+    new CustomEvent("cart:updated", {
+      detail: { cart: cart },
+    })
+  );
+
   toggleCheckoutButton();
 }
 
@@ -175,44 +188,69 @@ function toggleCheckoutButton() {
 
 // -------------------------------
 // Sync session cart with backend
-// Accepts payload; backend returns totals in response
 function updateSession(payload) {
   fetch("../backend/update_cart.php", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      // Backend should return totals; use them
-      if (data.totals) {
-        updateTotals(data.totals);
-        // keep local option state in sync if backend returned it
-        if (data.option_type) {
-          currentMode = data.option_type;
-          updateModeUI(currentMode);
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        if (data.totals) {
+          updateTotals(data.totals);
+          if (data.option_type) {
+            currentMode = data.option_type;
+            updateModeUI(currentMode);
+          }
+        } else {
+          fetchCart();
         }
-      } else {
-        // fallback: re-fetch full cart if totals not returned
-        fetchCart();
-      }
 
-      document.dispatchEvent(new CustomEvent("cart:updated", {
-        detail: { cart: cart, totals: data.totals || null }
-      }));
-    } else {
-      console.error("Failed to sync cart:", data.message);
-    }
-  })
-  .catch(err => console.error("Error updating cart:", err));
+        document.dispatchEvent(
+          new CustomEvent("cart:updated", {
+            detail: { cart: cart, totals: data.totals || null },
+          })
+        );
+      } else {
+        console.error("Failed to sync cart:", data.message);
+      }
+    })
+    .catch((err) => console.error("Error updating cart:", err));
 }
 
 // -------------------------------
-// Toggle button click handler (uses update_cart.php and updates UI)
+// Update cart counter (navbar badge)
+async function updateCartCounter() {
+  try {
+    const res = await fetch("../backend/update_cart_counter.php");
+    const data = await res.json();
+    if (data.success) {
+      const counterEl = document.getElementById("cart-counter");
+      if (counterEl) {
+        if (data.count > 0) {
+          counterEl.textContent = data.count;
+          counterEl.style.display = "flex"; // show badge
+        } else {
+          counterEl.style.display = "none"; // hide badge when 0
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Failed to update cart counter:", err);
+  }
+}
+
+
+
+// -------------------------------
+// Auto-refresh counter whenever cart changes
+document.addEventListener("cart:updated", () => updateCartCounter());
+
+// -------------------------------
+// Toggle Delivery / Pickup Button
 if (changeBtn) {
   changeBtn.addEventListener("click", async () => {
-    // Toggle locally and update UI immediately
     currentMode = currentMode === "delivery" ? "pickup" : "delivery";
     updateModeUI(currentMode);
 
@@ -229,31 +267,26 @@ if (changeBtn) {
       const data = await res.json();
 
       if (data.success) {
-        // Prefer totals returned by update_cart.php (fast)
         if (data.totals) {
           updateTotals(data.totals);
         } else {
-          // fallback: fetch cart again
           await fetchCart();
         }
-        // ensure UI reflects confirmed option_type
         currentMode = data.option_type || currentMode;
         updateModeUI(currentMode);
       } else {
         console.error("⚠️ Failed to update option type:", data.message);
-        // revert UI on failure: re-fetch authoritative cart state
         await fetchCart();
       }
     } catch (err) {
       console.error("❌ Network error updating option_type:", err);
-      // on network error, re-fetch cart to ensure UI accuracy
       await fetchCart();
     }
   });
 }
 
 // -------------------------------
-// Modal helpers (unchanged from your original script)
+// Modal helpers (unchanged)
 function showModal(message, type = "success", autoClose = true, duration = 2500) {
   let modal = document.getElementById("notif-modal");
   if (!modal) {
@@ -298,9 +331,11 @@ function showModal(message, type = "success", autoClose = true, duration = 2500)
 
   modal.style.display = "flex";
 
-  const closeModal = () => modal.style.display = "none";
+  const closeModal = () => (modal.style.display = "none");
   closeBtn.onclick = closeModal;
-  modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+  modal.onclick = (e) => {
+    if (e.target === modal) closeModal();
+  };
 
   if (autoClose) setTimeout(closeModal, duration);
 }
@@ -344,18 +379,26 @@ function showConfirm(message) {
 
     modal.style.display = "flex";
 
-    const closeModal = () => { modal.style.display = "none"; };
+    const closeModal = () => {
+      modal.style.display = "none";
+    };
 
-    yesBtn.onclick = () => { closeModal(); resolve(true); };
-    noBtn.onclick = () => { closeModal(); resolve(false); };
-    modal.onclick = (e) => { if (e.target === modal) { closeModal(); resolve(false); } };
+    yesBtn.onclick = () => {
+      closeModal();
+      resolve(true);
+    };
+    noBtn.onclick = () => {
+      closeModal();
+      resolve(false);
+    };
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        closeModal();
+        resolve(false);
+      }
+    };
   });
 }
-
-// -------------------------------
-// Misc UI modal / drag logic (keep existing DOMContentLoaded handler from your file)
-// Keep your large DOMContentLoaded block exactly as-is (no changes required).
-// ...
 
 // -------------------------------
 // Init: fetch cart and populate UI on load

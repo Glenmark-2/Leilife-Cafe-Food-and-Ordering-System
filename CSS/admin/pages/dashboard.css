@@ -543,3 +543,7 @@ html, body {
     margin-bottom: 10px;
   }
 }
+
+.white-icon {
+  filter: brightness(0) invert(1);
+}

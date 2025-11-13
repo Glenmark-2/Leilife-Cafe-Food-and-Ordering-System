@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
 if (!isset($_SESSION['admin_id'])) {
-  header('Location: /leilife/public/index.php');
+  header('Location: /Leilife/public/index.php');
   exit;
 }
 $showWelcome = false;
@@ -866,7 +866,7 @@ orders.forEach(order => {
 
   <div class="col-receipt">
     <button class="dlBtn">
-      <img src="/leilife/public/assests/downloads.png" alt="Download" class="white-icon" style="width:20px;">
+      <img src="/Leilife/public/assests/downloads.png" alt="Download" class="white-icon" style="width:20px;">
     </button>
   </div>
 `;

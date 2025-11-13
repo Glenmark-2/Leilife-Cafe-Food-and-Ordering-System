@@ -259,6 +259,13 @@ $activeTab = $_GET['tab'] ?? 'personal';
     </div>
 </div>
 
+<?php
+// Detect base URL dynamically (works on localhost and production)
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+$BASE_URL = $protocol . "://" . $_SERVER['HTTP_HOST'] . "/Leilife/";
+?>
+
+
 <script>
     document.addEventListener("DOMContentLoaded", () => {
 
@@ -458,20 +465,19 @@ $activeTab = $_GET['tab'] ?? 'personal';
                         </div>
                     `;
                 } else {
-                    html += `
-                        <div id="reorder-receipt-btn">
-                            <?= createButton(
-                                35,
-                                150,
-                                "Track my order",
-                                "track",
-                                16,
-                                "button",
-                                ['onclick' => 'window.location.href = "http://localhost/Leilife/public/index.php?page=order-tracking&num=${order.order_number}"']
-                            ); ?>
-                        </div>
-                    `;
-                }
+    const baseUrl = "<?= $BASE_URL ?>"; // PHP injected once, safe and dynamic
+
+    html += `
+        <div id="reorder-receipt-btn">
+            <button
+                style="height:35px; width:150px; font-size:16px; border:none; border-radius:8px; background:#4caf50; color:white; cursor:pointer;"
+                onclick="window.location.href='${baseUrl}public/index.php?page=order-tracking&num=${order.order_number}'">
+                Track my order
+            </button>
+        </div>
+    `;
+}
+
 
 
 

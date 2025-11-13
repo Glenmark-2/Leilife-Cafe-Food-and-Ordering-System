@@ -542,6 +542,12 @@ function bindPlaceOrderHandler() {
         showModal('Please set your delivery address.', 'error');
         return;
       }
+
+    const phoneInput = document.getElementById('phone');
+    if (!phoneInput || !phoneInput.value.trim()) {
+      showModal('Please enter your phone number before placing an order.', 'error');
+      return;
+    }
     }
 
     // Collect optional fields from form if present (keeps functionality if you have more inputs)

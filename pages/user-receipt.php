@@ -25,7 +25,7 @@ $pdf = new FPDF('P', 'mm', 'A4');
 $pdf->AddPage();
 
 // ---- HEADER ----
-$imagePath = $_SERVER['DOCUMENT_ROOT'] . '/leilife/public/assests/leilife.png';
+$imagePath = $_SERVER['DOCUMENT_ROOT'] . '/Leilife/public/assests/leilife.png';
 $pdf->Image($imagePath, 30, 5, 20);
 
 $pdf->SetFont('Arial', 'B', 14);

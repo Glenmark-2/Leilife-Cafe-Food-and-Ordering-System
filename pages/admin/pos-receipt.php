@@ -56,7 +56,7 @@ $pdf = new FPDF('P', 'mm', array(80, $totalHeight + 50));
 $pdf->AddPage();
 
 // ---- Header ----
-$imagePath = $_SERVER['DOCUMENT_ROOT'] . '/leilife/public/assests/leilife.png';
+$imagePath = $_SERVER['DOCUMENT_ROOT'] . '/Leilife/public/assests/leilife.png';
 $pdf->Image($imagePath, 30, 5, 20);
 // x=25mm, y=5mm, width=30mm
 $pdf->SetY(23); // Move cursor to 40mm below top (image ends around here)

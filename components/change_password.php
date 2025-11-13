@@ -11,7 +11,7 @@ include "buttonTemplate.php";
 
 <div class="modal" id="password-modal">
   <div class="modal-dialog">
-    <div class="modal-content">
+    <div class="modal-contentt">
 
       <div class="modal-header">
         <h5 class="modal-title">

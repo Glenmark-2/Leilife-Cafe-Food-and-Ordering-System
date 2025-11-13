@@ -861,7 +861,15 @@ $subCategories = array_values($subCategories);
 </script>
 
 <script>
-const BASE_URL = "http://localhost/Leilife/";
+const BASE_URL = "<?= htmlspecialchars(
+    rtrim(
+        (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+        . '://' . $_SERVER['HTTP_HOST'] . '/Leilife',
+        '/'
+    ),
+    ENT_QUOTES
+) ?>/";
+
 
 // --- Search & Filter ---
 const searchInput = document.getElementById('search-input');

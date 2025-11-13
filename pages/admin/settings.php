@@ -110,7 +110,8 @@ $delivery_methods = $appData->getDeliveryMethods();
 </div>
 
 <script>
-const BASE_URL = "http://localhost/Leilife/";
+const BASE_URL = `${window.location.protocol}//${window.location.host}/Leilife/`;
+
 
 document.addEventListener("DOMContentLoaded", () => {
     const editBtn = document.getElementById("edit-save-btn");

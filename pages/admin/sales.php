@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../backend/db_script/db.php';
 require_once __DIR__ . '/../../backend/db_script/appData.php';
 
 if (!isset($_SESSION['admin_id'])) {
-  header('Location: /leilife/public/index.php');
+  header('Location: /Leilife/public/index.php?page=home');
   exit;
 }
 
@@ -16,7 +16,7 @@ $currentAdmin =  $appData->getCurrentAdmin();
 $isMainAdmin = $currentAdmin['isMainAdmin'];
 
 if (!$isMainAdmin) {
-  header('Location: /leilife/public/index.php');
+  header('Location: /Leilife/public/index.php?page=home');
   exit;
 }
 
@@ -192,7 +192,7 @@ $orders = $appData->getOrdersByFilters(null, $status, $payment, $fromDate ?: nul
       if (status && status.toLowerCase() !== 'all') params.push(`status=${encodeURIComponent(status)}`);
       if (payment && payment.toLowerCase() !== 'all') params.push(`payment=${encodeURIComponent(payment)}`);
 
-      const url = '/leilife/public/admin.php?' + params.join('&');
+      const url = '/Leilife/public/admin.php?' + params.join('&');
       window.open(url, '_blank');
     }
 

@@ -1,6 +1,8 @@
 <?php
 // create_payment_intent.php
 // Helpers for PayMongo Payment Intents and Refunds
+// top of create_payment_intent.php (or in an included common file)
+require_once __DIR__ . '/../backend/db_script/db.php';
 
 function createPaymentIntent($amount, $order_id) {
     $secretKey = getenv("PAYMONGO_SECRET_KEY");
@@ -100,14 +102,32 @@ function createPaymentMethodGCash($secretKey, $billing = []) {
 
 // Attach Payment Method to Payment Intent
 function attachPaymentMethodToIntent($secretKey, $piId, $pmId, $order_id) {
-    // Detect current origin (works for localhost or production)
+    // use global PDO connection
+    global $pdo;
+    if (!isset($pdo) || !$pdo) {
+        error_log("attachPaymentMethodToIntent: PDO not available");
+        throw new Exception("Database connection not available.");
+    }
+
+    // Detect origin
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
-    $host = $_SERVER['HTTP_HOST'];
+    $host = $_SERVER['HTTP_HOST'] ?? 'bscs3b.com'; // fallback if not set
     $baseUrl = "{$protocol}://{$host}";
 
-    // Use dynamic return URL
-    $returnUrl = "{$baseUrl}/Leilife/public/index.php?page=thankyou&order_id={$order_id}";
+    // Get order_number from database
+    $stmt = $pdo->prepare("SELECT order_number FROM orders WHERE order_id = ?");
+    $stmt->execute([$order_id]);
+    $order_number = $stmt->fetchColumn();
 
+    if (!$order_number) {
+        error_log("attachPaymentMethodToIntent: order_number not found for order_id={$order_id}");
+        throw new Exception("Order not found.");
+    }
+
+    // Redirect using order_number (url-encoded)
+    $returnUrl = "{$baseUrl}/Leilife/public/index.php?page=order-tracking&num=" . rawurlencode($order_number);
+
+    // ... rest of PayMongo cURL code unchanged ...
     $ch = curl_init("https://api.paymongo.com/v1/payment_intents/{$piId}/attach");
 
     $data = [
@@ -130,15 +150,23 @@ function attachPaymentMethodToIntent($secretKey, $piId, $pmId, $order_id) {
     ]);
 
     $result = curl_exec($ch);
+    if ($result === false) {
+        $err = curl_error($ch);
+        curl_close($ch);
+        error_log("attachPaymentMethodToIntent: cURL error: {$err}");
+        throw new Exception("cURL error: {$err}");
+    }
     curl_close($ch);
-    $decoded = json_decode($result, true);
 
+    $decoded = json_decode($result, true);
     if (isset($decoded['errors'])) {
+        error_log("attachPaymentMethodToIntent: PayMongo errors: " . json_encode($decoded['errors']));
         throw new Exception("Attach error: " . json_encode($decoded['errors']));
     }
 
     return $decoded['data']['attributes'];
 }
+
 
 
 // Refund API

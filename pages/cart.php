@@ -26,7 +26,7 @@ $cart = $_SESSION['cart'] ?? [];
             <p id="subtotal">₱0.00</p>
         </div>
         <div class="second-div-content">
-            <p style="margin-top: 0;">Delivery fee</p>
+            <p style="margin-top: 0;">Delivery fe</p>
             <p id="delivery-fee" style="margin-top: 0;">₱50.00</p>
         </div>
         <div class="second-div-content">

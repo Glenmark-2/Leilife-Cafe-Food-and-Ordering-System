@@ -14,7 +14,6 @@ try {
     $shift  = $_POST['shift']  ?? '';
     $status = $_POST['status'] ?? '';
 
-    // --- Get previous staff record ---
     $stmtPrev = $pdo->prepare("SELECT staff_image FROM staff_roles WHERE staff_id = :id");
     $stmtPrev->execute([":id" => $id]);
     $prevStaff = $stmtPrev->fetch(PDO::FETCH_ASSOC);
@@ -40,7 +39,6 @@ try {
         }
     }
 
-    // --- Update staff_roles ---
     $sql = "UPDATE staff_roles 
             SET staff_name = :name,
                 staff_role = :role,
@@ -58,7 +56,6 @@ try {
     if ($photoName) $stmt->bindParam(":photo", $photoName);
     $stmt->execute();
 
-    // --- Sync with admin_accounts or driver_accounts if needed ---
     if (strtolower($role) === "admin") {
         $stmtAdmin = $pdo->prepare("UPDATE admin_accounts 
                                     SET full_name = :name

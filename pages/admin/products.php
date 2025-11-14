@@ -383,15 +383,16 @@ $subCategories = array_values($subCategories);
 
 
 <!-- Add New Product Modal -->
-<div id="modal">
+<div id="modal" style="display:none">
     <div id="new-product-modal">
-        <div id="left">
+
+
+        <div id="right">
+                    <div id="left" style="display: fixed;">
             <img id="new-product-photo" src="public/assests/upload-food-img.png" alt="photo">
             <input type="file" id="uploadInput" style="display:none;" accept="image/*">
             <button id="uploadBtn">Upload Photo</button>
         </div>
-
-        <div id="right">
             <form onsubmit="return false;">
                 <div class="form-row">
                     <label for="name">Name:</label>
@@ -439,8 +440,8 @@ $subCategories = array_values($subCategories);
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <label><input type="checkbox" id="has-flavor"> This product has flavors</label>
+                <div class="form-row" style="display:flex; flex-direction:row; align-items:center; gap:8px;">
+                    <label><input type="checkbox" id="has-flavor" style="width: fit-content;"> This product has flavors</label>
                 </div>
 
                 <div class="form-row">
@@ -472,7 +473,7 @@ $subCategories = array_values($subCategories);
                     <div id="available">Available</div>
                 </div>
 
-                <div id="buttons">
+                <div id="buttons" style="margin-bottom: 20px;">
                     <button type="button" id="add">Add</button>
                     <button type="button" id="cancel">Cancel</button>
                 </div>
@@ -1454,7 +1455,7 @@ filterProducts();
                 const row = document.createElement('tr');
                 row.innerHTML = `
                 <td>
-                    <input type="text" value="${name}" placeholder="Enter name" ${isSize ? 'disabled' : ''}>
+                    <input style= "border:none" type="text" value="${name}" placeholder="Enter name" ${isSize ? 'disabled' : ''}>
                 </td>
                 <td>
                     <select>

@@ -105,10 +105,11 @@ function renderCart() {
         <button class="qty-btn" onclick="changeItemQty(${index}, 1)">+</button>
       </div>
       <p class="product-name">
-        ${item.product_name || "Unknown Product"}
-        ${item.size ? " (" + item.size + ")" : ""}
-        ${item.flavor_names ? " - " + item.flavor_names : ""}
+        ${formatName(item.product_name || "Unknown Product")}
+        ${item.size ? " (" + formatName(item.size) + ")" : ""}
+        ${item.flavor_names ? " - " + formatName(item.flavor_names) : ""}
       </p>
+
       <p class="product-price">₱${(price * item.quantity).toFixed(2)}</p>
     `;
 
@@ -116,6 +117,15 @@ function renderCart() {
   });
 
   toggleCheckoutButton();
+}
+
+
+function formatName(str) {
+  return str
+    .toLowerCase()
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 // -------------------------------

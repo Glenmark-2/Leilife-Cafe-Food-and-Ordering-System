@@ -45,6 +45,7 @@ $cssFiles = $styleConfig[$page] ?? [];
   <a href="/Leilife/public/driver.php?page=available" class="active">📦 Available</a>
   <a href="/Leilife/public/driver.php?page=driver">🚗 My Deliveries</a>
   <a href="/Leilife/public/driver.php?page=dashboard">🏠 Dashboard</a>
+  <a href="/Leilife/public/index.php">🚪 Sign out</a>
 </nav>
 
 <script>

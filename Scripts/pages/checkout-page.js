@@ -319,8 +319,11 @@ function cp_renderCart(items = []) {
     el.innerHTML = `
       <img src="${imgSrc}" alt="${escapeHtml(item.product_name || '')}" style="width:60px;height:60px;object-fit:cover;margin-right:10px;" />
       <div style="flex:1;">
-        <p style="margin:0;font-weight:500;">${escapeHtml(item.product_name || '')}${item.size ? ' (' + escapeHtml(item.size) + ')' : ''}</p>
-        <small>₱${finalPrice.toFixed(2)} × ${qty}${item.flavor_names ? '<br>Flavors: ' + escapeHtml(item.flavor_names) : ''}</small>
+<p style="margin:0;font-weight:500; text-transform: capitalize;">
+  ${escapeHtml(item.product_name || '')}${item.size ? ' (' + escapeHtml(item.size) + ')' : ''}
+</p>
+
+      <small>₱${finalPrice.toFixed(2)} × ${qty}${item.flavor_names ? '<br>Flavors: ' + escapeHtml(item.flavor_names) : ''}</small>
       </div>
       <div style="font-weight:600;">₱${total}</div>
     `;

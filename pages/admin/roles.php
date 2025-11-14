@@ -150,16 +150,16 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <div id="right">
             <div id="left">
-            <img id="new-product-photo" src="public/assests/uploadImg.jpg" alt="photo">
-            <input type="file" id="uploadInput" style="display:none;" accept="image/*">
-            <button id="uploadBtn">Upload Photo</button>
-        </div>
+                <img id="new-product-photo" src="public/assests/uploadImg.jpg" alt="photo">
+                <input type="file" id="uploadInput" style="display:none;" accept="image/*">
+                <button id="uploadBtn">Upload Photo</button>
+            </div>
             <h2>Add New Staff</h2>
 
             <form id="staff-form">
                 <div class="form-row">
-                    <label for="name" >Full Name</label>
-                    <input type="text" id="name" name="name" placeholder="Maria Mercedes"  required>
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" placeholder="Maria Mercedes" required>
                 </div>
 
                 <div class="form-row">
@@ -194,7 +194,7 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </form>
         </div>
     </div>
-</div> 
+</div>
 
 <!-- Add Account Modal -->
 <div id="admin-modal">
@@ -296,260 +296,286 @@ $staffRoles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 <script>
-const BASE_URL = "<?= rtrim((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/Leilife/', '/') ?>/";
+    const BASE_URL = "<?= rtrim((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/Leilife/', '/') ?>/";
 
-// --- Modals & Buttons ---
-const addNewBtn = document.getElementById('add-new');
-const roleSelectModal = document.getElementById('role-select-modal');
-const cancelRoleBtn = document.getElementById("cancel-role");
-const roleSelectForm = document.getElementById("role-select-form");
-const staffModal = document.getElementById("modal");
-const addMember = document.getElementById("admin-modal");
-const cancelStaffBtn = document.getElementById("cancel");
-const viewArchiveBtn = document.getElementById('view-archive');
-const addAccBtn = document.getElementById('add-admin');
-const cancelMemberBtn = document.getElementById("cancel-admin-btn-2");
+    // --- Modals & Buttons ---
+    const addNewBtn = document.getElementById('add-new');
+    const roleSelectModal = document.getElementById('role-select-modal');
+    const cancelRoleBtn = document.getElementById("cancel-role");
+    const roleSelectForm = document.getElementById("role-select-form");
+    const staffModal = document.getElementById("modal");
+    const addMember = document.getElementById("admin-modal");
+    const cancelStaffBtn = document.getElementById("cancel");
+    const viewArchiveBtn = document.getElementById('view-archive');
+    const addAccBtn = document.getElementById('add-admin');
+    const cancelMemberBtn = document.getElementById("cancel-admin-btn-2");
 
-// Open role selection modal
-addNewBtn.addEventListener('click', () => roleSelectModal.style.display = "flex");
+    // Open role selection modal
+    addNewBtn.addEventListener('click', () => roleSelectModal.style.display = "flex");
 
-// Cancel role selection
-cancelRoleBtn.addEventListener("click", () => {
-    roleSelectModal.style.display = "none";
-    roleSelectForm.reset();
-});
+    // Cancel role selection
+    cancelRoleBtn.addEventListener("click", () => {
+        roleSelectModal.style.display = "none";
+        roleSelectForm.reset();
+    });
 
-// Role selection submission
-roleSelectForm.addEventListener("submit", e => {
-    e.preventDefault();
-    const selected = document.querySelector("input[name='roleType']:checked").value;
-    roleSelectModal.style.display = "none";
-    roleSelectForm.reset();
+    // Role selection submission
+    roleSelectForm.addEventListener("submit", e => {
+        e.preventDefault();
+        const selected = document.querySelector("input[name='roleType']:checked").value;
+        roleSelectModal.style.display = "none";
+        roleSelectForm.reset();
 
-    if (selected === "staff") staffModal.style.display = "flex";
-    else addMember.style.display = "flex";
-});
+        if (selected === "staff") staffModal.style.display = "flex";
+        else addMember.style.display = "flex";
+    });
 
-// --- Staff Modal Upload ---
-document.getElementById("uploadBtn").addEventListener("click", () => document.getElementById("uploadInput").click());
-document.getElementById("uploadInput").addEventListener("change", e => {
-    const file = e.target.files[0];
-    if (file) document.getElementById("new-product-photo").src = URL.createObjectURL(file);
-});
+    // --- Staff Modal Upload ---
+    document.getElementById("uploadBtn").addEventListener("click", () => document.getElementById("uploadInput").click());
+    document.getElementById("uploadInput").addEventListener("change", e => {
+        const file = e.target.files[0];
+        if (file) document.getElementById("new-product-photo").src = URL.createObjectURL(file);
+    });
 
-// Add new staff
-document.getElementById("add").addEventListener("click", () => {
-    const name = document.getElementById("name").value.trim();
-    const role = document.getElementById("role").value.trim();
-    const shift = document.getElementById("category").value;
-    const status = "Active";
-    const file = document.getElementById("uploadInput").files[0];
+    // Add new staff
+    document.getElementById("add").addEventListener("click", () => {
+        const name = document.getElementById("name").value.trim();
+        const role = document.getElementById("role").value.trim();
+        const shift = document.getElementById("category").value;
+        const status = "Active";
+        const file = document.getElementById("uploadInput").files[0];
 
-    if (!name || !role || !shift) {
-        showModal("Please fill all fields", "error");
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("role", role);
-    formData.append("shift", shift);
-    formData.append("status", status);
-    if (file) formData.append("photo", file);
-
-    fetch(BASE_URL + "backend/admin/add_staff.php", { method: "POST", body: formData })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                showModal("Staff added successfully!", "success");
-                staffModal.style.display = "none";
-                setTimeout(() => location.reload(), 1000);
-            } else showModal("Error: " + data.message, "error");
-        })
-        .catch(err => showModal("Fetch error: " + err.message, "error"));
-});
-
-// Cancel staff modal
-cancelStaffBtn.addEventListener('click', () => staffModal.style.display = "none");
-
-// --- Admin Modal ---
-const adminModal = document.getElementById('admin-modal');
-const adminUploadBtn = document.getElementById('admin-upload-btn');
-const adminUploadInput = document.getElementById('admin-upload-input');
-const adminPhotoPreview = document.getElementById('admin-photo-preview');
-const passwordInput = document.getElementById('admin-password');
-const strengthMeter = document.getElementById('password-strength-bar');
-const strengthText = document.getElementById('password-strength-text');
-
-// Admin upload photo
-adminUploadBtn.addEventListener('click', () => adminUploadInput.click());
-adminUploadInput.addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (file) adminPhotoPreview.src = URL.createObjectURL(file);
-});
-
-// Password strength meter
-passwordInput.addEventListener('input', () => {
-    const val = passwordInput.value;
-    let strength = 0;
-    if (val.length >= 8) strength++;
-    if (/[A-Z]/.test(val)) strength++;
-    if (/[0-9]/.test(val)) strength++;
-    if (/[\W]/.test(val)) strength++;
-
-    const percent = (strength / 4) * 100;
-    strengthMeter.style.width = percent + "%";
-    const colors = ['#e74c3c', '#f39c12', '#f1c40f', '#2ecc71', '#27ae60'];
-    strengthMeter.style.backgroundColor = colors[strength];
-    const strengthTextMap = ["Weak", "Fair", "Good", "Strong", "Very Strong"];
-    strengthText.textContent = strengthTextMap[strength];
-});
-
-cancelMemberBtn.addEventListener('click', () => addMember.style.display = "none");
-// Add account form
-document.getElementById('admin-form').addEventListener('submit', e => {
-    e.preventDefault();
-
-    const name = document.getElementById('admin-name').value.trim();
-    const role = document.getElementById('account-role').value;
-    const shift = document.getElementById('admin-shift').value;
-    const username = document.getElementById('admin-username').value.trim();
-    const email = document.getElementById('admin-email').value.trim();
-    const password = passwordInput.value;
-    const photo = adminUploadInput.files[0];
-
-    if (!name || !role || !shift || !username || !email || !password || !photo) {
-        showModal("Please fill all fields and upload a photo.", "error");
-        return;
-    }
-
-    if (!/^[A-Za-z\s]+$/.test(name)) { showModal("Name can only contain letters and spaces.", "error"); return; }
-    if (username.length < 8 || /\s/.test(username)) { showModal("Username must be at least 8 characters with no spaces.", "error"); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showModal("Invalid email format.", "error"); return; }
-    if (password.length < 8) { showModal("Password must be at least 8 characters.", "error"); return; }
-
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("role", role);
-    formData.append("shift", shift);
-    formData.append("username", username);
-    formData.append("email", email);
-    formData.append("password", password);
-    formData.append("photo", photo);
-
-    document.getElementById("otpStatus").innerText = "Sending OTP to email...";
-
-    fetch(BASE_URL + "backend/admin/request_account_otp.php", { method: "POST", body: formData })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                adminModal.style.display = 'none';
-                openOtpModal();
-                document.getElementById("otpStatus").innerText = "Enter the 6-digit OTP sent to your email.";
-            } else showModal(data.message, "error");
-        })
-        .catch(err => showModal("Fetch error: " + err.message, "error"));
-});
-
-// --- OTP Modal ---
-const otpModal = document.getElementById('otp-modal');
-const otpCancel1 = document.getElementById('cancel-otp-btn');
-const otpCancel2 = document.getElementById('cancel-otp-btn-2');
-const resendBtn = document.getElementById('resend-otp-btn');
-const otpStatus = document.getElementById('otpStatus');
-let resendTimer;
-
-function startResendTimer() {
-    clearInterval(resendTimer);
-    resendBtn.disabled = true;
-    let timeLeft = 20;
-    resendBtn.textContent = `Resend OTP (${timeLeft}s)`;
-
-    resendTimer = setInterval(() => {
-        timeLeft--;
-        resendBtn.textContent = `Resend OTP (${timeLeft}s)`;
-        if (timeLeft <= 0) {
-            clearInterval(resendTimer);
-            resendBtn.disabled = false;
-            resendBtn.textContent = "Resend OTP";
+        if (!name || !role || !shift) {
+            showModal("Please fill all fields", "error");
+            return;
         }
-    }, 1000);
-}
 
-function openOtpModal() {
-    otpModal.style.display = 'flex';
-    otpStatus.innerText = "We sent a 6-digit code to your email.";
-    startResendTimer();
-}
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("role", role);
+        formData.append("shift", shift);
+        formData.append("status", status);
+        if (file) formData.append("photo", file);
 
-function closeOtpModal() {
-    otpModal.style.display = 'none';
-    clearInterval(resendTimer);
-}
+        fetch(BASE_URL + "backend/admin/add_staff.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showModal("Staff added successfully!", "success");
+                    staffModal.style.display = "none";
+                    setTimeout(() => location.reload(), 1000);
+                } else showModal("Error: " + data.message, "error");
+            })
+            .catch(err => showModal("Fetch error: " + err.message, "error"));
+    });
 
-otpCancel1.addEventListener('click', closeOtpModal);
-otpCancel2.addEventListener('click', closeOtpModal);
+    // Cancel staff modal
+    cancelStaffBtn.addEventListener('click', () => staffModal.style.display = "none");
 
-// OTP form submit
-document.getElementById('otp-form').addEventListener('submit', e => {
-    e.preventDefault();
-    const otp = document.getElementById('otp-code').value.trim();
-    if (!otp) { showModal("Please enter the OTP.", "error"); return; }
+    // --- Admin Modal ---
+    const adminModal = document.getElementById('admin-modal');
+    const adminUploadBtn = document.getElementById('admin-upload-btn');
+    const adminUploadInput = document.getElementById('admin-upload-input');
+    const adminPhotoPreview = document.getElementById('admin-photo-preview');
+    const passwordInput = document.getElementById('admin-password');
+    const strengthMeter = document.getElementById('password-strength-bar');
+    const strengthText = document.getElementById('password-strength-text');
 
-    fetch(BASE_URL + "backend/admin/verify_account_otp.php", {
-        method: "POST",
-        body: new URLSearchParams({ otp })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showModal("Account verified and created!", "success");
-            closeOtpModal();
-            setTimeout(() => location.reload(), 1200);
-        } else showModal(data.message, "error");
-    })
-    .catch(err => showModal("Fetch error: " + err.message, "error"));
-});
+    // Admin upload photo
+    adminUploadBtn.addEventListener('click', () => adminUploadInput.click());
+    adminUploadInput.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file) adminPhotoPreview.src = URL.createObjectURL(file);
+    });
 
-// Resend OTP
-resendBtn.addEventListener('click', () => {
-    resendBtn.disabled = true;
-    resendBtn.textContent = "Sending...";
-    otpStatus.innerText = "";
-    const formData = new FormData();
-    formData.append("resend", true);
+    // Password strength meter
+    passwordInput.addEventListener('input', () => {
+        const val = passwordInput.value;
+        let strength = 0;
+        if (val.length >= 8) strength++;
+        if (/[A-Z]/.test(val)) strength++;
+        if (/[0-9]/.test(val)) strength++;
+        if (/[\W]/.test(val)) strength++;
 
-    fetch(BASE_URL + "backend/admin/request_account_otp.php", { method: "POST", body: formData })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                otpStatus.innerText = "New OTP sent. Please check your email.";
-                resendBtn.textContent = "OTP Sent!";
-                setTimeout(() => startResendTimer(), 1500);
-            } else {
-                otpStatus.innerText = data.message;
+        const percent = (strength / 4) * 100;
+        strengthMeter.style.width = percent + "%";
+        const colors = ['#e74c3c', '#f39c12', '#f1c40f', '#2ecc71', '#27ae60'];
+        strengthMeter.style.backgroundColor = colors[strength];
+        const strengthTextMap = ["Weak", "Fair", "Good", "Strong", "Very Strong"];
+        strengthText.textContent = strengthTextMap[strength];
+    });
+
+    cancelMemberBtn.addEventListener('click', () => addMember.style.display = "none");
+    // Add account form
+    document.getElementById('admin-form').addEventListener('submit', e => {
+        e.preventDefault();
+
+        const name = document.getElementById('admin-name').value.trim();
+        const role = document.getElementById('account-role').value;
+        const shift = document.getElementById('admin-shift').value;
+        const username = document.getElementById('admin-username').value.trim();
+        const email = document.getElementById('admin-email').value.trim();
+        const password = passwordInput.value;
+        const photo = adminUploadInput.files[0];
+
+        if (!name || !role || !shift || !username || !email || !password || !photo) {
+            showModal("Please fill all fields and upload a photo.", "error");
+            return;
+        }
+
+        if (!/^[A-Za-z\s]+$/.test(name)) {
+            showModal("Name can only contain letters and spaces.", "error");
+            return;
+        }
+        if (username.length < 8 || /\s/.test(username)) {
+            showModal("Username must be at least 8 characters with no spaces.", "error");
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showModal("Invalid email format.", "error");
+            return;
+        }
+        if (password.length < 8) {
+            showModal("Password must be at least 8 characters.", "error");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("role", role);
+        formData.append("shift", shift);
+        formData.append("username", username);
+        formData.append("email", email);
+        formData.append("password", password);
+        formData.append("photo", photo);
+
+        document.getElementById("otpStatus").innerText = "Sending OTP to email...";
+
+        fetch(BASE_URL + "backend/admin/request_account_otp.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    adminModal.style.display = 'none';
+                    openOtpModal();
+                    document.getElementById("otpStatus").innerText = "Enter the 6-digit OTP sent to your email.";
+                } else showModal(data.message, "error");
+            })
+            .catch(err => showModal("Fetch error: " + err.message, "error"));
+    });
+
+    // --- OTP Modal ---
+    const otpModal = document.getElementById('otp-modal');
+    const otpCancel1 = document.getElementById('cancel-otp-btn');
+    const otpCancel2 = document.getElementById('cancel-otp-btn-2');
+    const resendBtn = document.getElementById('resend-otp-btn');
+    const otpStatus = document.getElementById('otpStatus');
+    let resendTimer;
+
+    function startResendTimer() {
+        clearInterval(resendTimer);
+        resendBtn.disabled = true;
+        let timeLeft = 20;
+        resendBtn.textContent = `Resend OTP (${timeLeft}s)`;
+
+        resendTimer = setInterval(() => {
+            timeLeft--;
+            resendBtn.textContent = `Resend OTP (${timeLeft}s)`;
+            if (timeLeft <= 0) {
+                clearInterval(resendTimer);
+                resendBtn.disabled = false;
+                resendBtn.textContent = "Resend OTP";
+            }
+        }, 1000);
+    }
+
+    function openOtpModal() {
+        otpModal.style.display = 'flex';
+        otpStatus.innerText = "We sent a 6-digit code to your email.";
+        startResendTimer();
+    }
+
+    function closeOtpModal() {
+        otpModal.style.display = 'none';
+        clearInterval(resendTimer);
+    }
+
+    otpCancel1.addEventListener('click', closeOtpModal);
+    otpCancel2.addEventListener('click', closeOtpModal);
+
+    // OTP form submit
+    document.getElementById('otp-form').addEventListener('submit', e => {
+        e.preventDefault();
+        const otp = document.getElementById('otp-code').value.trim();
+        if (!otp) {
+            showModal("Please enter the OTP.", "error");
+            return;
+        }
+
+        fetch(BASE_URL + "backend/admin/verify_account_otp.php", {
+                method: "POST",
+                body: new URLSearchParams({
+                    otp
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showModal("Account verified and created!", "success");
+                    closeOtpModal();
+                    setTimeout(() => location.reload(), 1200);
+                } else showModal(data.message, "error");
+            })
+            .catch(err => showModal("Fetch error: " + err.message, "error"));
+    });
+
+    // Resend OTP
+    resendBtn.addEventListener('click', () => {
+        resendBtn.disabled = true;
+        resendBtn.textContent = "Sending...";
+        otpStatus.innerText = "";
+        const formData = new FormData();
+        formData.append("resend", true);
+
+        fetch(BASE_URL + "backend/admin/request_account_otp.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    otpStatus.innerText = "New OTP sent. Please check your email.";
+                    resendBtn.textContent = "OTP Sent!";
+                    setTimeout(() => startResendTimer(), 1500);
+                } else {
+                    otpStatus.innerText = data.message;
+                    resendBtn.textContent = "Resend OTP";
+                    resendBtn.disabled = false;
+                }
+            })
+            .catch(err => {
+                otpStatus.innerText = "Fetch error: " + err.message;
                 resendBtn.textContent = "Resend OTP";
                 resendBtn.disabled = false;
-            }
-        })
-        .catch(err => {
-            otpStatus.innerText = "Fetch error: " + err.message;
-            resendBtn.textContent = "Resend OTP";
-            resendBtn.disabled = false;
-        });
-});
+            });
+    });
 
-// --- Notifications ---
-function showModal(message, type = "success", autoClose = true, duration = 3000) {
-    let modal = document.getElementById("notif-modal");
-    if (!modal) {
-        modal = document.createElement("div");
-        modal.id = "notif-modal";
-        modal.className = "notif-modal";
-        modal.innerHTML = `<div class="notif-content"><p id="notif-message"></p><button id="notif-close">OK</button></div>`;
-        document.body.appendChild(modal);
-        const style = document.createElement("style");
-        style.innerHTML = `
+    // --- Notifications ---
+    function showModal(message, type = "success", autoClose = true, duration = 3000) {
+        let modal = document.getElementById("notif-modal");
+        if (!modal) {
+            modal = document.createElement("div");
+            modal.id = "notif-modal";
+            modal.className = "notif-modal";
+            modal.innerHTML = `<div class="notif-content"><p id="notif-message"></p><button id="notif-close">OK</button></div>`;
+            document.body.appendChild(modal);
+            const style = document.createElement("style");
+            style.innerHTML = `
         .notif-modal{display:none;position:fixed;z-index:10000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.4);justify-content:center;align-items:center;}
         .notif-content{background:white;padding:20px 30px;border-radius:10px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.3);min-width:250px;animation:popin 0.3s ease;}
         .notif-content p{margin-bottom:15px;font-size:16px;}
@@ -558,162 +584,211 @@ function showModal(message, type = "success", autoClose = true, duration = 3000)
         .notif-content button.error{background:#f44336;}
         @keyframes popin{from{transform:scale(0.8);opacity:0;}to{transform:scale(1);opacity:1;}}
         `;
-        document.head.appendChild(style);
+            document.head.appendChild(style);
+        }
+
+        document.getElementById("notif-message").textContent = message;
+        const closeBtn = document.getElementById("notif-close");
+        closeBtn.className = type === "success" ? "success" : "error";
+        modal.style.display = "flex";
+
+        const closeModal = () => modal.style.display = "none";
+        closeBtn.onclick = closeModal;
+        modal.onclick = e => {
+            if (e.target === modal) closeModal();
+        };
+
+        if (autoClose) setTimeout(closeModal, duration);
     }
 
-    document.getElementById("notif-message").textContent = message;
-    const closeBtn = document.getElementById("notif-close");
-    closeBtn.className = type === "success" ? "success" : "error";
-    modal.style.display = "flex";
-
-    const closeModal = () => modal.style.display = "none";
-    closeBtn.onclick = closeModal;
-    modal.onclick = e => { if (e.target === modal) closeModal(); };
-
-    if (autoClose) setTimeout(closeModal, duration);
-}
-
-// --- Search Staff ---
-const searchInput = document.getElementById('search-input');
-const staffRows = document.querySelectorAll('.staff-row');
-searchInput.addEventListener('input', () => {
-    const search = searchInput.value.toLowerCase();
-    staffRows.forEach(row => {
-        const name = row.querySelector('.name-cell .inputData').value.toLowerCase();
-        row.style.display = name.includes(search) ? 'table-row' : 'none';
+    // --- Search Staff ---
+    const searchInput = document.getElementById('search-input');
+    const staffRows = document.querySelectorAll('.staff-row');
+    searchInput.addEventListener('input', () => {
+        const search = searchInput.value.toLowerCase();
+        staffRows.forEach(row => {
+            const name = row.querySelector('.name-cell .inputData').value.toLowerCase();
+            row.style.display = name.includes(search) ? 'table-row' : 'none';
+        });
     });
-});
 
-// --- Edit / Save Staff ---
-const editButtons = document.querySelectorAll('.editBtn');
-const archiveIcons = document.querySelectorAll('.archive-icon');
+    // --- Edit / Save Staff ---
+    const editButtons = document.querySelectorAll('.editBtn');
+    const archiveIcons = document.querySelectorAll('.archive-icon');
 
-editButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-        const row = btn.closest('.staff-row');
-        const inputs = row.querySelectorAll('.inputData, .pcategory');
-        const photo = row.querySelector('.profile-photo');
-        const photoInput = row.querySelector('.photoInput');
-        const statusBtn = row.querySelector('.statusBtn');
-        const archiveIcon = row.querySelector('.archive-icon');
-        const roleCell = row.querySelector('td:nth-child(2)');
-        let roleInput = roleCell.querySelector('.inputData');
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const row = btn.closest('.staff-row');
+            const inputs = row.querySelectorAll('.inputData, .pcategory');
+            const photo = row.querySelector('.profile-photo');
+            const photoInput = row.querySelector('.photoInput');
+            const statusBtn = row.querySelector('.statusBtn');
+            const archiveIcon = row.querySelector('.archive-icon');
+            const roleCell = row.querySelector('td:nth-child(2)');
+            let roleInput = roleCell.querySelector('select.inputData, .inputData');
 
-        const isEditing = btn.classList.contains('editing');
+            const isEditing = btn.classList.contains('editing');
 
-        if (!isEditing) {
-            // Enter edit mode
-            btn.textContent = 'Save';
-            btn.style.setProperty("background-color", "#5f9861ff", "important");
-            btn.style.setProperty("color", "#ffffffff", "important");
-            btn.classList.add('editing');
+            if (!isEditing) {
+                btn.textContent = 'Save';
+                btn.style.setProperty("background-color", "#5f9861ff", "important");
+                btn.style.setProperty("color", "#ffffffff", "important");
+                btn.classList.add('editing');
 
-            inputs.forEach(i => i.disabled = false);
-            statusBtn.disabled = false;
-            photoInput.disabled = false;
-            archiveIcon.style.filter = 'brightness(0)';
-            editButtons.forEach(other => { if (other !== btn) other.disabled = true; });
-            archiveIcons.forEach(icon => { if (icon !== archiveIcon) { icon.style.pointerEvents = 'none'; icon.style.opacity = 0.4; }});
-            [addMember, viewArchiveBtn, addAccBtn].forEach(b => { b.disabled = true; b.style.opacity = 0.5; });
-
-            // Convert role to select if editable
-            const currentRole = roleInput.value.toLowerCase();
-            if (currentRole !== 'admin' && currentRole !== 'driver') {
-                const positions = ['Manager', 'Cashier', 'Chef', 'Cleaner'];
-                const select = document.createElement('select');
-                select.className = 'inputData';
-                positions.forEach(pos => {
-                    const option = document.createElement('option');
-                    option.value = pos;
-                    option.text = pos;
-                    if (pos === roleInput.value) option.selected = true;
-                    select.appendChild(option);
+                inputs.forEach(i => i.disabled = false);
+                if (statusBtn) statusBtn.disabled = false;
+                if (photoInput) photoInput.disabled = false;
+                if (archiveIcon) archiveIcon.style.filter = 'brightness(0)';
+                
+                editButtons.forEach(other => {
+                    if (other !== btn) other.disabled = true;
                 });
-                roleInput.replaceWith(select);
-                roleInput = select;
-            } else roleInput.disabled = true;
+                archiveIcons.forEach(icon => {
+                    if (icon !== archiveIcon) {
+                        icon.style.pointerEvents = 'none';
+                        icon.style.opacity = 0.4;
+                    }
+                });
 
-            // Enable photo click
-            photo.onclick = () => { if (!photoInput.disabled) photoInput.click(); };
-            photoInput.onchange = e => { const file = e.target.files[0]; if(file) photo.src = URL.createObjectURL(file); };
+                [addMember, viewArchiveBtn, addAccBtn].forEach(b => {
+                    if (!b) return;
+                    b.disabled = true;
+                    b.style.opacity = 0.5;
+                });
 
-        } else {
-            // Save mode
-            btn.textContent = 'Edit';
-            btn.style.setProperty("background-color", "#fbf5ca", "important");
-            btn.style.setProperty("color", "#79722b", "important");
-            btn.classList.remove('editing');
+                const currentRole = roleInput?.value.toLowerCase();
+                if (currentRole !== 'admin' && currentRole !== 'driver') {
+                    const positions = ['Manager', 'Cashier', 'Chef', 'Cleaner'];
+                    const select = document.createElement('select');
+                    select.className = 'inputData';
+                    positions.forEach(pos => {
+                        const option = document.createElement('option');
+                        option.value = pos;
+                        option.text = pos;
+                        if (pos === roleInput.value) option.selected = true;
+                        select.appendChild(option);
+                    });
+                    if (roleInput) roleInput.replaceWith(select);
+                    roleInput = select;
+                } else if (roleInput) roleInput.disabled = true;
 
-            inputs.forEach(i => i.disabled = true);
-            statusBtn.disabled = true;
-            photoInput.disabled = true;
-            archiveIcon.style.filter = 'brightness(0.5)';
-            editButtons.forEach(b => b.disabled = false);
-            archiveIcons.forEach(icon => { icon.style.pointerEvents = 'auto'; icon.style.opacity = 1; });
-            [addMember, viewArchiveBtn, addAccBtn].forEach(b => { b.disabled = false; b.style.opacity = 1; });
+                // Enable photo click
+                if (photo && photoInput) {
+                    photo.onclick = () => {
+                        if (!photoInput.disabled) photoInput.click();
+                    };
+                    photoInput.onchange = e => {
+                        const file = e.target.files[0];
+                        if (file) photo.src = URL.createObjectURL(file);
+                    };
+                }
 
+            } else {
+                btn.textContent = 'Edit';
+                btn.style.setProperty("background-color", "#fbf5ca", "important");
+                btn.style.setProperty("color", "#79722b", "important");
+                btn.classList.remove('editing');
+
+                inputs.forEach(i => i.disabled = true);
+                if (statusBtn) statusBtn.disabled = true;
+                if (photoInput) photoInput.disabled = true;
+                if (archiveIcon) archiveIcon.style.filter = 'brightness(0.5)';
+
+                editButtons.forEach(b => b.disabled = false);
+                archiveIcons.forEach(icon => {
+                    icon.style.pointerEvents = 'auto';
+                    icon.style.opacity = 1;
+                });
+
+                [addMember, viewArchiveBtn, addAccBtn].forEach(b => {
+                    if (!b) return;
+                    b.disabled = false;
+                    b.style.opacity = 1;
+                });
+
+                const staffId = row.dataset.id;
+
+                // Safe roleInput
+                const roleCell = row.querySelector('td:nth-child(2)');
+                let roleInput = roleCell.querySelector('select.inputData, .inputData');
+
+                const updatedData = {
+                    id: staffId,
+                    name: row.querySelector('.name-cell .inputData')?.value || '',
+                    role: roleInput?.value || '',
+                    shift: row.querySelector('.pcategory')?.value || '',
+                    status: statusBtn?.textContent.trim() || ''
+                };
+                const photoFile = photoInput?.files[0];
+
+                const formData = new FormData();
+                Object.entries(updatedData).forEach(([k, v]) => formData.append(k, v));
+                if (photoFile) formData.append('photo', photoFile);
+
+                fetch(BASE_URL + 'backend/admin/update_staff.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.text())
+                .then(text => {
+                    try {
+                        const data = JSON.parse(text);
+                        showModal(data.message || "Unknown response", data.success ? "success" : "error");
+                    } catch (e) {
+                        console.error("Invalid JSON:", e);
+                        showModal("Server returned invalid response", "error");
+                    }
+                })
+                .catch(err => showModal('Fetch error: ' + err.message, 'error'));
+            }
+        });
+    });
+
+    document.querySelectorAll('.statusBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!btn.disabled) {
+                if (btn.textContent.trim() === 'Active') {
+                    btn.textContent = 'Inactive';
+                    btn.classList.replace('active', 'inactive');
+                } else {
+                    btn.textContent = 'Active';
+                    btn.classList.replace('inactive', 'active');
+                }
+            }
+        });
+    });
+
+    // --- Toggle Archived / Active ---
+    viewArchiveBtn.addEventListener('click', () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('archived', url.searchParams.get('archived') === '1' ? '0' : '1');
+        window.location.href = url.toString();
+    });
+
+    // --- Archive Staff ---
+    archiveIcons.forEach(icon => {
+        icon.addEventListener('click', () => {
+            const row = icon.closest('.staff-row');
             const staffId = row.dataset.id;
-            const updatedData = {
-                id: staffId,
-                name: row.querySelector('.name-cell .inputData').value,
-                role: roleInput.value,
-                shift: row.querySelector('.pcategory').value,
-                status: statusBtn.textContent.trim(),
-            };
-            const photoFile = photoInput.files[0];
+            if (!staffId) {
+                showModal("Error: Missing staff ID", "error");
+                return;
+            }
 
             const formData = new FormData();
-            Object.entries(updatedData).forEach(([k, v]) => formData.append(k, v));
-            if (photoFile) formData.append('photo', photoFile);
+            formData.append('staff_id', staffId);
+            formData.append('is_archive', 1);
 
-            fetch(BASE_URL + 'backend/admin/update_staff.php', { method: 'POST', body: formData })
+            fetch(BASE_URL + "backend/admin/archive_staff.php", {
+                    method: "POST",
+                    body: formData
+                })
                 .then(res => res.json())
-                .then(data => showModal(data.success ? 'Staff updated successfully!' : 'Error: ' + data.message, data.success ? 'success' : 'error'))
-                .catch(err => showModal('Fetch error: ' + err.message, 'error'));
-        }
+                .then(data => {
+                    if (data.success) row.remove();
+                    showModal(data.message, data.success ? "success" : "error");
+                })
+                .catch(err => showModal("Fetch error: " + err.message, "error"));
+        });
     });
-});
-
-// --- Toggle Status ---
-document.querySelectorAll('.statusBtn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        if (!btn.disabled) {
-            if (btn.textContent.trim() === 'Active') {
-                btn.textContent = 'Inactive';
-                btn.classList.replace('active', 'inactive');
-            } else {
-                btn.textContent = 'Active';
-                btn.classList.replace('inactive', 'active');
-            }
-        }
-    });
-});
-
-// --- Toggle Archived / Active ---
-viewArchiveBtn.addEventListener('click', () => {
-    const url = new URL(window.location.href);
-    url.searchParams.set('archived', url.searchParams.get('archived') === '1' ? '0' : '1');
-    window.location.href = url.toString();
-});
-
-// --- Archive Staff ---
-archiveIcons.forEach(icon => {
-    icon.addEventListener('click', () => {
-        const row = icon.closest('.staff-row');
-        const staffId = row.dataset.id;
-        if (!staffId) { showModal("Error: Missing staff ID", "error"); return; }
-
-        const formData = new FormData();
-        formData.append('staff_id', staffId);
-        formData.append('is_archive', 1);
-
-        fetch(BASE_URL + "backend/admin/archive_staff.php", { method: "POST", body: formData })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) row.remove();
-                showModal(data.message, data.success ? "success" : "error");
-            })
-            .catch(err => showModal("Fetch error: " + err.message, "error"));
-    });
-});
 </script>

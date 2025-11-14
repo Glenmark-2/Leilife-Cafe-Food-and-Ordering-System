@@ -842,3 +842,235 @@ button {
     font-size: 20px;
   }
 }
+
+#modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    font-family: "Segoe UI", sans-serif;
+}
+
+#new-product-modal {
+    display: flex;
+    flex-direction: row;
+    background: #ffffff;
+    border-radius: 14px;
+    width: 350px;
+    max-width: 90%;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    overflow: hidden;
+    padding: 5px 15px;
+}
+
+#left {
+    flex: 0 0 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 10px;
+    gap: 10px;
+}
+
+#new-product-photo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #d8c3a5;
+}
+
+#uploadBtn {
+    background: #d8c3a5;
+    color: #5e4b3c;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+#uploadBtn:hover { background: #c0a78a; }
+
+#right {
+    flex: 1;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#right h2 {
+    text-align: center;
+    color: #5e4b3c;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-row label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #5e4b3c;
+}
+
+.form-row input,
+.form-row select,
+.dropdown-button,
+#available {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #d8c3a5;
+    font-size: 14px;
+    color: #5e4b3c;
+    background: #fff;
+}
+
+#buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#add {
+    background: #d8c3a7;
+    color: #614a37;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+#add:hover { background: #e5cbb7; }
+
+#cancel {
+    background: #f5e0cf;
+    color: #5e4b3c;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+#cancel:hover { background: #e5cbb7; }
+#modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px; /* for spacing on mobile */
+    z-index: 9999;
+}
+
+#new-product-modal {
+    background: white;
+    border-radius: 10px;
+
+    /* SIZE CONTROL */
+    min-width: 300px;
+    max-width: 700px;
+    max-height: 80vh; /* limit height */
+    overflow-y: auto; /* scrollable if content exceeds */
+}
+
+/* Modal background */
+#flavor-size-modal.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* Content box */
+#flavor-size-modal .modal-content {
+    background: white;
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    min-height: 300px;
+    padding: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+/* Scrollable inner content */
+#flavor-size-modal form {
+    overflow-y: auto;
+    padding-right: 10px;
+    max-height: calc(85vh - 90px); /* adjust for header + buttons */
+}
+
+/* Section spacing */
+#flavor-size-modal .form-section {
+    margin-bottom: 20px;
+}
+
+/* Table styling */
+#flavor-size-modal table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#flavor-size-modal th, 
+#flavor-size-modal td {
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+#flavor-size-modal th {
+    background: #f5f5f5;
+    font-weight: bold;
+}
+
+/* Buttons pinned at bottom */
+#flavor-size-modal .modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+    margin-top: auto;
+}
+
+#flavor-size-modal button {
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#save-flavors-sizes {
+    background: #4CAF50;
+    color: white;
+}
+
+#cancel-flavors-sizes {
+    background: #e74c3c;
+    color: white;
+}
+
+

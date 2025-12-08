@@ -34,6 +34,7 @@ class ComposerStaticInit7f1a84aa669a62e467b50613bb35b0d2
             'Psr\\Cache\\' => 10,
             'PhpOffice\\PhpSpreadsheet\\' => 25,
             'ParagonIE\\ConstantTime\\' => 23,
+            'PHPMailer\\PHPMailer\\' => 20,
         ),
         'M' => 
         array (
@@ -57,6 +58,10 @@ class ComposerStaticInit7f1a84aa669a62e467b50613bb35b0d2
         array (
             'Composer\\Pcre\\' => 14,
             'Complex\\' => 8,
+        ),
+        'A' => 
+        array (
+            'App\\' => 4,
         ),
     );
 
@@ -97,6 +102,10 @@ class ComposerStaticInit7f1a84aa669a62e467b50613bb35b0d2
         'ParagonIE\\ConstantTime\\' => 
         array (
             0 => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
         'Monolog\\' => 
         array (
@@ -141,6 +150,10 @@ class ComposerStaticInit7f1a84aa669a62e467b50613bb35b0d2
         'Complex\\' => 
         array (
             0 => __DIR__ . '/..' . '/markbaker/complex/classes/src',
+        ),
+        'App\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/app',
         ),
     );
 

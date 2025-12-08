@@ -7,101 +7,52 @@
     <!-- Contact Info -->
     <div class="footer-column">
       <h3>Contact Us</h3>
-      <p><img src="fb-icon.png" alt="Facebook"> Leilife Café & Restaurant</p>
-      <p><img src="location-icon.png" alt="Address"> Lunduyan Langaray, Brgy 14. Caloocan City</p>
-      <p><img src="phone-icon.png" alt="Phone"> 0912345678</p>
-      <p><img src="mail-icon.png" alt="Email"> leilifecafe@gmail.com</p>
+      <p><img src="../public/assests/facebook.png" alt="Facebook"> Leilife Café & Restaurant</p>
+      <p><img src="../public/assests/white-pin.png" alt="Address"> Lunduyan Langaray, Brgy 14. Caloocan City</p>
+      <p><img src="../public/assests/white-call.png"  alt="Phone"> 0912345678</p>
+      <p><img src="../public/assests/white-messages.png"alt="Email"> leilifecafe@gmail.com</p>
     </div>
 
     <!-- Links -->
     <div class="footer-column">
       <h3>Quick Links</h3>
-      <p><a href="#">Home</a></p>
-      <p><a href="#">About</a></p>
-      <p><a href="#">Contact</a></p>
+      <p><a href="../public/index.php?page=home">Home</a></p>
+      <p><a href="index.php?page=home#about-us">About</a></p>
+      <p><a href="index.php?page=home#contact-section">Contact</a></p>
     </div>
   </div>
 </footer>
 
-<style>
-.site-footer {
-  background: #22333b;
-  color: #fff;
-  padding: 30px 20px;
-  text-align: center;
-}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const cartBtn = document.getElementById("cartBtn");
+  const cartModal = document.getElementById("cartModal");
 
-/* Logo centered */
-.footer-logo img {
-  max-width: 150px;
-  height: auto;
-  margin-bottom: 25px;
-}
-
-/* Bottom row (Contact + Quick Links) */
-.footer-bottom {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 40px;
-}
-
-/* Add divider only between the two */
-.footer-bottom > div:first-child {
-  padding-right: 40px;
-  border-right: 2px solid rgba(255, 255, 255, 0.2);
-}
-.footer-bottom > div:last-child {
-  padding-left: 40px;
-}
-
-.footer-column h3 {
-  font-size: 18px;
-  margin-bottom: 12px;
-  font-weight: 600;
-}
-
-.footer-column p {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 6px 0;
-  font-size: 14px;
-}
-
-.footer-column img {
-  width: 18px;
-  height: 18px;
-}
-
-.footer-column a {
-  color: #fff;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.footer-column a:hover {
-  color: #ffcc00;
-}
-
-/* ✅ Responsive: stack sections under each other */
-@media (max-width: 768px) {
-  .footer-bottom {
-    flex-direction: column;
-    gap: 20px;
+  if (cartBtn && cartModal) {
+    cartBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      cartModal.classList.toggle("show");
+      document.body.classList.toggle("cart-open");
+    });
   }
 
-  .footer-bottom > div {
-    padding: 0;
-    border: none;
-  }
+  // ✅ Auto-open cart if previous page set the flag
+  if (sessionStorage.getItem("openCartOnLoad") === "true") {
+    sessionStorage.removeItem("openCartOnLoad");
 
-  .footer-column p {
-    justify-content: center;
-  }
-}
-</style>
+    // Dispatch a custom event for consistency
+    document.dispatchEvent(new Event("cart:autoOpen"));
 
+    // Actually open the cart modal
+    if (cartModal) {
+      cartModal.classList.add("show");
+      document.body.classList.add("cart-open");
+    }
+  }
+});
+
+
+</script>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

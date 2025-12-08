@@ -1,0 +1,9 @@
+CREATE TABLE audit_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user VARCHAR(100),
+  action VARCHAR(100),
+  target VARCHAR(255),
+  status VARCHAR(50),
+  datetime DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+-- done nobi

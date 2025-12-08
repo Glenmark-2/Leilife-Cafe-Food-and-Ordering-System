@@ -1,0 +1,79 @@
+/* ============================= */
+/* 🌞 CAROUSEL BASE */
+/* ============================= */
+
+.carousel {
+  position: relative;
+  width: 100%;
+  max-width: 950px;
+  margin: 1.5rem auto;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: #f9f6ef; /* subtle earthy background */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Track transitions */
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+/* Each slide */
+.carousel-slide {
+  min-width: 100%;
+  display: none;
+}
+
+.carousel-slide.active {
+  display: block;
+}
+
+/* ============================= */
+/* 🌞 ARROWS */
+/* ============================= */
+
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #5a4632; /* earthy brown tone */
+  background: #f7d774; /* yellow accent */
+  border: none;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  font-size: 1.6rem;
+  border-radius: 50%;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.carousel-arrow:hover {
+  background: #f0c84b;
+  transform: translateY(-50%) scale(1.05);
+}
+
+.carousel-arrow.left {
+  left: 8px;
+}
+
+.carousel-arrow.right {
+  right: 8px;
+}
+
+/* ============================= */
+/* 📱 RESPONSIVE */
+/* ============================= */
+
+@media (max-width: 600px) {
+  .carousel {
+    border-radius: 0.8rem;
+    margin: 1rem auto;
+  }
+
+  .carousel-arrow {
+    font-size: 1.2rem;
+    padding: 0.6rem 0.8rem;
+  }
+}

@@ -1,113 +1,26 @@
-<style>
-.product-card {
-  display: flex;
-  align-items: center;
-  background: #fdf9f5;
-  border-radius: 16px;
-  padding: clamp(10px, 2vw, 18px);
-  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
-  width: 100%;
-  max-width: 650px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin: 0 auto; /* centers card */
-}
+<?php
+$status = $product['status'] ?? 'available';
+$cardClass = $status === 'unavailable' ? 'product-card unavailable' : 'product-card';
+$productLink = "index.php?page=solo-product&id=" . $product['product_id'];
+?>
 
-.product-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 14px rgba(0,0,0,0.2);
-}
+<div class="<?= $cardClass ?>" <?= $status === 'available' ? "onclick=\"window.location.href='{$productLink}'\"" : "" ?>>
+  <img 
+    src="../public/products/<?php echo htmlspecialchars($image); ?>" 
+    alt="<?php echo htmlspecialchars($title); ?>" 
+    class="product-image"
+  >
 
-.product-image {
-  width: clamp(80px, 25%, 140px);
-  max-height: 160px;
-  border-radius: 14px;
-  object-fit: contain;
-  background: #fff;
-  flex-shrink: 0;
-}
-
-.product-info {
-  flex: 1;
-  margin-left: clamp(10px, 2vw, 18px);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.info-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.product-title {
-  font-size: clamp(14px, 2vw, 18px);
-  font-weight: 600;
-  margin: 0;
-  color: #222;
-  text-align: center;
-}
-
-.product-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: clamp(6px, 1.5vw, 12px);
-}
-
-.product-price {
-  font-size: clamp(13px, 2vw, 16px);
-  font-weight: 600;
-  color: #111;
-}
-
-.buy-btn {
-  padding: clamp(5px, 1vw, 8px) clamp(14px, 2vw, 20px);
-  border: none;
-  border-radius: 20px;
-  background: #293b42;
-  color: #fff;
-  font-size: clamp(12px, 2vw, 15px);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.buy-btn:hover {
-  background: #1d2a2f;
-}
-
-/* 📱 Mobile layout: stack image on top */
-@media (max-width: 600px) {
-  .product-card {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .product-info {
-    margin-left: 0;
-    margin-top: 12px;
-  }
-
-  .product-actions {
-    flex-direction: column;
-    gap: 8px;
-  }
-}
-</style>
-
-<div class="product-card">
-  <img src="/Leilife/public/assests/image 3 (2).png" 
-       alt="Spanish Latte + Classic Tiramisu" 
-       class="product-image">
   <div class="product-info">
-    <div class="info-wrapper">
-      <p class="product-title">Spanish Latte + Classic Tiramisu</p>
-    </div>
+    <p class="product-title"><?php echo htmlspecialchars($title); ?></p>
     <div class="product-actions">
-      <p class="product-price">₱ 99.00</p>
-      <button class="buy-btn">Buy</button>
+      <p class="product-price">₱<?php echo htmlspecialchars($price); ?></p>
+      <?php if ($status === 'available'): ?>
+        <button class="buy-btn">Buy</button>
+      <?php else: ?>
+        <span class="unavailable-label">Unavailable</span>
+      <?php endif; ?>
     </div>
   </div>
 </div>
+

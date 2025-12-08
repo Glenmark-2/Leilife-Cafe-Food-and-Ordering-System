@@ -1,0 +1,370 @@
+/* ==============================
+   ✅ PAGE LAYOUT FIX
+============================== */
+#pageContent {
+  flex: 1;
+  padding-bottom: 100px; /* space before footer */
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh; /* ensures footer never overlaps */
+}
+
+/* ==============================
+   ✅ PRODUCT CONTAINER (DESKTOP)
+============================== */
+.product-section {
+  padding: 60px 0;
+}
+
+.product-container {
+  margin: 0 auto;
+  width: 60%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 30px;
+}
+
+.product-image-wrapper {
+  flex: 1;
+  width: 100%;
+}
+
+.product-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  margin: 0;
+}
+
+.product-details {
+  flex: 1.2;
+  background-color: aliceblue;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* ==============================
+   ✅ HEADER (TITLE + HEART)
+============================== */
+.product-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+#heartBtn {
+  border: 2px solid black;
+  background: transparent;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#heartBtn.active {
+  background-color: #08284f;
+  color: white;
+  border-color: #08284f;
+}
+
+/* ==============================
+   ✅ FLAVOR SECTION
+============================== */
+.flavor-section h3 {
+  text-align: left;
+  margin-bottom: 10px;
+}
+
+.flavor-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 20px;
+}
+
+.flavor-option {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 14px;
+  font-weight: 500;
+  color: #222;
+  line-height: 1.2;
+}
+
+.flavor-option input[type="radio"],
+.flavor-option input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  accent-color: #0077cc;
+  transform: scale(0.85);
+  vertical-align: middle;
+}
+
+/* Extra tweak for smaller screens */
+@media (max-width: 480px) {
+  .flavor-option input[type="radio"],
+  .flavor-option input[type="checkbox"] {
+    width: 12px;
+    height: 12px;
+    transform: scale(0.8);
+    margin-right: 6px;
+  }
+}
+
+/* ==============================
+   ✅ PRICE & QUANTITY
+============================== */
+#price-display {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.quantity-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.quantity-container button {
+  width: 35px;
+  height: 35px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quantity-container button:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.05);
+}
+
+#quantity {
+  width: 50px;
+  height: 35px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* ==============================
+   ✅ RESPONSIVE DESIGN
+============================== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .product-container {
+    width: 90%;
+    gap: 20px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .product-container {
+    flex-direction: row;
+    width: 90%;
+    gap: 25px;
+  }
+
+  .product-image-wrapper {
+    width: 100%;
+  }
+
+  .product-details {
+    width: 50%;
+    padding: 20px;
+  }
+
+  .flavor-options {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .product-header h2 {
+    font-size: 18px;
+  }
+
+  #heartBtn {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+  }
+
+  .product-image {
+    width: 100%;
+  }
+}
+
+/* Very Small Mobile (image on top, info below) */
+@media (max-width: 480px) {
+  .product-container {
+    flex-direction: column;
+    align-items: center;
+    width: 85%;
+    margin: 0 auto;
+  }
+
+  .product-image-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .product-image {
+    width: 80%;
+  }
+
+  .product-details {
+    width: 95%;
+    padding: 20px;
+    margin-top: 15px;
+  }
+
+  .flavor-options {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 10px;
+  }
+
+  .quantity-container button {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+  }
+
+  #quantity {
+    width: 40px;
+  }
+
+  /* ✅ Mobile-specific button width */
+  #add-to-cart-btn {
+    width: 240px !important;
+    display: block;
+    margin: 0 auto;
+  }
+}
+
+/* Tiny devices (like older phones) */
+@media (max-width: 400px) {
+  #add-to-cart-btn {
+    width: 220px !important;
+  }
+}
+/* 🔹 Shared Overlay Style */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.25s ease;
+}
+
+/* 🔹 Modal Box */
+.modal-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px 30px;
+  text-align: center;
+  width: 90%;
+  max-width: 320px;
+  box-shadow: 0 4px 25px rgba(0,0,0,0.15);
+  animation: popIn 0.25s ease;
+}
+
+.modal-box h3 {
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 18px;
+}
+
+.modal-box p {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* 🔹 Confirmation Buttons */
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.modal-actions button {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.modal-actions .yes {
+  background: #8b6f47;
+  color: #fff;
+}
+
+.modal-actions .yes:hover { background: #6c5735; }
+
+.modal-actions .no {
+  background: #f1f1f1;
+}
+
+.modal-actions .no:hover { background: #e0e0e0; }
+
+/* 🔹 Success Modal Custom */
+.modal-box.success {
+  padding: 30px 25px;
+}
+
+.checkmark {
+  width: 60px;
+  height: 60px;
+  background: #8b6f47;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 10px;
+  animation: scaleIn 0.4s ease;
+}
+
+/* 🔹 Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes scaleIn {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}

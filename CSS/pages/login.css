@@ -1,0 +1,298 @@
+#login-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* darker background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  overflow-y: auto; /* allow scroll if content too tall */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Modal container */
+#box-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    background-color: rgb(255, 255, 255);
+    padding: 40px 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    max-width: 380px;  
+    width: 80%;       
+    border-radius: 20px;
+    font-family: Arial, sans-serif;
+    z-index: 1000;
+    
+    margin-top: 40px;
+    word-wrap: break-word;
+}
+
+
+/* Close button */
+#close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #333;
+}
+
+#close-btn:hover {
+    color: red;
+}
+
+/* Content inside the modal */
+#box-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+}
+
+/* Image and heading */
+#box-content img {
+    height: 100px;
+    width: 100px;
+}
+
+#box-content h1 {
+    text-align: center;
+    margin: 0;
+}
+
+/* Form */
+#login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 300px;
+    align-items: flex-start;
+    
+}
+
+label {
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    height: 40px;
+    background-color: #f4f4f4;
+    border: none;
+    border-radius: 5px;
+    padding-left: 10px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+/* Login button */
+button.login-btn {
+    width: 100%;
+    padding: 10px 0;
+    background-color: #22333c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 15px;
+    margin-bottom: 0;
+}
+
+button.login-btn:hover {
+    background-color: #445566;
+}
+
+/* Continue with Google button */
+button.google-btn {
+    width: 100%;
+    padding: 5px;
+    background-color: white;
+    color: #444;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+button.google-btn img {
+    height: 20px;
+    width: 20px;
+}
+
+button.google-btn:hover {
+    background-color: #f4f4f4;
+}
+
+/* Forgot password button */
+#forgot-pass {
+    border: none;
+    background-color: transparent;
+    color: red;
+    padding: 0;
+    margin-top: -10px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* Terms & Conditions */
+.terms {
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+    max-width: 300px;
+}
+
+/* Sign up section */
+.signup {
+    text-align: center;
+    font-size: 14px;
+    height: fit-content;
+}
+
+.signup button {
+    background: transparent;
+    border: none;
+    color: red;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.signup button:hover {
+    text-decoration: underline;
+}
+/* Error messages */
+#login-error-container.error-messages {
+    width: 75%;
+    color: red;
+    font-size: 13px;
+    margin-top: 3px;
+    white-space: normal;       
+    overflow-wrap: break-word;  /* ✅ break long text */
+    word-break: break-word;     /* ✅ fallback */
+    line-height: 1.4;
+    text-align: center;
+}
+
+
+#login-error-container.error-messages p {
+    margin: 4px 0;
+    padding: 2px;
+    background: #ffe5e5;
+    border-radius: 5px;
+}
+
+#spinner:empty,
+#login-error-container.error-messages:empty {
+    display: none;   /* Hide completely when empty */
+}
+
+
+
+/* ===========================
+   🔷 RESPONSIVE ADJUSTMENTS
+=========================== */
+
+/* ✅ Tablet */
+@media (max-width: 768px) {
+  #box-container {
+    max-width: 320px;
+    padding: 30px 18px;
+  }
+
+  #box-content img {
+    width: 85px;
+    height: 85px;
+  }
+
+  #box-content h1 {
+    font-size: 22px;
+  }
+
+  input {
+    height: 40px;
+    font-size: 13.5px;
+  }
+}
+
+/* ✅ Mobile */
+@media (max-width: 480px) {
+  #box-container {
+    width: 70%;
+    max-width: 330px;
+    padding: 25px 30px;
+  }
+
+  #box-content img {
+    width: 70px;
+    height: 70px;
+  }
+
+  #box-content h1 {
+    font-size: 20px;
+  }
+
+  input {
+    height: 38px;
+    font-size: 13px;
+  }
+
+  button.login-btn {
+    font-size: 15px;
+    padding: 9px 0;
+  }
+
+  button.google-btn {
+    font-size: 14px;
+    padding: 7px;
+  }
+
+  .terms {
+    font-size: 11px;
+    max-width: 100%;
+  }
+
+  .signup {
+    font-size: 12px;
+  }
+}
+
+/* ===========================
+   🔷 ANIMATIONS
+=========================== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+/* Success message styling */
+#login-error-container .success {
+  color: green;
+  background: #e6ffe6 !important; 
+  border-radius: 5px;
+  padding: 4px;
+  font-size: 13px;
+  margin: 4px 0;
+  text-align: center;
+  font-weight: 500;
+}

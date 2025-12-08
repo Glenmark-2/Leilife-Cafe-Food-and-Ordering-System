@@ -1,221 +1,167 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) session_start();
+require_once "../backend/db_script/db.php";
+require_once "../backend/db_script/appData.php";
+
+$appData = new AppData($pdo);
+
+$guestToken = $_COOKIE['guest_token'] ?? null;
+$cartCount = $appData->cartCounter($_SESSION['user_id'] ?? null, $guestToken);
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Leilife Cafe</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Leilife Cafe & Resto</title>
+  <link rel="icon" type="image/png" href="../public/assests/Mask group.png">
+
+
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="public/assests/global.css">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background-color: #ebe8e2;
+  <!-- always needed -->
+  <link rel="stylesheet" href="../CSS/components/header.css">
+  <link rel="stylesheet" href="../CSS/components/footer.css">
+  <!-- cart and login modal are global, i still cant include this below, but it doesnt effect other displays -->
+  <link rel="stylesheet" href="../CSS/pages/cart.css">
+  <link rel="stylesheet" href="../CSS/pages/login.css">
+  <!-- Page-Specific -->
+  <?php
+  $page_styles = include __DIR__ . '/../backend/config/style_config.php';
+  if (isset($page_styles[$page])) {
+    foreach ($page_styles[$page] as $css_file) {
+      echo '<link rel="stylesheet" href="' . $css_file . '">' . PHP_EOL;
     }
+  }
 
-    .navbar {
-      background-color: #d0b28c;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.5rem 2rem;
-      position: relative;
-      z-index: 1000;
-    }
+  // if (isset($page_styles[$page])) {
+  //     foreach ($page_styles[$page] as $css_file) {
+  //         echo '<link rel="stylesheet" href="' . $css_file . '">' . PHP_EOL;
+  //     }
+  // }
+  ?>
 
-    /* Logo */
-    .navbar-brand img {
-      height: 60px;
-    }
 
-    /* Desktop menu */
-    .navbar-nav {
-      list-style: none;
-      display: flex;
-      gap: 2rem;
-      margin: 0;
-      padding: 0;
-    }
-
-    .navbar-nav .nav-link {
-      text-decoration: none;
-      color: #2c2c2c;
-      font-weight: 600;
-      transition: color 0.3s ease;
-    }
-
-    .navbar-nav .nav-link:hover {
-      color: #6c5f46;
-    }
-
-    .navbar-actions {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .btn-link {
-      text-decoration: none;
-      color: #2c2c2c;
-      font-weight: 600;
-    }
-
-    .btn-link:hover {
-      color: #6c5f46;
-    }
-
-    .btn-dark {
-      background-color: #2c2c2c;
-      color: #fff;
-      text-decoration: none;
-      padding: 0.4rem 1rem;
-      border-radius: 50px;
-      font-weight: 600;
-      transition: background 0.3s ease;
-    }
-
-    .btn-dark:hover {
-      background-color: #6c5f46;
-    }
-
-    /* Burger */
-    .burger {
-      display: none;
-      flex-direction: column;
-      cursor: pointer;
-      gap: 6px;
-      z-index: 1100;
-    }
-
-    .burger div {
-      width: 28px;
-      height: 3px;
-      background-color: #2c2c2c;
-      transition: all 0.4s ease;
-    }
-
-    /* Burger animation */
-    .burger.active div:nth-child(1) {
-      transform: rotate(45deg) translate(5px, 5px);
-    }
-    .burger.active div:nth-child(2) {
-      opacity: 0;
-    }
-    .burger.active div:nth-child(3) {
-      transform: rotate(-45deg) translate(5px, -5px);
-    }
-
-/* Dropdown Menu (Mobile) */
-    .mobile-menu {
-      display: none;
-      flex-direction: column;
-      background: #fff;
-      width: 100%;
-      text-align: center;
-      border-radius: 0 0 40px 40px;
-      overflow: hidden;
-      animation: slideDown 0.3s ease forwards;
-    }
-
-    .mobile-menu.show {
-      display: flex;
-    }
-
-    .mobile-menu a {
-      padding: 1rem;
-      text-decoration: none;
-      color: #2c2c2c;
-      font-weight: 600;
-      border-bottom: 1px solid #eee;
-    }
-
-    .mobile-menu a:hover {
-      background: #f5f3ef;
-    }
-
-    /* Style divider between main links and auth links */
-    .mobile-menu .auth-links {
-      display: flex;
-      flexDirection: row;
-      justify-content: center;
-      align-items: center;
-      border-top: 1px solid #ccc;
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Responsive rules */
-    @media (max-width: 768px) {
-      .navbar-nav,
-      .navbar-actions {
-        display: none; /* hide desktop menus */
-      }
-      .burger {
-        display: flex;
-      }
-    }
-  </style>
 </head>
-<body>
+<style>
+  .cart-container {
+    position: relative;
+    display: inline-block;
+  }
 
-<!-- Navbar -->
-<nav class="navbar">
-  <!-- Logo -->
-  <a class="navbar-brand" href="index.php?page=home">
-    <img src="\Leilife\public\assests\Mask group.png" alt="Logo">
-  </a>
+  .cart-badge {
+    position: absolute;
+    top: -5px;
+    /* adjust vertical position */
+    right: -5px;
+    /* adjust horizontal position */
+    background-color: red;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 50%;
+    border: 1px solid white;
+    /* optional */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
+</style>
 
-  <!-- Burger -->
-  <div class="burger" id="burger">
-    <div></div>
-    <div></div>
-    <div></div>
+<body class="has-fixed-nav">
+
+  <!-- Navbar -->
+  <nav class="navbar" id="siteNav">
+    <!-- Logo -->
+    <a class="navbar-brand" id="logo" href="index.php?page=home">
+      <img src="/Leilife/public/assests/Mask group.png" alt="Logo">
+    </a>
+
+    <!-- Burger -->
+    <button class="burger" id="burger" aria-label="Toggle menu">
+      <div></div>
+      <div></div>
+      <div></div>
+    </button>
+
+    <!-- Desktop Menu -->
+    <ul class="navbar-nav desktop-menu">
+      <li><a class="nav-link" href="index.php?page=menu">Menu</a></li>
+      <li><a class="nav-link" href="index.php?page=home#about-us">About</a></li>
+      <li><a class="nav-link" href="index.php?page=home#contact-section">Contact</a></li>
+    </ul>
+
+    <!-- Right side buttons (dynamic desktop) -->
+    <div class="navbar-actions">
+      <?php if (isset($_SESSION['user_id'])): ?>
+        <a href="index.php?page=user-profile" class="btn-link">Profile</a>
+        <a href="../backend/logout.php" class="btn-dark">Sign out</a>
+        <a href="#" id="cartBtn" class="cart-container">
+          <img src="../public/assests/cart.png" alt="cart" id="cartImg">
+          <?php if ($cartCount > 0): ?>
+            <span class="cart-badge" id="cart-count"><?= $cartCount ?></span>
+          <?php endif; ?>
+        </a>
+
+
+        </a>
+      <?php else: ?>
+        <a href="#" id="loginBtn" class="btn-link">Login</a>
+        <a href="index.php?page=signUp" class="btn-dark">Sign Up</a>
+
+        <a href="#" id="cartBtn" class="cart-container">
+          <img src="../public/assests/cart.png" alt="cart" id="cartImg">
+          <?php if ($cartCount > 0): ?>
+            <span class="cart-badge" id="cart-count"><?= $cartCount ?></span>
+          <?php endif; ?>
+        </a>
+
+      <?php endif; ?>
+    </div>
+  </nav>
+
+  <!-- Mobile Dropdown Menu -->
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <a href="index.php?page=menu">Menu</a>
+    <a href="index.php?page=home#about-us">About</a>
+    <a href="index.php?page=home#contact-section">Contact</a>
+
+
+    <!-- Dynamic auth links (mobile) -->
+    <div class="auth-links">
+      <?php if (isset($_SESSION['user_id'])): ?>
+        <a href="index.php?page=user-profile">Profile</a>
+        <a href="../backend/logout.php">Sign out</a>
+
+      <?php else: ?>
+        <a href="#" id="loginBtnMbl">Login</a>
+        <a href="index.php?page=signUp">Sign Up</a>
+      <?php endif; ?>
+    </div>
   </div>
 
-  <!-- Desktop Menu -->
-  <ul class="navbar-nav desktop-menu">
-    <li><a class="nav-link" href="index.php?page=menu">Menu</a></li>
-    <li><a class="nav-link" href="index.php?page=about">About</a></li>
-    <li><a class="nav-link" href="index.php?page=contact">Contact</a></li>
-  </ul>
-
-  <!-- Desktop Actions -->
-  <div class="navbar-actions desktop-menu">
-    <a href="index.php?page=login" class="btn-link">Login</a>
-    <a href="index.php?page=signUp" class="btn-dark">Sign Up</a>
+  <div id="loginModal" style="display: none;">
+    <?php include "../pages/login.php" ?>
   </div>
-</nav>
 
-<!-- Mobile Dropdown -->
-<div class="mobile-menu" id="mobileMenu">
-  <a href="index.php?page=menu">Menu</a>
-  <a href="index.php?page=about">About</a>
-  <a href="index.php?page=contact">Contact</a>
-  <div class="auth-links">
-    <a href="index.php?page=login">Login</a>
-    <a href="index.php?page=signUp">Sign Up</a>
+
+  <div id="signOutModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <h3>Confirm Sign Out</h3>
+      <p>Are you sure you want to sign out of your account?</p>
+      <div class="modal-actions">
+        <button id="cancelSignOut" class="btn-outline">Cancel</button>
+        <a href="../backend/logout.php" id="confirmSignOut" class="btn-dark">Sign Out</a>
+      </div>
+    </div>
   </div>
-</div>
 
-
-<script>
-  const burger = document.getElementById("burger");
-  const mobileMenu = document.getElementById("mobileMenu");
-
-  burger.addEventListener("click", () => {
-    burger.classList.toggle("active");
-    mobileMenu.classList.toggle("show");
-  });
-</script>
-
-
+  <script src="../Scripts/components/header.js"></script>

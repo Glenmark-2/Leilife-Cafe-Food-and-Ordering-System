@@ -1,0 +1,523 @@
+:root {
+    --bg:#f4f6f9;;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --text: #111827;
+    --muted: #6b7280;
+    --accent: #1a353c;;
+    --accent-dark: #415863;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --radius: 12px;
+    font-family: "Poppins", "Inter", sans-serif;
+}
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  background:#f4f6f9;
+}
+/* Base Styles */
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* Container */
+.container1 {
+   margin:20px 20px auto 20px;
+    box-sizing: border-box;
+}
+
+/* Row layout */
+#first-row {
+  display: flex;
+  flex-direction: column; /* stack: top row then export buttons */
+  gap: 10px;
+}
+
+/* Top section: hamburger + title side by side */
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Title styling */
+.top-left h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #1a353c;
+}
+
+/* Hamburger button */
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 26px;
+  height: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hamburger span {
+  display: block;
+  height: 3px;
+  background-color: #1a353c;;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+
+/* Export buttons (right side) */
+.export-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.export-buttons button {
+  padding: 6px 12px;
+  border: none;
+  background-color: #1a353c;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.export-buttons button:hover {
+  background-color: #2e5b64;
+}
+@media (min-width: 768px) {
+  .hamburger {
+    display: none;
+  }
+}
+/* Responsive */
+
+
+/* Filters */
+.filters {
+  background-color: var(--white);
+  padding: 15px 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-group label {
+  font-weight: 600;
+}
+
+select, input[type="date"] {
+  padding: 7px 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* Table Container */
+#table-container {
+    background: var(--card);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
+    padding: 22px;       /* keep container padding */
+    margin-top: 30px !important;
+    border: 1px solid var(--border);
+    
+    
+}
+
+
+
+
+.staff-table thead {
+    border-bottom: 2px solid var(--border);
+}
+
+
+
+.staff-table th:last-child {
+    text-align: center;
+    width: 140px;
+}
+
+
+.staff-table tr:hover {
+    background: #f9fafb;
+}
+
+.staff-table tr.unread td {
+    font-weight: 600;
+    background-color: #fef9f6;
+}
+
+.staff-table th{
+  text-align: left;
+}
+
+
+
+
+
+
+
+/* Container stays the same */
+
+
+/* Scrollable wrapper around the table */
+.table-wrapper {
+    height: 70vh;   /* or whatever height you want the table scroll area to be */
+    overflow-y: auto;    /* vertical scroll */
+    overflow-x: auto;    /* horizontal scroll if table is wider */
+}
+
+/* Table styling */
+.staff-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+/* Sticky headers */
+.staff-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--card);
+    z-index: 2;
+    border-bottom: 2px solid var(--border);
+}
+
+/* Table cells */
+.staff-table th,
+.staff-table td {
+    padding: 10px 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Scrollbar styling for table only */
+.table-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #355b65;
+    border-radius: 6px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: #e6e2dc;
+}
+
+.actions button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.view-btn {
+    background: #1a353c;
+    color: floralwhite;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-btn:hover {
+    background: #355b65;
+    transform: translateY(-1px);
+}
+
+.export-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.export-buttons button {
+    border: none;
+    border-radius: 8px;
+    padding: 0 14px;
+    cursor: pointer;
+    font-weight: 600;
+    text-transform: capitalize;
+    transition: all 0.25s ease;
+    color: #fff;
+    background-color: var(--accent);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.export-buttons button:hover {
+    background-color: var(--accent-dark);
+    transform: translateY(-1px);
+}
+
+
+#detailsModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  font-family: "Poppins", sans-serif;
+}
+
+/* === Modal Card === */
+#detailsModal .modal-card {
+  background: var(--card, #fff);
+  border-radius: var(--radius, 12px);
+  width: 520px;
+  max-width: 90%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  animation: popIn 0.3s ease;
+}
+
+/* === Header === */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f5f5f5;
+  padding: 12px 20px;
+  border-bottom: 1px solid #ddd;
+}
+.modal-header h2 {
+  font-size: 18px;
+  margin: 0;
+}
+.modal-close {
+font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
+  }
+.modal-close:hover {
+  color: #000;
+}
+
+/* === Info Section === */
+.modal-info {
+  padding: 15px 20px;
+  font-size: 14px;
+}
+.modal-info p {
+  margin: 5px 0;
+  color: #333;
+}
+.modal-info strong {
+  display: inline-block;
+  width: 90px;
+  color: #555;
+}
+
+/* === Body (Scrollable Items List) === */
+.modal-body {
+  background: #fafafa;
+  padding: 18px 20px;
+  font-size: 14px;
+  color: #222;
+  line-height: 1.6;
+  flex: 1;
+  overflow-y: auto;
+}
+.modal-body h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 15px;
+}
+.modal-body ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.modal-body li {
+  margin-bottom: 6px;
+}
+
+/* === Footer Buttons === */
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 20px;
+  background: #f5f5f5;
+  border-top: 1px solid #ddd;
+}
+.modal-buttons button {
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+#closeMessageBtn {
+  background: #d8c3a7;
+  color: #5b4b35;
+}
+#closeMessageBtn:hover {
+  background: #c0a78a;
+}
+
+/* === Animation === */
+@keyframes popIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+/* ===== Responsive Table-to-Card for Mobile ===== */
+@media (max-width: 768px) {
+  .table-wrapper {
+    width: 100%;
+    overflow-x: visible;
+  }
+.table-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+  .staff-table,
+  .staff-table thead,
+  .staff-table tbody,
+  .staff-table th,
+  .staff-table td,
+  .staff-table tr {
+    display: block;
+    width: auto;
+  }
+
+  .staff-table thead {
+    display: none; /* hide table headers */
+  }
+
+  .staff-table tr {
+    background: var(--card);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+    padding: 12px 14px;
+  }
+
+  .staff-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 14px;
+    border-bottom: 1px dashed var(--border);
+  }
+
+  .staff-table td:last-child {
+    border-bottom: none;
+  }
+
+  /* Label before each cell */
+  .staff-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: capitalize;
+    flex: 0 0 40%;
+  }
+
+  .staff-table td > * {
+    flex: 1;
+    text-align: right;
+  }
+
+  /* Buttons and actions inside cards */
+  .view-btn,
+  .actions button {
+    width: auto;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .actions-cell {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+ 
+  #first-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .container1{
+    margin:10px 15px 0px 15px;
+    width: 90%;
+  }
+  .export-buttons {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    
+  }
+
+  .export-buttons button {
+    flex: 1;
+    padding: 3px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  select, input[type="date"] {
+   padding: 5px 5px;
+   font-size: 12px;
+   ;
+  }
+  .table-wrapper::-webkit-scrollbar {
+    display: none;
+}
+}
+
+
+

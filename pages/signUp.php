@@ -1,103 +1,148 @@
+<!-- pages/signUp.php (or wherever you render the page) -->
+<div id="body-container">
+  <div id="title">
+    <h1>Ready to sign up to Leilife?</h1>
+    <p id="subtitle">Tell us more about you so we can give you a better delivery experience.</p>
+  </div>
+
+  <div id="box">
+    <?php
+      if (session_status() === PHP_SESSION_NONE) session_start();
+      if (!isset($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+      }
+    ?>
+
+        <!-- Error container -->
+        <div id="error-container" class="error-messages" style="display: none;">
+            <?php
+            if (!empty($_SESSION['signup_errors'])) {
+                foreach ($_SESSION['signup_errors'] as $error) {
+                    echo '<p class="error">' . htmlspecialchars($error) . '</p>';
+                }
+                // force display if PHP errors exist
+                echo "<script>document.getElementById('error-container').style.display = 'block';</script>";
+                unset($_SESSION['signup_errors']);
+            }
+            ?>
+        </div>
+
+
+    <form id="signup-form"
+          action="/Leilife/backend/signUp.php"
+          method="POST"
+          novalidate>
+      <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+
+      <legend>User Details</legend>
+      <div class="sign-up-form">
+        <!-- <label for="fname">First Name <span class="required">*</span></label> -->
+        <input type="text" id="fname" name="fname" maxlength="100" required placeholder="First name" autocomplete="given-name">
+            
+        <!-- <label for="lname">Last Name <span class="required">*</span></label> -->
+        <input type="text" id="lname" name="lname" maxlength="100" required placeholder="Last name" autocomplete="family-name">
+      </div>
+      
+        <br>
+      <legend>Login & Contact Details</legend>
+      <div class="sign-up-form">
+        <!-- <label for="email">Email <span class="required">*</span></label> -->
+        <input type="email" id="email" name="email" required placeholder="Email address" autocomplete="email">
+
+        <!-- <label for="phone_number">Phone Number <span class="required">*</span></label> -->
+        <input type="tel" id="phone_number" name="phone_number" required placeholder="Phone number" pattern="^\+?\d{7,15}$" autocomplete="tel">
+
+        <!-- <label for="password">Password <span class="required">*</span></label> -->
+        <input type="password" id="password" name="password" required placeholder="Password" minlength="8" autocomplete="new-password">
+
+        <!-- <label for="confirm_password">Confirm Password <span class="required">*</span></label> -->
+        <input type="password" id="confirm_password" name="confirm_password" required placeholder="Confirm password" minlength="8" autocomplete="new-password">
+      </div>
+
+      <div class="checkbox-container">
+        <input type="checkbox" name="terms" id="terms" required>
+        <label for="terms">
+          By registering your details, you agree with our
+          <a href="#" id="openTerms">Terms & Conditions</a>.</label>
+      </div>
+
+      <center>
+        <?php
+          include "../components/buttonTemplate.php";
+          echo createButton(45, 360, "Create your Account", "create-btn", 16, "submit");
+        ?>
+      </center>
+    </form>
+  </div>
+</div>
+
+<!-- Terms & Conditions Modal -->
+<div id="termsModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Terms & Conditions</h2>
+    <p>Welcome to Leilife! Before creating your account, please read our terms:</p>
+    <ul>
+      <li>You agree to provide accurate personal information.</li>
+      <li>Your account is personal and cannot be shared.</li>
+      <li>Orders are subject to our refund and cancellation policies.</li>
+      <li>We may update these terms from time to time.</li>
+    </ul>
+    <p>
+      By signing up, you acknowledge that you have read and agreed to these Terms & Conditions.
+    </p>
+  </div>
+</div>
+
+
+
 <style>
-    #body-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-    }
-
-    #title {
-        text-align: center;
-        font-size: 20px;
-    }
-
-    #subtitle {
-        margin-top: -20px;
-        font-size: 15px;
-    }
-
-    #box {
-
-        background-color: white;
-        padding: 40px;
-        border-radius: 25px;
-
-    }
-
-    .input-box {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 30px;
-    }
-
-    .input-box input {
-        flex: 1 1 calc(50% - 30px);
-        box-sizing: border-box;
-    }
-
-    input {
-        width: 15vw;
-        height: 6vh;
-        background-color: #f4f4f4;
-        border: none;
-        border-radius: 5px;
-        padding-left: 10px;
-
-    }
-
-    .label-input {
-        font-weight: bolder;
-    }
-
-.terms-check {
-  display: flex;
-  align-items: center; 
-  gap: 8px;           
-  font-size: 14px;
-  line-height: 1.4;
-  margin-top: 15px;
-}
-
-.terms-check input {
-  width: 16px;   
-  height: 16px;
-  transform: none;  
-  margin: 0;         
-}
-
-
-    
+  /* Hide the error box if empty */
+  #error-container:empty { display: none; }
 </style>
 
-<div id="body-container">
-    <div id="title">
-        <h1>Ready to sign up to Leilife?</h1>
-        <p id="subtitle">Tell us more about you so we can give you a better delivery experience.</p>
-    </div>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("termsModal");
+    const openBtn = document.getElementById("openTerms");
+    const closeBtn = modal.querySelector(".close");
 
-    <div id="box">
-        <p class="label-input">User Details</p>
-        <div class="input-box">
-            <input type="text" name="fname" required placeholder="First name">
-            <input type="text" name="lname" required placeholder="Last name">
-        </div>
+    // Open modal
+    openBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      modal.style.display = "block";
+    });
 
-        <p class="label-input">Login & Contact Details</p>
-        <div class="input-box">
-            <input type="email" name="email" required placeholder="Email address">
-            <input type="tel" name="phone_number" required placeholder="Phone number">
-            <input type="password" name="password" required placeholder="Password">
-            <input type="password" name="confirm_password" required placeholder="Password">
-        </div>
-        <label class="terms-check">
-        <input  type="checkbox" id="agree" name="agree" required>
-            By registering your details, you agree with our 
-            <a href="/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a>.
-        </label>
-        <div class="card-button">
-        <?php 
-        $Text = "Sign Up";
-         include "../components/button.php"; ?>
-         </div>
-    </div>
-</div>
+    // Close modal
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    // Close when clicking outside modal
+    window.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  });
+</script>
+
+
+<!-- Watchdog: set a flag; the JS must flip it to "ready" -->
+<script>
+  window.__signupJSReady = false;
+</script>
+
+<!-- Use an ABSOLUTE path + cache-buster -->
+<script src="/Leilife/Scripts/pages/sign-up.js?v=4" defer></script>
+
+<!-- If the JS never flips the flag, surface a clear console message -->
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      if (!window.__signupJSReady) {
+        console.error('[signup] sign-up.js did not initialize. Check script path, 404s, or console errors.');
+      }
+    }, 0);
+  });
+</script>

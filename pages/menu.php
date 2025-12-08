@@ -1,77 +1,100 @@
-<style>
-.background-color {
-    background-color: #D9D9D9;
-    height: 70px;
-    font-size: 50px; 
-    margin: 0;
-    padding: 0;
-    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+<?php
+// keep your original server-side includes exactly as before
+include "../components/buttonTemplate.php";
+$appData->loadCategories();
+$appData->adminloadProducts(false);
+?>
+<!-- Yellow Pull-to-Reveal Header (kept) -->
+<div class="menu-header" id="menuHeader">
+  <div class="menu-header-inner">
+    <h1 class="menu-title">Our Menu</h1>
+    <p class="menu-tagline">Discover delicious meals crafted with love and served fresh daily.</p>
+  </div>
+</div>
 
-.background-color .tagline {
-    max-width: 1000px;    /* same as .menu */
-    width: 100%;
-    margin: 0 auto;
-    padding: 0 20px;      /* same horizontal padding */
-    font-size: 18px;
-    text-align: left;     /* aligned with menu */
-}
+<!-- Menu Sheet -->
+<div class="menu" id="menuSheet">
 
-
-.menu {
-    max-width: 1000px;   /* enough space for 5 cards (250px each + gaps) */
-    margin: 50px auto;   /* center the whole section */
-    padding: 0 20px;
-    text-align: center;
-}
-
-.menu-cards {
-    margin-top: 10px;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr); /* exactly 5 cards per row */
-    gap: 20px; /* space between cards */
-    justify-items: center; /* center cards inside grid cells */
-}
-.category-title{
-    text-align: left;
-    margin: 50px 0 10px ;
-    font-size: 30px;
-}
-
-
-
-</style>
-<div class="background-color">
-    <h6 class="tagline">When Coffee Meets Good Food, Great Conversations Begin.</h6>
+  <!-- Main Category Buttons -->
+  <div class="category-buttons category-bar" id="categoryButtons">
+    <?php
+    $mainCategories = [];
+    foreach ($appData->categories as $cat) {
+      $mainCatName = $cat['main_category_name'] ?? '';
+      if ($mainCatName && !in_array($mainCatName, $mainCategories)) {
+        $mainCategories[] = $mainCatName;
+        echo createButton(
+          45,                
+          160,               
+          $mainCatName,      
+          strtolower(str_replace(' ', '-', $mainCatName)), 
+          15,                
+          "button",          
+          ["data-category" => $mainCatName] 
+        );
+      }
+    }
+    ?>
+  </div>
+    <!-- Compact Mobile Category Header -->
+<div class="mobile-category-header" id="mobileCategoryHeader">
+  <button class="scroll-btn left" id="scrollLeftBtn">&#10094;</button>
+  <div class="mobile-category-scroll" id="mobileCategoryScroll">
+    <?php
+    $mainCategories = [];
+    foreach ($appData->categories as $cat) {
+      $mainCatName = $cat['main_category_name'] ?? '';
+      if ($mainCatName && !in_array($mainCatName, $mainCategories)) {
+        $mainCategories[] = $mainCatName;
+        echo "<button class='mobile-cat-btn' data-category='$mainCatName'>$mainCatName</button>";
+      }
+    }
+    ?>
+  </div>
+  <button class="scroll-btn right" id="scrollRightBtn">&#10095;</button>
 </div>
 
 
-<div class="menu">
-    <div class="category-buttons">
-    <?php $Text = "Meal"; include '../components/button.php' ?>
-    <?php $Text = "Drinks";include '../components/button.php' ?>
-    <?php $Text = "Featured";include '../components/button.php' ?>
-    </div>
-    <div class="category-title">Rice Meal</div>
-    </h2>
-    <div class="menu-cards">
-    <?php $name = "Tiramisu" ;$price =  "100" ; $image = "../public/assests/image-43.png" ;include '../partials/menu-card.php'?>
-    <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
-    <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
-    <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
-    <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
-    </div>
-     <div class="category-title">Rice Meal</div>
-    </h2>
-    <div class="menu-cards">
-    <?php $name = "Tiramisu" ;$price =  "100" ; $image = "../public/assests/image-43.png" ;include '../partials/menu-card.php'?>
-    <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
-    <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
-    <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
-    <?php $name = "Tiramisu" ;$price = "100" ;$image = "../public/assests/image-43.png";include '../partials/menu-card.php'?>
-    
 
+  <!-- Subcategories & Products -->
+  <?php foreach ($appData->categories as $cat): ?>
+    <?php
+      $mainCatName = $cat['main_category_name'] ?? '';
+      $categoryName = $cat['category_name'] ?? '';
+    ?>
+    <div class="category-section" data-main-category="<?= htmlspecialchars($mainCatName) ?>">
+      <div class="category-title">
+        <?= htmlspecialchars(ucwords(str_replace('_', ' ', $categoryName))) ?>
+      </div>
+
+      <!-- Left/Right Slide Buttons
+      <button class="slide-btn slide-left">&#10094;</button>
+      <button class="slide-btn slide-right">&#10095;</button> -->
+
+      <div class="menu-cards">
+        <?php foreach ($appData->products as $product): ?>
+          <?php if (($product['category_name'] ?? '') === $categoryName): ?>
+            <?php
+              $name  = $product['product_name'] ?? '';
+              $price = $product['product_price'] ?? 0;
+              $image = !empty($product['product_picture'] ?? '')
+                ? "../public/products/" . trim($product['product_picture'])
+                : "../public/assests/image-43.png";
+
+              include '../partials/menu-card.php';
+            ?>
+          <?php endif; ?>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  <?php endforeach; ?>
 </div>
+<?php include '../components/order_button.php'; ?>
+
+<!-- Mobile Floating "View My Bag" Button -->
+<div class="mobile-bag-footer">
+  <button id="mobileBagButton">View my bag</button>
+</div>
+
+<script src="/Leilife/Scripts/pages/menu.js" defer></script>
+

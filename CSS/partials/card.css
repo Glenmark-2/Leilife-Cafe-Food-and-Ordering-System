@@ -1,0 +1,110 @@
+/* Menu-style card */
+.menu-card {
+    width: 180px;
+    height: 260px;               /* fixed height */
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    margin: 5px;
+    display: inline-block;
+    vertical-align: top;
+    background: #DBD8BA;
+    font-family: Arial, sans-serif;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+}
+
+.menu-card-img {
+    width: 100%;
+    height: 70%;                 /* upper 70% for image */
+    object-fit: cover;
+    object-position: top;        /* show top part of image */
+}
+
+.menu-card-body {
+    height: 30%;                 /* remaining 30% for content */
+    padding: 6px 8px 6px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: relative;          /* for price positioning */
+}
+
+.menu-card-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0 0 4px 0;           /* small margin below title */
+    color: #22333c;
+}
+
+.menu-card-price {
+    font-size: 13px;
+    font-weight: bold;
+    color: #5e4f3e;
+    position: absolute;          /* fix at bottom right */
+    bottom: 6px;
+    right: 8px;
+}
+
+.menu-card.unavailable {
+    filter: brightness(0.6);  /* darken card */
+    cursor: default;          /* remove pointer */
+    pointer-events: none;     /* prevent clicks */
+    position: relative;
+}
+
+.unavailable-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-20deg);
+    background-color: rgba(255, 0, 0, 0.7);
+    color: #fff;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    pointer-events: none;
+    text-align: center;
+}
+
+
+/* Mobile adjustments */
+@media (max-width: 520px) {
+    .menu-card {
+        width: 140px;
+        height: 190px;
+        border-radius: 10px;
+    }
+
+    .menu-card-img {
+        height: 65%;
+    }
+
+    .menu-card-body {
+        height: 35%;
+        padding: 4px 6px 4px 6px;
+    }
+
+    .menu-card-title {
+        font-size: 12px;
+    }
+
+    .menu-card-price {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 520px) {
+    .menu-card .menu-card-body .menu-card-title {
+        font-size: 12px !important;
+    }
+
+    .menu-card .menu-card-price {
+        font-size: 11px !important;
+    }
+}

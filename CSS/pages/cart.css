@@ -1,0 +1,247 @@
+/* cart.css - full replacement */
+
+/* -------------------------
+   Basic modal sizing & toggle
+   ------------------------- */
+#cartModal {
+  display: none !important;          /* hidden by default */
+  position: fixed;
+  top: var(--nav-h, 70px);           /* space for header (set by JS) */
+  right: 0;
+  bottom: var(--footer-h, 0px);      /* space for footer (set by JS) */
+  width: 350px;
+  max-width: 400px;
+  background: #fff;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+  z-index: 1000;                     /* below navbar (navbar should have higher z-index) */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;                  /* contain internal scroll */
+}
+
+#check-out:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.7;
+  pointer-events: none;
+  border-color: #bbb;
+}
+
+
+
+/* show state */
+#cartModal.show {
+  display: flex !important;
+}
+
+/* ensure header sits above cart */
+.navbar {
+  z-index: 1100;
+}
+
+/* -------------------------
+   Cart inner wrapper
+   ------------------------- */
+#cart-box {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* small helper */
+.inside-div {
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* -------------------------
+   Top / header area of cart
+   ------------------------- */
+#first-div {
+  flex: 1;                 /* fills available height between top and totals */
+  display: flex;
+  flex-direction: column;
+  margin: 12px;
+  overflow: hidden;        /* inner mid-div will scroll */
+}
+
+#top-div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #d0d0d0;
+  padding: 6px;
+  border-radius: 5px;
+  flex-shrink: 0;          /* keep visible at top */
+}
+
+#top-div img { width: 22px; margin-right: 8px; }
+#top-div p { flex-grow: 1; margin: 0; font-weight: bold; font-size: 13px; }
+
+h3 { margin-top: 15px; margin-bottom: 0; text-align: center; font-size: 14px; }
+
+/* -------------------------
+   Scrollable items list
+   ------------------------- */
+#mid-div {
+  flex: 1;                 /* grows to fill remaining space */
+  overflow-y: auto;        /* scrollable vertical area */
+  -webkit-overflow-scrolling: touch; /* smooth on iOS */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 20px;    /* breathing room above totals */
+  overflow-x: hidden;      /* prevent sideways scroll */
+}
+
+/* item styling */
+.cart-item { display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid #eee; padding:8px 0; }
+.cart-item:last-child { border-bottom:none; }
+
+.trash-btn { background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center; }
+.trash-icon { width:16px; height:16px; object-fit:contain; transition:filter .2s; }
+
+/* qty controls */
+.qty-controls { display:flex; align-items:center; gap:4px; }
+.qty-controls input { width:40px; height:24px; text-align:center; border:none; background:transparent; }
+.qty-controls button { width:22px; height:22px; border-radius:50%; border:none; background:transparent; cursor:pointer; }
+
+/* product text */
+.product-name { flex-grow:1; text-align:left; font-size:13px; }
+.product-price { font-weight:bold; color:#333; min-width:60px; text-align:right; font-size:13px; }
+
+/* -------------------------
+   Totals / checkout pinned
+   ------------------------- */
+#second-div {
+  background-color: #aaa480;
+  padding: 12px;
+  flex-shrink: 0;          /* always visible, don't shrink */
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 2px solid #ddd;
+}
+
+.second-div-content { display:flex; justify-content:space-between; font-size:14px; }
+.checkout-wrapper { display:flex; justify-content:center; margin-top:12px; }
+
+/* -------------------------
+   Desktop -> push content (optional)
+   ------------------------- */
+body.cart-open #pageContent {
+  transition: margin-right .24s ease;
+  margin-right: 350px;    /* same width as cart; JS will adjust on resize if needed */
+}
+
+/* -------------------------
+   Mobile: full-width, full-height "page-like"
+   ------------------------- */
+/* -------------------------
+   Mobile: full-width, full-height "page-like"
+   ------------------------- */
+@media (max-width: 768px) {
+  #cartModal {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    /* 🟢 Add space at top safely */
+    max-height: calc(100vh - 40px); /* leaves 40px gap above modal */
+    margin-top: 20px; /* visible gap, won't overflow since max-height used */
+
+    width: 100%;
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -3px 12px rgba(0,0,0,0.15);
+    overflow: hidden;
+    transform: translateY(0);
+    transition: transform 0.25s ease-out;
+    touch-action: none; /* prevent scroll conflict during drag */
+  }
+
+  /* Ensure it doesn't go under header/footer if JS sets those vars */
+  #cartModal.show {
+    max-height: calc(100vh - var(--nav-h, 56px) - var(--footer-h, 0px) - 20px);
+    max-width: 100%;
+  }
+
+  /* Totals pinned */
+  #second-div {
+    position: sticky;
+    bottom: 0;
+    z-index: 1001;
+  }
+
+  #mid-div {
+    padding-bottom: 80px; /* avoid overlap with sticky totals */
+  }
+
+  #inside-div {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+
+  /* Top drag handle */
+  .cart-drag-handle {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
+    padding-bottom: 4px;
+  }
+
+  .cart-drag-line {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: #ccc;
+    position: relative;
+  }
+
+  /* Optional: make it look like 3 lines */
+  .cart-drag-line::before,
+  .cart-drag-line::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: #ccc;
+  }
+  .cart-drag-line::before { top: -6px; }
+  .cart-drag-line::after { top: 6px; }
+}
+
+#product-name {
+  margin: 0 5px 0 10px;
+}
+body.cart-open {
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Ensure modal actually captures all touch events */
+#cartModal {
+  pointer-events: auto; /* modal receives touch/clicks */
+}
+
+#cartModal.show {
+  pointer-events: auto;
+}
+
+/* Optional overlay for visual dim + blocking touches */
+#cartOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 999; /* below cartModal but above content */
+}
+
